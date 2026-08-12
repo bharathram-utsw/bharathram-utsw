@@ -1,0 +1,204 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NetworkHero from '../components/NetworkHero.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ResearchThemeCard from '../components/ResearchThemeCard.astro';
+import NetworkDivider from '../components/NetworkDivider.astro';
+import NewsCard from '../components/NewsCard.astro';
+import ContactBlock from '../components/ContactBlock.astro';
+import { withBase } from '../lib/url';
+
+const latestNews = (await getCollection('news', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const publications = await getCollection('publications');
+const team = await getCollection('team');
+const pi = team.find((m) => m.data.isPI) ?? team[0];
+---
+
+<BaseLayout title="Mondal Lab">
+  <NetworkHero>
+    <h1 class="network-hero__title">Mondal Lab</h1>
+    <p class="prose network-hero__mission">
+      We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
+      to discover mechanisms that maintain healthy vision and identify the earliest molecular
+      patterns linked with blindness.
+    </p>
+    <p class="mono network-hero__affiliation">
+      UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
+    </p>
+  </NetworkHero>
+
+  <div class="container">
+    <section class="home-research reveal">
+      <SectionHeading eyebrow="What we study">Research</SectionHeading>
+      <div class="home-research__grid">
+        <ResearchThemeCard
+          eyebrow="Theme 01"
+          title="Retinal Diseasome Assembly"
+          summary="How unrelated genetic mutations converge on a finite set of disease-onset programs in the retina, from inherited degenerations to age-related macular degeneration."
+          href="/research"
+          glyphSeed={0}
+        />
+        <ResearchThemeCard
+          eyebrow="Theme 02"
+          title="Environmental–Molecular Interactions in Retinal Aging"
+          summary="How lifestyle factors like nutrition shape the retina's molecular landscape, and what that means for age-related vision decline."
+          href="/research"
+          glyphSeed={1}
+        />
+      </div>
+    </section>
+  </div>
+
+  <section class="home-statement section-ink reveal">
+    <div class="container home-statement__inner">
+      <span class="eyebrow">Why computational biology</span>
+      <p class="home-statement__quote">
+        More than 300 genes are already linked to inherited retinal disease, and complex
+        conditions like age-related macular degeneration add hundreds more contributing factors
+        on top. No single experiment can test that many variables at once — it takes
+        computational methods to integrate genomic, epigenomic, and metabolic data across many
+        studies and find the patterns a wet lab alone would miss.
+      </p>
+      <dl class="home-statement__stats">
+        <div>
+          <dt class="home-statement__stat-num">2</dt>
+          <dd class="mono">Research programs</dd>
+        </div>
+        <div>
+          <dt class="home-statement__stat-num">{publications.length}</dt>
+          <dd class="mono">Publications</dd>
+        </div>
+        <div>
+          <dt class="home-statement__stat-num">1</dt>
+          <dd class="mono">Question driving both</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <div class="container">
+    <NetworkDivider />
+
+    <section class="home-news reveal">
+      <SectionHeading eyebrow="Latest">News</SectionHeading>
+      <div class="home-news__list">
+        {latestNews.map((post) => <NewsCard post={post} />)}
+      </div>
+      <a class="mono home-news__all" href={withBase('/news')}>See all news →</a>
+    </section>
+
+    {
+      pi && (
+        <section class="home-team reveal">
+          <SectionHeading eyebrow="Led by">Team</SectionHeading>
+          <p class="prose">
+            {pi.data.name}, {pi.data.role.toLowerCase()}. {pi.data.bioShort}
+          </p>
+          <a class="mono home-team__link" href={withBase('/team')}>
+            Meet the team →
+          </a>
+        </section>
+      )
+    }
+
+    <section class="home-contact reveal">
+      <SectionHeading eyebrow="Find us">Contact</SectionHeading>
+      <ContactBlock compact />
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .network-hero__title {
+    font-size: var(--text-5xl);
+    letter-spacing: -0.02em;
+  }
+
+  .network-hero__mission {
+    margin-top: var(--space-3);
+    font-size: var(--text-xl);
+    max-width: 34ch;
+    color: var(--color-text-muted);
+  }
+
+  .network-hero__affiliation {
+    margin-top: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .home-research__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+  }
+
+  .home-statement {
+    margin-top: var(--space-7);
+    padding-block: var(--space-7);
+  }
+
+  .home-statement__inner {
+    max-width: 62rem;
+  }
+
+  .home-statement__quote {
+    font-family: var(--font-sans);
+    font-size: var(--text-lg);
+    font-weight: 500;
+    line-height: var(--leading-snug);
+    max-width: 58ch;
+    margin-top: var(--space-2);
+  }
+
+  .home-statement__stats {
+    display: flex;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  .home-statement__stat-num {
+    font-family: var(--font-mono);
+    font-size: var(--text-4xl);
+    color: var(--color-accent-on-ink);
+    line-height: 1;
+  }
+
+  .home-statement__stats dd {
+    margin-top: 0.4em;
+    font-size: var(--text-sm);
+    color: var(--color-on-ink-muted);
+  }
+
+  .home-news__list > :global(*):last-child {
+    border-bottom: none;
+  }
+
+  .home-news__all,
+  .home-team__link {
+    display: inline-block;
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .home-contact {
+    padding-bottom: var(--space-6);
+  }
+
+  @media (max-width: 720px) {
+    .home-research__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    .home-statement__stats {
+      gap: var(--space-4);
+    }
+  }
+</style>

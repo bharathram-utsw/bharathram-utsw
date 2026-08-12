@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NetworkDivider from '../components/NetworkDivider.astro';
+import { withBase } from '../lib/url';
+---
+
+<BaseLayout title="Page not found">
+  <div class="container not-found">
+    <p class="eyebrow">404</p>
+    <h1>Page not found</h1>
+    <p class="prose">The page you're looking for doesn't exist, or may have moved.</p>
+    <NetworkDivider class="not-found__divider" />
+    <a class="mono" href={withBase('/')}>← Back to Home</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-block: var(--space-7);
+    max-width: var(--prose-width);
+  }
+
+  .not-found__divider {
+    max-width: 20rem;
+  }
+</style>

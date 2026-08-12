@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import TeamMemberCard from '../components/TeamMemberCard.astro';
+import NetworkDivider from '../components/NetworkDivider.astro';
+import { withBase } from '../lib/url';
+
+const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Team" description="Meet the Mondal Lab team at UT Southwestern Medical Center.">
+  <div class="container team-page">
+    <SectionHeading eyebrow="Who we are" level="h1">Team</SectionHeading>
+
+    <div class="team-page__roster">
+      {team.map((member) => <TeamMemberCard member={member} />)}
+    </div>
+
+    <NetworkDivider />
+
+    <div class="team-page__hiring">
+      <h3>We're hiring</h3>
+      <p class="prose">
+        The lab is actively looking for talented postdocs and graduate students interested in the
+        computational biology of vision and aging.
+      </p>
+      <p class="mono team-page__hiring-contact">Contact: — (coming soon, see the <a href={withBase('/contact')}>Contact</a> page)</p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .team-page {
+    padding-block: var(--space-6);
+  }
+
+  .team-page__roster > :global(*) + :global(*) {
+    margin-top: var(--space-5);
+  }
+
+  .team-page__hiring h3 {
+    margin-bottom: var(--space-2);
+  }
+
+  .team-page__hiring-contact {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+  }
+</style>

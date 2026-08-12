@@ -1,0 +1,447 @@
+---
+// The Home hero background: a Circos-inspired circular chord diagram built
+// from the lab's own publication keywords — a nod to Circos (the genomics
+// field's standard circular-plot tool) rather than decoration. Arcs are the
+// real subject tags on each paper (src/content/publications/publications.json),
+// sized by frequency; chords connect keywords that co-occur on the same
+// paper, weighted by how often they do. Vanilla Canvas2D, computed once at
+// build time from the content collection. Docked to one side of the hero
+// (bleeding past the edge) so it never sits behind the headline text.
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/url';
+
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+
+const pubs = await getCollection('publications');
+
+const counts = new Map<string, number>();
+for (const pub of pubs) {
+  for (const kw of pub.data.keywords) {
+    counts.set(kw, (counts.get(kw) ?? 0) + 1);
+  }
+}
+
+const edgeWeights = new Map<string, number>();
+for (const pub of pubs) {
+  const kws = pub.data.keywords;
+  for (let i = 0; i < kws.length; i++) {
+    for (let j = i + 1; j < kws.length; j++) {
+      const key = [kws[i], kws[j]].sort().join('|');
+      edgeWeights.set(key, (edgeWeights.get(key) ?? 0) + 1);
+    }
+  }
+}
+
+// Capped to the most frequent/connected keywords — a Circos wheel reads as
+// art at ~20-24 segments; beyond that the labels just collide. Decorative
+// only, so trimming the long tail of singleton keywords costs nothing.
+const TOP_N = 22;
+const topKeywords = new Set(
+  [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, TOP_N)
+    .map(([label]) => label),
+);
+
+const graphNodes = [...counts.entries()]
+  .filter(([label]) => topKeywords.has(label))
+  .map(([label, count]) => ({ label, count }));
+const graphEdges = [...edgeWeights.entries()]
+  .map(([key, weight]) => {
+    const [a, b] = key.split('|');
+    return { a, b, weight };
+  })
+  .filter((e) => topKeywords.has(e.a) && topKeywords.has(e.b));
+const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
+---
+
+<section class:list={['network-hero', className]}>
+  <div class="network-hero__canvas" id="network-hero-canvas" aria-hidden="true">
+    <script type="application/json" id="network-hero-data" set:html={graphData} />
+    <img
+      class="network-hero__fallback"
+      src={withBase('/network-hero-fallback.svg')}
+      alt=""
+      width="800"
+      height="500"
+      loading="eager"
+    />
+  </div>
+  <div class="network-hero__tooltip" id="network-hero-tooltip" hidden aria-hidden="true"></div>
+  <div class="network-hero__content container">
+    <slot />
+  </div>
+  <div class="network-hero__scroll-cue" aria-hidden="true"><span></span></div>
+</section>
+
+<style>
+  .network-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 82vh;
+    display: flex;
+    align-items: center;
+    padding-block: var(--space-7);
+  }
+
+  .network-hero__canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .network-hero__fallback {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+  }
+
+  /* Hidden as soon as the JS sketch successfully mounts a <canvas> */
+  .network-hero__canvas:has(canvas) .network-hero__fallback {
+    display: none;
+  }
+
+  .network-hero__content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .network-hero__tooltip {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 12px));
+    white-space: nowrap;
+  }
+
+  .network-hero__tooltip strong {
+    color: var(--color-accent-on-ink);
+  }
+
+  .network-hero__scroll-cue {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-4);
+    transform: translateX(-50%);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4em;
+    color: var(--color-text-muted);
+  }
+
+  .network-hero__scroll-cue span {
+    width: 1px;
+    height: 2.2rem;
+    background: var(--color-border-strong);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .network-hero__scroll-cue span {
+      animation: scroll-cue 1.8s ease-in-out infinite;
+    }
+  }
+
+  @keyframes scroll-cue {
+    0%,
+    100% {
+      transform: scaleY(0.6);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .network-hero {
+      min-height: auto;
+      padding-block: var(--space-6) var(--space-5);
+    }
+
+    .network-hero__fallback {
+      opacity: 0.35;
+    }
+
+    .network-hero__scroll-cue {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  interface Arc {
+    label: string;
+    count: number;
+    startAngle: number;
+    endAngle: number;
+    color: string;
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  const mount = document.getElementById('network-hero-canvas');
+  const dataEl = document.getElementById('network-hero-data');
+  const tooltip = document.getElementById('network-hero-tooltip');
+  if (!mount || !dataEl) throw new Error('NetworkHero: missing mount or data element');
+
+  const raw = JSON.parse(dataEl.textContent || '{"nodes":[],"edges":[]}') as {
+    nodes: { label: string; count: number }[];
+    edges: { a: string; b: string; weight: number }[];
+  };
+
+  if (raw.nodes.length > 0) {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isNarrow = window.innerWidth < 480;
+
+    // Narrow viewports and reduced-motion users keep the static SVG fallback
+    // already in the markup.
+    if (!isNarrow) {
+      const canvas = document.createElement('canvas');
+      mount.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        // UT Southwestern's own Accent Palette 1 — vibrant and multi-hued
+        // (in the Circos/genome-plot spirit) while staying on-brand.
+        const PALETTE = ['#004c97', '#009ee2', '#f26531', '#e52334', '#00ab4e', '#776cb1'];
+        const edgeBaseColor = readVar('--color-border-strong', '#b9c5d1');
+        const labelColor = readVar('--color-text-muted', '#4a5560');
+        const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+
+        const GAP_DEG = 2.4;
+        const gapRad = (GAP_DEG * Math.PI) / 180;
+        const totalCount = raw.nodes.reduce((sum, n) => sum + n.count, 0);
+        const usableAngle = Math.PI * 2 - gapRad * raw.nodes.length;
+
+        let angleCursor = -Math.PI / 2; // start at 12 o'clock
+        const arcs: Arc[] = raw.nodes.map((n, i) => {
+          const span = (n.count / totalCount) * usableAngle;
+          const arc: Arc = {
+            label: n.label,
+            count: n.count,
+            startAngle: angleCursor,
+            endAngle: angleCursor + span,
+            color: PALETTE[i % PALETTE.length],
+          };
+          angleCursor += span + gapRad;
+          return arc;
+        });
+        const byLabel = new Map(arcs.map((a) => [a.label, a]));
+        const chords = raw.edges
+          .map((e) => [byLabel.get(e.a), byLabel.get(e.b), e.weight] as const)
+          .filter((c): c is [Arc, Arc, number] => !!c[0] && !!c[1]);
+
+        let width = 0;
+        let height = 0;
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let cx = 0;
+        let cy = 0;
+        let R = 0;
+        let mouseX: number | null = null;
+        let mouseY = 0;
+        let rotation = 0;
+
+        function resize() {
+          const rect = mount!.getBoundingClientRect();
+          width = rect.width;
+          height = rect.height;
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
+          canvas.style.width = `${width}px`;
+          canvas.style.height = `${height}px`;
+          ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+          // Centered right at the edge — only the left half of the wheel is
+          // ever on-canvas, a cropped medallion rather than a wash behind
+          // the headline text.
+          cx = width;
+          cy = height * 0.46;
+          R = Math.max(180, Math.min(height * 0.58, width * 0.5));
+        }
+
+        function arcAt(x: number, y: number): Arc | null {
+          const dx = x - cx;
+          const dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          // Generous capture band around the ring, not a hairline hit-test.
+          if (Math.abs(dist - R) > 32) return null;
+          let angle = Math.atan2(dy, dx) - rotation;
+          angle = ((angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+          for (const arc of arcs) {
+            let s = ((arc.startAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+            let e = s + (arc.endAngle - arc.startAngle);
+            if (angle >= s && angle <= e) return arc;
+            if (e > Math.PI && (angle + Math.PI * 2 >= s && angle + Math.PI * 2 <= e)) return arc;
+          }
+          return null;
+        }
+
+        function draw() {
+          ctx!.clearRect(0, 0, width, height);
+          const hovered = !prefersReducedMotion && mouseX !== null ? arcAt(mouseX, mouseY) : null;
+
+          ctx!.save();
+          ctx!.translate(cx, cy);
+          ctx!.rotate(rotation);
+
+          // Chords — bezier ribbons pulled toward center, classic Circos look.
+          for (const [a, b, weight] of chords) {
+            const aMid = (a.startAngle + a.endAngle) / 2;
+            const bMid = (b.startAngle + b.endAngle) / 2;
+            const ax = Math.cos(aMid) * (R - 6);
+            const ay = Math.sin(aMid) * (R - 6);
+            const bx = Math.cos(bMid) * (R - 6);
+            const by = Math.sin(bMid) * (R - 6);
+            const near = hovered && (hovered === a || hovered === b);
+            ctx!.strokeStyle = near ? a.color : edgeBaseColor;
+            ctx!.lineWidth = near ? 1.6 : Math.min(0.5 + weight * 0.4, 2);
+            ctx!.globalAlpha = near ? 0.65 : 0.16;
+            ctx!.beginPath();
+            ctx!.moveTo(ax, ay);
+            ctx!.quadraticCurveTo(0, 0, bx, by);
+            ctx!.stroke();
+          }
+
+          // Arcs — the ideogram ring.
+          const ringWidth = 10;
+          for (const arc of arcs) {
+            const near = hovered === arc;
+            ctx!.strokeStyle = arc.color;
+            ctx!.globalAlpha = near ? 1 : 0.82;
+            ctx!.lineWidth = near ? ringWidth + 4 : ringWidth;
+            ctx!.beginPath();
+            ctx!.arc(0, 0, R, arc.startAngle, arc.endAngle);
+            ctx!.stroke();
+          }
+          ctx!.restore();
+          ctx!.globalAlpha = 1;
+
+          // Labels — drawn in the rotated frame so they track the wheel, each
+          // oriented to read outward along its radius.
+          ctx!.save();
+          ctx!.translate(cx, cy);
+          ctx!.rotate(rotation);
+          for (const arc of arcs) {
+            const mid = (arc.startAngle + arc.endAngle) / 2;
+            const near = hovered === arc;
+            const lx = Math.cos(mid) * (R + 14);
+            const ly = Math.sin(mid) * (R + 14);
+            ctx!.save();
+            ctx!.translate(lx, ly);
+            let deg = (mid * 180) / Math.PI;
+            const flip = deg > 90 || deg < -90;
+            ctx!.rotate(mid + (flip ? Math.PI : 0));
+            ctx!.textAlign = flip ? 'right' : 'left';
+            ctx!.textBaseline = 'middle';
+            ctx!.fillStyle = near ? arc.color : labelColor;
+            ctx!.globalAlpha = near ? 1 : 0.7;
+            ctx!.font = `${near ? '600 ' : ''}${10 + Math.min(arc.count, 4)}px ${monoFont}`;
+            ctx!.fillText(arc.label, 0, 0);
+            ctx!.restore();
+          }
+          ctx!.restore();
+          ctx!.globalAlpha = 1;
+        }
+
+        function updateTooltip(hit: Arc | null, clientX: number, clientY: number) {
+          if (!tooltip) return;
+          if (!hit) {
+            tooltip.hidden = true;
+            return;
+          }
+          const rect = mount!.getBoundingClientRect();
+          tooltip.hidden = false;
+          tooltip.style.left = `${clientX - rect.left}px`;
+          tooltip.style.top = `${clientY - rect.top}px`;
+          tooltip.innerHTML = `<strong>${hit.label}</strong><br>${hit.count} paper${hit.count === 1 ? '' : 's'} · click to view`;
+        }
+
+        canvas.addEventListener('pointermove', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          mouseX = e.clientX - rect.left;
+          mouseY = e.clientY - rect.top;
+          const hit = arcAt(mouseX, mouseY);
+          canvas.style.cursor = hit ? 'pointer' : 'default';
+          updateTooltip(hit, e.clientX, e.clientY);
+          if (prefersReducedMotion) draw();
+        });
+        canvas.addEventListener('pointerleave', () => {
+          mouseX = null;
+          canvas.style.cursor = 'default';
+          updateTooltip(null, 0, 0);
+          if (prefersReducedMotion) draw();
+        });
+        canvas.addEventListener('click', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const hit = arcAt(e.clientX - rect.left, e.clientY - rect.top);
+          if (hit) {
+            const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+            window.location.href = `${base}/publications?topic=${encodeURIComponent(hit.label)}`;
+          }
+        });
+
+        if (typeof ResizeObserver !== 'undefined') {
+          const ro = new ResizeObserver(() => {
+            resize();
+            draw();
+          });
+          ro.observe(mount);
+        } else {
+          window.addEventListener('resize', () => {
+            resize();
+            draw();
+          });
+        }
+
+        resize();
+        draw();
+
+        if (!prefersReducedMotion) {
+          let raf = 0;
+          const loop = () => {
+            rotation += 0.0007;
+            draw();
+            raf = requestAnimationFrame(loop);
+          };
+          raf = requestAnimationFrame(loop);
+
+          if (typeof IntersectionObserver !== 'undefined') {
+            const io = new IntersectionObserver(
+              (entries) => {
+                for (const entry of entries) {
+                  if (entry.isIntersecting) {
+                    if (!raf) raf = requestAnimationFrame(loop);
+                  } else if (raf) {
+                    cancelAnimationFrame(raf);
+                    raf = 0;
+                  }
+                }
+              },
+              { threshold: 0.05 },
+            );
+            io.observe(mount);
+          }
+        }
+      }
+    }
+  }
+</script>

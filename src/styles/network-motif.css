@@ -1,0 +1,28 @@
+/*
+  Shared styling for the static, non-JS parts of the network/graph motif:
+  ThemeGlyph (Research page theme icons) and the tag "node dot" used before
+  mono metadata. The live pieces — Home hero, Diseasome Explorer — are
+  scoped in their own components and read these color tokens directly.
+*/
+
+.theme-glyph {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  color: var(--color-graph-edge);
+}
+
+.theme-glyph circle {
+  fill: var(--color-graph-node);
+}
+
+/* Small recurring "node" mark placed before mono metadata (years, tags) */
+.node-dot {
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 50%;
+  background: var(--color-graph-node);
+  margin-right: 0.5em;
+  vertical-align: middle;
+}

@@ -1,0 +1,93 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { withBase } from '../lib/url';
+
+interface Props {
+  title: string;
+  date: Date;
+  excerpt: string;
+  tags?: string[];
+}
+
+const { title, date, excerpt, tags = [] } = Astro.props;
+
+const formattedDate = date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={title} description={excerpt}>
+  <article class="container article">
+    <a class="mono article__back" href={withBase('/news')}>← Back to News</a>
+    <header class="article__header">
+      <p class="mono article__date"><time datetime={date.toISOString()}>{formattedDate}</time></p>
+      <h1>{title}</h1>
+      {
+        tags.length > 0 && (
+          <ul class="article__tags">
+            {tags.map((tag) => (
+              <li class="mono">{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+    <div class="prose article__body">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    max-width: var(--prose-width);
+    padding-block: var(--space-6);
+  }
+
+  .article__back {
+    display: inline-block;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    margin-bottom: var(--space-4);
+  }
+
+  .article__back:hover {
+    color: var(--color-accent);
+  }
+
+  .article__header {
+    margin-bottom: var(--space-4);
+  }
+
+  .article__date {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-1);
+  }
+
+  .article__tags {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .article__tags li {
+    font-size: var(--text-xs);
+    color: var(--color-accent-strong);
+    background: var(--color-accent-soft);
+    padding: 0.2em 0.6em;
+    border-radius: var(--radius);
+  }
+
+  .article__body :global(p) {
+    margin-top: var(--space-3);
+  }
+
+  .article__body :global(h2) {
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-2);
+  }
+</style>

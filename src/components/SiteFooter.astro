@@ -1,0 +1,87 @@
+---
+import NetworkDivider from './NetworkDivider.astro';
+import { withBase } from '../lib/url';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <NetworkDivider class="site-footer__divider" />
+    <div class="site-footer__grid">
+      <div>
+        <p class="mono site-footer__lab">Mondal Lab</p>
+        <p class="site-footer__address">
+          UT Southwestern Medical Center<br />
+          Department of Ophthalmology<br />
+          5323 Harry Hines Blvd, Dallas, TX 75390, USA
+        </p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="site-footer__links">
+          <li><a href={withBase('/research')}>Research</a></li>
+          <li><a href={withBase('/team')}>Team</a></li>
+          <li><a href={withBase('/publications')}>Publications</a></li>
+          <li><a href={withBase('/news')}>News</a></li>
+          <li><a href={withBase('/contact')}>Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="mono site-footer__copyright">© {year} Mondal Lab. All rights reserved.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding-block: var(--space-6) var(--space-4);
+    border-top: none;
+  }
+
+  .site-footer__divider {
+    margin-top: 0;
+    margin-bottom: var(--space-5);
+  }
+
+  .site-footer__grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-bottom: var(--space-5);
+  }
+
+  .site-footer__lab {
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .site-footer__address {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .site-footer__links a {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .site-footer__links a:hover {
+    color: var(--color-accent);
+  }
+
+  .site-footer__copyright {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-3);
+  }
+</style>

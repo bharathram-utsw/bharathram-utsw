@@ -1,0 +1,97 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../lib/url';
+
+interface Props {
+  post: CollectionEntry<'news'>;
+  // Match the page's heading hierarchy — h3 when nested under a SectionHeading
+  // (Home), h2 when this card's title is the first heading after the page's
+  // own <h1> (the News index).
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { post, headingLevel = 'h3' } = Astro.props;
+const { data, id } = post;
+const Heading = headingLevel;
+
+const formattedDate = data.date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<article class="news-card">
+  <a class="news-card__link" href={withBase(`/news/${id}/`)}>
+    <p class="mono news-card__date">
+      <span class="node-dot" aria-hidden="true"></span>
+      <time datetime={data.date.toISOString()}>{formattedDate}</time>
+      {data.placeholder && <span class="news-card__badge">seed content</span>}
+    </p>
+    <Heading class="news-card__title">{data.title}</Heading>
+    <p class="news-card__excerpt">{data.excerpt}</p>
+    {
+      data.tags.length > 0 && (
+        <ul class="news-card__tags">
+          {data.tags.map((tag) => (
+            <li class="mono">{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+  </a>
+</article>
+
+<style>
+  .news-card {
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .news-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .news-card__date {
+    display: flex;
+    align-items: center;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-1);
+  }
+
+  .news-card__badge {
+    margin-left: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-strong);
+    padding: 0.1em 0.5em;
+    border-radius: var(--radius);
+  }
+
+  .news-card__title {
+    font-size: var(--text-xl);
+    margin-bottom: 0.35em;
+  }
+
+  .news-card__link:hover .news-card__title {
+    color: var(--color-accent);
+  }
+
+  .news-card__excerpt {
+    color: var(--color-text-muted);
+  }
+
+  .news-card__tags {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .news-card__tags li {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+  }
+</style>

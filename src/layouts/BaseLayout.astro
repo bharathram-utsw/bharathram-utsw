@@ -1,0 +1,72 @@
+---
+import SiteHeader from '../components/nav/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { withBase } from '../lib/url';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Mondal Lab uses computational biology — genomics, epigenomics, metabolism, and network analysis — to discover mechanisms that maintain healthy vision and identify the earliest molecular patterns linked with blindness.',
+} = Astro.props;
+
+const pageTitle = title === 'Mondal Lab' ? title : `${title} · Mondal Lab`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={new URL(withBase('/og-image.png'), Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="generator" content={Astro.generator} />
+
+    <script is:inline>
+      document.documentElement.classList.add('js-reveal');
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+
+    <script>
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+      );
+
+      document.querySelectorAll('.reveal').forEach((el, i) => {
+        // stagger siblings slightly so a group doesn't pop in as one flat block
+        (el as HTMLElement).style.transitionDelay = `${Math.min(i % 4, 3) * 60}ms`;
+        io.observe(el);
+      });
+    </script>
+  </body>
+</html>

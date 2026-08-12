@@ -1,0 +1,168 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  publication: CollectionEntry<'publications'>['data'];
+}
+
+const { publication: pub } = Astro.props;
+const link = pub.doi ?? pub.url;
+
+const metaParts: string[] = [];
+if (pub.volume) {
+  metaParts.push(pub.issue ? `${pub.volume}(${pub.issue})` : pub.volume);
+}
+if (pub.pages) metaParts.push(pub.pages);
+if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
+---
+
+<article
+  class="pub-card"
+  data-pub-card
+  data-keywords={pub.keywords.join('|')}
+  data-year={pub.year}
+  data-citations={pub.citations ?? 0}
+  itemscope
+  itemtype="https://schema.org/ScholarlyArticle"
+>
+  <div class="pub-card__top">
+    <span class="mono pub-card__year">{pub.year}</span>
+    {pub.featured && <span class="pub-card__badge">Featured</span>}
+    {pub.citations !== undefined && (
+      <span class="mono pub-card__citations">{pub.citations} citations</span>
+    )}
+  </div>
+
+  <p class="pub-card__title" itemprop="name">
+    {link ? (
+      <a href={link} target="_blank" rel="noopener noreferrer">
+        {pub.title}
+      </a>
+    ) : (
+      pub.title
+    )}
+  </p>
+
+  <p class="pub-card__authors">
+    {pub.authors.map((author, i) => (
+      <>
+        {i > 0 && ', '}
+        {author === pub.piHighlight ? <strong>{author}</strong> : author}
+      </>
+    ))}
+  </p>
+
+  <p class="mono pub-card__meta">
+    <cite itemprop="isPartOf">{pub.journal}</cite>
+    {pub.month && `, ${pub.month} ${pub.year}`}
+    {!pub.month && `, ${pub.year}`}
+    {metaParts.length > 0 && `, ${metaParts.join(':')}`}
+  </p>
+
+  {pub.keywords.length > 0 && (
+    <ul class="pub-card__tags">
+      {pub.keywords.map((kw) => (
+        <li class="mono" data-keyword-tag={kw}>{kw}</li>
+      ))}
+    </ul>
+  )}
+</article>
+
+<style>
+  .pub-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-3);
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    transition:
+      opacity 0.25s var(--ease-out),
+      transform 0.25s var(--ease-out),
+      box-shadow 0.25s var(--ease-out);
+  }
+
+  .pub-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .pub-card[data-dimmed='true'] {
+    opacity: 0.35;
+    transform: none;
+    box-shadow: var(--shadow-card);
+  }
+
+  .pub-card__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .pub-card__year {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+  }
+
+  .pub-card__badge {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-accent-2-strong);
+    background: var(--color-accent-2-soft);
+    padding: 0.1em 0.5em;
+    border-radius: var(--radius);
+  }
+
+  .pub-card__citations {
+    margin-left: auto;
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .pub-card__title {
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    margin-bottom: 0.5em;
+  }
+
+  .pub-card__title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .pub-card__title a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .pub-card__authors {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
+  .pub-card__meta {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
+  .pub-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+    margin-top: auto;
+    padding-top: var(--space-2);
+  }
+
+  .pub-card__tags li {
+    font-size: 0.7rem;
+    color: var(--color-accent-strong);
+    background: var(--color-accent-soft);
+    padding: 0.15em 0.55em;
+    border-radius: var(--radius);
+  }
+</style>

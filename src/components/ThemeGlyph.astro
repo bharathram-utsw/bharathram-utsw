@@ -1,0 +1,64 @@
+---
+// Small abstract node-cluster icon, one per Research theme — the
+// media.mit.edu-style "group glyph" as a systematic visual identifier.
+// Static SVG, no JS.
+
+interface Props {
+  class?: string;
+  seed?: number; // varies node layout slightly between the two themes
+}
+
+const { class: className, seed = 0 } = Astro.props;
+
+const layouts = [
+  {
+    nodes: [
+      { x: 20, y: 20, r: 4 },
+      { x: 6, y: 6, r: 2.5 },
+      { x: 34, y: 8, r: 2.5 },
+      { x: 8, y: 34, r: 2.5 },
+      { x: 33, y: 32, r: 2.5 },
+    ],
+    edges: [
+      [0, 1],
+      [0, 2],
+      [0, 3],
+      [0, 4],
+    ],
+  },
+  {
+    nodes: [
+      { x: 12, y: 12, r: 3 },
+      { x: 30, y: 10, r: 3 },
+      { x: 20, y: 24, r: 4 },
+      { x: 8, y: 30, r: 2.5 },
+      { x: 32, y: 30, r: 2.5 },
+    ],
+    edges: [
+      [0, 2],
+      [1, 2],
+      [2, 3],
+      [2, 4],
+      [0, 1],
+    ],
+  },
+];
+
+const layout = layouts[seed % layouts.length];
+---
+
+<svg class:list={['theme-glyph', className]} viewBox="0 0 40 40" aria-hidden="true">
+  {
+    layout.edges.map(([a, b]) => (
+      <line
+        x1={layout.nodes[a].x}
+        y1={layout.nodes[a].y}
+        x2={layout.nodes[b].x}
+        y2={layout.nodes[b].y}
+        stroke="currentColor"
+        stroke-width="1"
+      />
+    ))
+  }
+  {layout.nodes.map((n) => <circle cx={n.x} cy={n.y} r={n.r} />)}
+</svg>

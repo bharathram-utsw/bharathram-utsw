@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import NewsCard from '../../components/NewsCard.astro';
+
+const posts = (await getCollection('news', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<BaseLayout title="News" description="News and updates from the Mondal Lab.">
+  <div class="container news-page">
+    <SectionHeading eyebrow="Lab updates" level="h1">News</SectionHeading>
+    <div class="news-page__list">
+      {posts.map((post) => <NewsCard post={post} headingLevel="h2" />)}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .news-page {
+    padding-block: var(--space-6);
+    max-width: var(--prose-width);
+  }
+</style>

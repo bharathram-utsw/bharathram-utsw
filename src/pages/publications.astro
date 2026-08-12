@@ -1,0 +1,150 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import PublicationCloud from '../components/PublicationCloud.astro';
+import PublicationCard from '../components/PublicationCard.astro';
+import KeywordStreamgraph from '../components/KeywordStreamgraph.astro';
+
+const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+---
+
+<BaseLayout
+  title="Publications"
+  description="Publications by Anupam Mondal, Ph.D. — from retinal disease and epigenetics to microbial and comparative genomics, the full record from Google Scholar."
+>
+  <div class="container publications-page">
+    <SectionHeading eyebrow="Selected output" level="h1">Publications</SectionHeading>
+    <p class="prose publications-page__lede reveal">
+      {publications.length} papers, spanning retinal biology, aging and metabolism, epigenetics,
+      and — earlier in the same throughline — microbial and comparative genomics. Click a topic
+      below to filter.
+    </p>
+
+    <div class="publications-page__section reveal">
+      <span class="eyebrow">Over time</span>
+      <h2>A career, by keyword</h2>
+      <KeywordStreamgraph />
+    </div>
+
+    <div class="publications-page__section reveal">
+      <span class="eyebrow">By topic</span>
+      <h2>How the topics connect</h2>
+      <PublicationCloud />
+    </div>
+
+    <div class="publications-page__controls">
+      <span class="mono publications-page__count" id="pub-count">{publications.length} shown</span>
+      <div class="publications-page__sort" role="group" aria-label="Sort publications">
+        <button type="button" class="mono" data-sort="year" data-active="true">Newest</button>
+        <button type="button" class="mono" data-sort="citations">Most cited</button>
+      </div>
+    </div>
+
+    <div class="publications-page__grid reveal" id="pub-grid">
+      {publications.map((pub) => <PublicationCard publication={pub.data} />)}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .publications-page {
+    padding-block: var(--space-6);
+  }
+
+  .publications-page__lede {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    max-width: 60ch;
+    margin-bottom: var(--space-4);
+  }
+
+  .publications-page__section {
+    margin-bottom: var(--space-6);
+  }
+
+  .publications-page__section h2 {
+    margin-bottom: var(--space-2);
+  }
+
+  .publications-page__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+
+  .publications-page__count {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .publications-page__sort {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .publications-page__sort button {
+    font-size: var(--text-xs);
+    background: none;
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-text-muted);
+    padding: 0.3em 0.75em;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .publications-page__sort button[data-active='true'] {
+    color: var(--color-bg-raised);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .publications-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  @media (max-width: 640px) {
+    .publications-page__controls {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+  }
+</style>
+
+<script>
+  const grid = document.getElementById('pub-grid');
+  const countEl = document.getElementById('pub-count');
+  const sortButtons = document.querySelectorAll<HTMLButtonElement>('[data-sort]');
+
+  function updateCount() {
+    if (!grid || !countEl) return;
+    const cards = grid.querySelectorAll<HTMLElement>('[data-pub-card]');
+    const visible = [...cards].filter((c) => c.dataset.dimmed !== 'true').length;
+    countEl.textContent = visible === cards.length ? `${cards.length} shown` : `${visible} of ${cards.length} shown`;
+  }
+
+  document.addEventListener('pub-filter-change', updateCount);
+  // PublicationCloud may have already applied a ?topic= filter (and fired
+  // its event) before this listener was registered — sync once on load too.
+  updateCount();
+
+  sortButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!grid) return;
+      sortButtons.forEach((b) => (b.dataset.active = 'false'));
+      btn.dataset.active = 'true';
+      const key = btn.dataset.sort as 'year' | 'citations';
+      const cards = [...grid.querySelectorAll<HTMLElement>('[data-pub-card]')];
+      cards.sort((a, b) => {
+        const av = Number(a.dataset[key] ?? 0);
+        const bv = Number(b.dataset[key] ?? 0);
+        return bv - av;
+      });
+      cards.forEach((c) => grid.appendChild(c));
+    });
+  });
+</script>

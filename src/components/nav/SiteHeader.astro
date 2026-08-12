@@ -1,0 +1,182 @@
+---
+import { withBase } from '../../lib/url';
+
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/research', label: 'Research' },
+  { href: '/team', label: 'Team' },
+  { href: '/publications', label: 'Publications' },
+  { href: '/news', label: 'News' },
+  { href: '/contact', label: 'Contact' },
+];
+
+const currentPath = Astro.url.pathname;
+
+function isActive(href: string) {
+  const based = withBase(href);
+  if (href === '/') return currentPath === based;
+  return currentPath === based || currentPath.startsWith(`${based}/`);
+}
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__wordmark" href={withBase('/')}>
+      Mondal Lab<span class="site-header__wordmark-mark">·</span>
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="site-header__nav" aria-label="Primary">
+      <ul>
+        {
+          navItems.map((item) => (
+            <li>
+              <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <!-- Mobile nav: pure HTML/CSS, no JS -->
+    <details class="site-header__mobile">
+      <summary aria-label="Open menu">
+        <span class="mono">Menu</span>
+      </summary>
+      <nav aria-label="Primary">
+        <ul>
+          {
+            navItems.map((item) => (
+              <li>
+                <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </details>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+    position: relative;
+    z-index: 20;
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: var(--space-2);
+  }
+
+  .site-header__wordmark {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .site-header__wordmark-mark {
+    color: var(--color-accent);
+  }
+
+  .site-header__nav ul {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .site-header__nav a {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid transparent;
+  }
+
+  .site-header__nav a:hover {
+    color: var(--color-text);
+  }
+
+  .site-header__nav a[aria-current='page'] {
+    color: var(--color-text);
+    border-bottom-color: var(--color-accent);
+  }
+
+  .site-header__mobile {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .site-header__nav {
+      display: none;
+    }
+
+    .site-header__mobile {
+      display: block;
+      position: relative;
+    }
+
+    .site-header__mobile summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: var(--text-sm);
+      padding: var(--space-1) 0;
+      color: var(--color-text);
+    }
+
+    .site-header__mobile summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .site-header__mobile summary::before {
+      content: '≡ ';
+    }
+
+    .site-header__mobile[open] summary::before {
+      content: '✕ ';
+    }
+
+    .site-header__mobile nav {
+      position: absolute;
+      right: 0;
+      top: calc(100% + var(--space-1));
+      background: var(--color-bg-raised);
+      border: 1px solid var(--color-border);
+      min-width: 12rem;
+      padding: var(--space-2);
+      box-shadow: 0 8px 24px rgba(26, 26, 24, 0.08);
+    }
+
+    .site-header__mobile nav ul {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .site-header__mobile nav a {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      text-decoration: none;
+      padding: var(--space-2) var(--space-1);
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .site-header__mobile nav a[aria-current='page'] {
+      color: var(--color-accent);
+    }
+  }
+</style>

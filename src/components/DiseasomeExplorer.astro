@@ -1,0 +1,431 @@
+---
+// The site's flagship interactive piece: a draggable force-directed graph
+// built from the lab's own research concepts, not decoration. Nodes are
+// dragged directly by the visitor; a spring/repulsion simulation resettles
+// the layout around them. Vanilla Canvas2D — no new dependency.
+interface Props {
+  class?: string;
+  height?: number;
+  // Strips the card chrome and fills its positioned parent, for use as an
+  // ambient background layer (e.g. behind the Research page intro) instead
+  // of a standalone foreground panel.
+  background?: boolean;
+}
+const { class: className, height = 460, background = false } = Astro.props;
+---
+
+<figure class:list={['diseasome', { 'diseasome--background': background }, className]} data-diseasome>
+  <canvas
+    class="diseasome__canvas"
+    tabindex="0"
+    role="img"
+    aria-label="Interactive diagram: genetic mutations and environmental factors converge on retinal disease programs. Drag any node to explore its connections."
+    style={background ? undefined : `height:${height}px`}
+  ></canvas>
+  <div class="diseasome__tooltip" hidden></div>
+  <figcaption class="mono diseasome__caption">Drag a node — it's live</figcaption>
+</figure>
+
+<style>
+  .diseasome {
+    position: relative;
+    margin: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: hidden;
+  }
+
+  .diseasome--background {
+    position: absolute;
+    inset: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    z-index: 0;
+  }
+
+  .diseasome--background .diseasome__canvas {
+    height: 100%;
+  }
+
+  .diseasome--background .diseasome__caption {
+    position: absolute;
+    right: var(--space-2);
+    bottom: var(--space-2);
+    border: none;
+    background: var(--color-bg-raised);
+    border-radius: var(--radius);
+    padding: 0.3em 0.7em;
+    opacity: 0.85;
+  }
+
+  .diseasome__canvas {
+    display: block;
+    width: 100%;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .diseasome__canvas:active {
+    cursor: grabbing;
+  }
+
+  .diseasome__tooltip {
+    position: absolute;
+    pointer-events: none;
+    max-width: 15rem;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 10px));
+    z-index: 2;
+  }
+
+  .diseasome__tooltip strong {
+    display: block;
+    font-family: var(--font-mono);
+    color: var(--color-accent-on-ink);
+    margin-bottom: 0.2em;
+  }
+
+  .diseasome__caption {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-2);
+    border-top: 1px solid var(--color-border);
+  }
+</style>
+
+<script>
+  type NodeCategory = 'gene' | 'core' | 'disease' | 'molecular' | 'environment' | 'outcome';
+
+  interface GraphNode {
+    id: string;
+    label: string;
+    desc: string;
+    category: NodeCategory;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    r: number;
+  }
+
+  const NODE_DEFS: Omit<GraphNode, 'x' | 'y' | 'vx' | 'vy'>[] = [
+    { id: 'mutations', label: 'Genetic Mutations', desc: 'Unrelated mutations across many genes — the starting point of inherited retinal disease.', category: 'gene', r: 7 },
+    { id: 'diseasome', label: 'Retinal Diseasome', desc: 'Our framework: mapping how distinct mutations converge on a finite set of disease-onset programs.', category: 'core', r: 11 },
+    { id: 'ird', label: 'Inherited Degeneration', desc: 'Monogenic retinal degenerations studied as convergence points in the diseasome.', category: 'disease', r: 7 },
+    { id: 'amd', label: 'Age-Related Macular Degeneration', desc: 'A complex, multifactorial disease sharing molecular programs with inherited forms.', category: 'disease', r: 7 },
+    { id: 'epigenome', label: 'Epigenome', desc: 'Chromatin and regulatory states that shift with metabolism, diet, and age.', category: 'molecular', r: 7 },
+    { id: 'metabolism', label: 'Metabolism', desc: 'The retina is one of the body’s most metabolically demanding tissues.', category: 'molecular', r: 7 },
+    { id: 'diet', label: 'Diet & Lifestyle', desc: 'Nutrition and other environmental variables, studied in controlled mouse experiments.', category: 'environment', r: 6 },
+    { id: 'aging', label: 'Aging', desc: 'Age-dependent decline that fixed genetics alone cannot explain.', category: 'environment', r: 6 },
+    { id: 'vision', label: 'Vision Loss', desc: 'The shared downstream outcome our research aims to predict earlier, and ultimately prevent.', category: 'outcome', r: 8 },
+  ];
+
+  const EDGES: [string, string][] = [
+    ['mutations', 'diseasome'],
+    ['diseasome', 'ird'],
+    ['diseasome', 'amd'],
+    ['metabolism', 'diseasome'],
+    ['epigenome', 'metabolism'],
+    ['diet', 'epigenome'],
+    ['diet', 'metabolism'],
+    ['aging', 'epigenome'],
+    ['aging', 'vision'],
+    ['ird', 'vision'],
+    ['amd', 'vision'],
+  ];
+
+  const CATEGORY_COLOR: Record<NodeCategory, string> = {
+    gene: '#7c8892',
+    core: '', // filled from --color-accent (UTSW blue) at runtime
+    disease: '', // filled from --color-accent-2 (UTSW orange-red) at runtime
+    molecular: '', // filled from --color-focus-ring (UTSW bright blue) at runtime
+    environment: '#4a5560',
+    outcome: '#14181d',
+  };
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  function initExplorer(root: HTMLElement) {
+    const canvas = root.querySelector<HTMLCanvasElement>('.diseasome__canvas');
+    const tooltip = root.querySelector<HTMLDivElement>('.diseasome__tooltip');
+    if (!canvas || !tooltip) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    CATEGORY_COLOR.core = readVar('--color-accent', '#004c97');
+    CATEGORY_COLOR.disease = readVar('--color-accent-2', '#f26531');
+    CATEGORY_COLOR.molecular = readVar('--color-focus-ring', '#009ee2');
+    const edgeColor = readVar('--color-border-strong', '#b9c5d1');
+    const textColor = readVar('--color-text', '#14181d');
+    const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // In background mode the graph sits behind foreground text docked to the
+    // left (same composition as the Home hero) — bias the wheel rightward
+    // and spread it wider so it reads as a bold side element, full strength.
+    const isBackground = root.classList.contains('diseasome--background');
+    const centerXFactor = isBackground ? 0.72 : 0.5;
+    const alphaScale = 1;
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const nodes: GraphNode[] = NODE_DEFS.map((def) => ({ ...def, x: 0, y: 0, vx: 0, vy: 0 }));
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const edges = EDGES.map(([a, b]) => [byId.get(a)!, byId.get(b)!] as [GraphNode, GraphNode]);
+
+    function layoutInitial() {
+      const cx = width * centerXFactor;
+      const cy = height / 2;
+      const radius = Math.min(width, height) * (isBackground ? 0.42 : 0.32);
+      nodes.forEach((n, i) => {
+        const angle = (i / nodes.length) * Math.PI * 2;
+        n.x = cx + Math.cos(angle) * radius + (Math.random() - 0.5) * 20;
+        n.y = cy + Math.sin(angle) * radius + (Math.random() - 0.5) * 20;
+        n.vx = 0;
+        n.vy = 0;
+      });
+    }
+
+    function resize() {
+      const rect = canvas!.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      layoutInitial();
+    }
+
+    let dragging: GraphNode | null = null;
+    let hovered: GraphNode | null = null;
+
+    function step() {
+      const cx = width * centerXFactor;
+      const cy = height / 2;
+
+      for (const n of nodes) {
+        if (n === dragging) continue;
+
+        let fx = 0;
+        let fy = 0;
+
+        // mutual repulsion
+        for (const other of nodes) {
+          if (other === n) continue;
+          const dx = n.x - other.x;
+          const dy = n.y - other.y;
+          const distSq = Math.max(dx * dx + dy * dy, 100);
+          const force = 1400 / distSq;
+          fx += (dx / Math.sqrt(distSq)) * force;
+          fy += (dy / Math.sqrt(distSq)) * force;
+        }
+
+        // gentle centering pull so the graph doesn't drift off-canvas
+        fx += (cx - n.x) * 0.004;
+        fy += (cy - n.y) * 0.004;
+
+        n.vx = (n.vx + fx) * 0.82;
+        n.vy = (n.vy + fy) * 0.82;
+      }
+
+      // spring attraction along edges
+      const REST_LENGTH = 110;
+      for (const [a, b] of edges) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const diff = (dist - REST_LENGTH) * 0.02;
+        const nx = dx / dist;
+        const ny = dy / dist;
+        if (a !== dragging) {
+          a.vx += nx * diff;
+          a.vy += ny * diff;
+        }
+        if (b !== dragging) {
+          b.vx -= nx * diff;
+          b.vy -= ny * diff;
+        }
+      }
+
+      for (const n of nodes) {
+        if (n === dragging) continue;
+        n.x += n.vx;
+        n.y += n.vy;
+        n.x = Math.min(Math.max(n.x, n.r + 4), width - n.r - 4);
+        n.y = Math.min(Math.max(n.y, n.r + 4), height - n.r - 4);
+      }
+    }
+
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+
+      ctx!.strokeStyle = edgeColor;
+      ctx!.lineWidth = 1;
+      ctx!.globalAlpha = alphaScale;
+      for (const [a, b] of edges) {
+        ctx!.beginPath();
+        ctx!.moveTo(a.x, a.y);
+        ctx!.lineTo(b.x, b.y);
+        ctx!.stroke();
+      }
+
+      for (const n of nodes) {
+        const isActive = n === hovered || n === dragging;
+        ctx!.beginPath();
+        ctx!.fillStyle = CATEGORY_COLOR[n.category] || textColor;
+        ctx!.globalAlpha = (isActive ? 1 : 0.85) * alphaScale;
+        ctx!.arc(n.x, n.y, isActive ? n.r + 2 : n.r, 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.globalAlpha = isActive ? 1 : alphaScale;
+        ctx!.font = `${isActive ? '600 ' : ''}11px ${monoFont}`;
+        ctx!.fillStyle = textColor;
+        ctx!.textBaseline = 'middle';
+        ctx!.fillText(n.label, n.x + n.r + 8, n.y);
+      }
+      ctx!.globalAlpha = 1;
+    }
+
+    function hitTest(px: number, py: number): GraphNode | null {
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        const dx = px - n.x;
+        const dy = py - n.y;
+        if (dx * dx + dy * dy <= (n.r + 6) * (n.r + 6)) return n;
+      }
+      return null;
+    }
+
+    function pointerPos(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function showTooltip(n: GraphNode) {
+      tooltip!.hidden = false;
+      tooltip!.innerHTML = `<strong>${n.label}</strong>${n.desc}`;
+      tooltip!.style.left = `${n.x}px`;
+      tooltip!.style.top = `${n.y - n.r}px`;
+    }
+
+    function hideTooltip() {
+      tooltip!.hidden = true;
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      const p = pointerPos(e);
+      const hit = hitTest(p.x, p.y);
+      if (hit) {
+        dragging = hit;
+        canvas.setPointerCapture(e.pointerId);
+        if (reducedMotion) {
+          hit.x = p.x;
+          hit.y = p.y;
+          draw();
+        }
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      const p = pointerPos(e);
+      if (dragging) {
+        dragging.x = Math.min(Math.max(p.x, dragging.r + 4), width - dragging.r - 4);
+        dragging.y = Math.min(Math.max(p.y, dragging.r + 4), height - dragging.r - 4);
+        showTooltip(dragging);
+        if (reducedMotion) draw();
+        return;
+      }
+      const hit = hitTest(p.x, p.y);
+      hovered = hit;
+      canvas.style.cursor = hit ? 'grab' : 'default';
+      if (hit) showTooltip(hit);
+      else hideTooltip();
+      if (reducedMotion) draw();
+    });
+
+    function endDrag(e: PointerEvent) {
+      if (dragging) {
+        canvas!.releasePointerCapture(e.pointerId);
+        dragging = null;
+      }
+    }
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointerleave', (e) => {
+      endDrag(e);
+      hovered = null;
+      hideTooltip();
+      if (reducedMotion) draw();
+    });
+
+    // Basic keyboard support: Tab focuses the canvas, arrow keys nudge the
+    // nearest-to-center node so the graph isn't drag-only.
+    canvas.addEventListener('keydown', (e) => {
+      const target = hovered ?? nodes[1];
+      const step = 12;
+      if (e.key === 'ArrowLeft') target.x -= step;
+      else if (e.key === 'ArrowRight') target.x += step;
+      else if (e.key === 'ArrowUp') target.y -= step;
+      else if (e.key === 'ArrowDown') target.y += step;
+      else return;
+      e.preventDefault();
+      target.x = Math.min(Math.max(target.x, target.r + 4), width - target.r - 4);
+      target.y = Math.min(Math.max(target.y, target.r + 4), height - target.r - 4);
+      if (reducedMotion) draw();
+    });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => resize());
+      ro.observe(canvas);
+    } else {
+      window.addEventListener('resize', resize);
+    }
+
+    resize();
+
+    if (reducedMotion) {
+      for (let i = 0; i < 260; i++) step();
+      draw();
+    } else {
+      let raf: number;
+      const loop = () => {
+        step();
+        draw();
+        raf = requestAnimationFrame(loop);
+      };
+      raf = requestAnimationFrame(loop);
+
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                if (!raf) raf = requestAnimationFrame(loop);
+              } else if (raf) {
+                cancelAnimationFrame(raf);
+                raf = 0 as unknown as number;
+              }
+            }
+          },
+          { threshold: 0.05 },
+        );
+        io.observe(canvas);
+      }
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-diseasome]').forEach(initExplorer);
+</script>

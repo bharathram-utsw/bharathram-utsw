@@ -1,0 +1,79 @@
+---
+import ThemeGlyph from './ThemeGlyph.astro';
+import { withBase } from '../lib/url';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  summary?: string;
+  href?: string;
+  glyphSeed?: number;
+  full?: boolean;
+  // Match the page's heading hierarchy: h3 when nested under a SectionHeading
+  // (e.g. Home), h2 when this card's title is the first heading after the
+  // page's own <h1> (e.g. the Research page).
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { eyebrow, title, summary, href, glyphSeed = 0, full = false, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+---
+
+<section class:list={['theme-card', { 'theme-card--full': full }]}>
+  <ThemeGlyph class="theme-card__glyph" seed={glyphSeed} />
+  <div class="theme-card__body">
+    <span class="eyebrow">{eyebrow}</span>
+    <Heading class="theme-card__title">{title}</Heading>
+    {
+      full ? (
+        <div class="prose theme-card__full">
+          <slot />
+        </div>
+      ) : (
+        <>
+          <p class="theme-card__summary">{summary}</p>
+          {href && (
+            <a class="mono theme-card__link" href={withBase(href)}>
+              Read more →
+            </a>
+          )}
+        </>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .theme-card {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .theme-card__glyph {
+    margin-top: 0.35em;
+  }
+
+  .theme-card__title {
+    font-size: var(--text-xl);
+  }
+
+  .theme-card__summary {
+    color: var(--color-text-muted);
+    margin-top: var(--space-1);
+  }
+
+  .theme-card__link {
+    display: inline-block;
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .theme-card--full .theme-card__full {
+    margin-top: var(--space-2);
+  }
+
+  .theme-card--full .theme-card__full :global(p) + :global(p) {
+    margin-top: var(--space-2);
+  }
+</style>

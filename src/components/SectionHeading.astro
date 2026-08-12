@@ -1,0 +1,30 @@
+---
+interface Props {
+  eyebrow?: string;
+  level?: 'h1' | 'h2' | 'h3';
+  class?: string;
+}
+
+const { eyebrow, level = 'h2', class: className } = Astro.props;
+const Tag = level;
+---
+
+<div class:list={['section-heading', className]}>
+  {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+  <Tag>
+    <slot />
+  </Tag>
+  {Astro.slots.has('lede') && <div class="section-heading__lede prose"><slot name="lede" /></div>}
+</div>
+
+<style>
+  .section-heading {
+    margin-bottom: var(--space-4);
+  }
+
+  .section-heading__lede {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+  }
+</style>

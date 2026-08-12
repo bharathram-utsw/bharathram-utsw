@@ -1,0 +1,369 @@
+---
+// A streamgraph of the lab's own publication keywords by year — how topics
+// like Mycobacterium tuberculosis and comparative genomics (the PI's early
+// career) faded out as retina, metabolism, and aging (the current lab) grew.
+// Real per-year counts from publications.json, computed at build time.
+import { getCollection } from 'astro:content';
+
+const pubs = await getCollection('publications');
+const years = pubs.map((p) => p.data.year);
+const minYear = Math.min(...years);
+const maxYear = Math.max(...years);
+const yearRange: number[] = [];
+for (let y = minYear; y <= maxYear; y++) yearRange.push(y);
+
+const totalCounts = new Map<string, number>();
+for (const pub of pubs) {
+  for (const kw of pub.data.keywords) {
+    totalCounts.set(kw, (totalCounts.get(kw) ?? 0) + 1);
+  }
+}
+
+// Keywords that show up more than once — frequent enough to trace a real
+// trend line rather than a single-year blip.
+const seriesKeywords = [...totalCounts.entries()]
+  .filter(([, count]) => count >= 2)
+  .map(([label]) => label);
+
+const seriesValues = new Map<string, number[]>(seriesKeywords.map((k) => [k, yearRange.map(() => 0)]));
+for (const pub of pubs) {
+  const idx = yearRange.indexOf(pub.data.year);
+  for (const kw of pub.data.keywords) {
+    const values = seriesValues.get(kw);
+    if (values) values[idx]++;
+  }
+}
+
+// Order bands by their "centroid year" (count-weighted average year) so the
+// stack reads as a timeline: early-career topics on one edge, recent ones on
+// the other, rather than a random jumble.
+function centroidYear(label: string) {
+  const values = seriesValues.get(label)!;
+  let num = 0;
+  let den = 0;
+  values.forEach((v, i) => {
+    num += v * yearRange[i];
+    den += v;
+  });
+  return den ? num / den : 0;
+}
+const orderedKeywords = seriesKeywords.slice().sort((a, b) => centroidYear(a) - centroidYear(b));
+
+const streamData = JSON.stringify({
+  years: yearRange,
+  series: orderedKeywords.map((label) => ({ label, values: seriesValues.get(label) })),
+});
+---
+
+<div class="streamgraph">
+  <canvas
+    class="streamgraph__canvas"
+    id="streamgraph-canvas"
+    tabindex="0"
+    role="img"
+    aria-label="Streamgraph of publication keywords by year, showing early-career topics like Mycobacterium tuberculosis and comparative genomics giving way over time to retina, metabolism, and aging research"
+  ></canvas>
+  <script type="application/json" id="streamgraph-data" set:html={streamData} />
+  <div class="streamgraph__tooltip" id="streamgraph-tooltip" hidden></div>
+  <p class="mono streamgraph__caption">
+    Every keyword across {pubs.length} papers, {minYear}–{maxYear} — early-career topics on one
+    edge, the current lab's focus on the other.
+  </p>
+</div>
+
+<style>
+  .streamgraph {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: hidden;
+    margin-bottom: var(--space-5);
+  }
+
+  .streamgraph__canvas {
+    display: block;
+    width: 100%;
+    height: 460px;
+    cursor: crosshair;
+  }
+
+  .streamgraph__tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 10px));
+    z-index: 2;
+    white-space: nowrap;
+  }
+
+  .streamgraph__tooltip strong {
+    color: var(--color-accent-on-ink);
+  }
+
+  .streamgraph__caption {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-2);
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (max-width: 640px) {
+    .streamgraph__canvas {
+      height: 360px;
+    }
+  }
+</style>
+
+<script>
+  interface Series {
+    label: string;
+    values: number[];
+    color: string;
+    // per-year-index layout, filled in at render time
+    top: number[];
+    bottom: number[];
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  const canvas = document.getElementById('streamgraph-canvas') as HTMLCanvasElement | null;
+  const dataEl = document.getElementById('streamgraph-data');
+  const tooltip = document.getElementById('streamgraph-tooltip');
+  if (!canvas || !dataEl) throw new Error('KeywordStreamgraph: missing canvas or data element');
+
+  const raw = JSON.parse(dataEl.textContent || '{"years":[],"series":[]}') as {
+    years: number[];
+    series: { label: string; values: number[] }[];
+  };
+  const ctx = canvas.getContext('2d');
+
+  if (ctx && raw.years.length > 0 && raw.series.length > 0) {
+    const PALETTE = ['#004c97', '#009ee2', '#f26531', '#e52334', '#00ab4e', '#776cb1'];
+    const labelColor = readVar('--color-text', '#14181d');
+    const mutedColor = readVar('--color-text-muted', '#4a5560');
+    const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+    const sansFont = readVar('--font-sans', 'sans-serif');
+
+    const years = raw.years;
+    const n = years.length;
+    // Phantom zero-value points just past each edge so every band tapers to
+    // a point instead of ending in a hard vertical cut.
+    const xYears = [years[0] - 0.6, ...years, years[n - 1] + 0.6];
+
+    const series: Series[] = raw.series.map((s, i) => ({
+      label: s.label,
+      values: [0, ...s.values, 0],
+      color: PALETTE[i % PALETTE.length],
+      top: [],
+      bottom: [],
+    }));
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let padX = 40;
+    let padY = 24;
+
+    function layout() {
+      const innerW = width - padX * 2;
+      const innerH = height - padY * 2;
+      const x0 = xYears[0];
+      const x1 = xYears[xYears.length - 1];
+      const xScale = (yi: number) => padX + ((xYears[yi] - x0) / (x1 - x0)) * innerW;
+
+      let maxTotal = 0;
+      for (let yi = 0; yi < xYears.length; yi++) {
+        const total = series.reduce((sum, s) => sum + s.values[yi], 0);
+        maxTotal = Math.max(maxTotal, total);
+      }
+      const vScale = maxTotal > 0 ? (innerH / maxTotal) * 0.92 : 1;
+
+      for (let yi = 0; yi < xYears.length; yi++) {
+        const total = series.reduce((sum, s) => sum + s.values[yi], 0);
+        let cursor = height / 2 - (total * vScale) / 2;
+        for (const s of series) {
+          const h = s.values[yi] * vScale;
+          s.bottom[yi] = cursor;
+          cursor += h;
+          s.top[yi] = cursor;
+        }
+      }
+      return xScale;
+    }
+
+    function smoothLineTo(c: CanvasRenderingContext2D, pts: { x: number; y: number }[]) {
+      c.lineTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length - 1; i++) {
+        const mx = (pts[i].x + pts[i + 1].x) / 2;
+        const my = (pts[i].y + pts[i + 1].y) / 2;
+        c.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+      }
+      const last = pts[pts.length - 1];
+      c.lineTo(last.x, last.y);
+    }
+
+    let hoveredIndex = -1; // index into xYears (excluding phantom points handled via clamp)
+    let hoveredSeries: Series | null = null;
+
+    function draw(xScale: (yi: number) => number) {
+      ctx!.clearRect(0, 0, width, height);
+
+      for (const s of series) {
+        const isHot = s === hoveredSeries;
+        const topPts = xYears.map((_, yi) => ({ x: xScale(yi), y: s.top[yi] }));
+        const bottomPts = xYears.map((_, yi) => ({ x: xScale(yi), y: s.bottom[yi] })).reverse();
+
+        ctx!.beginPath();
+        ctx!.moveTo(topPts[0].x, topPts[0].y);
+        smoothLineTo(ctx!, topPts);
+        smoothLineTo(ctx!, bottomPts);
+        ctx!.closePath();
+        ctx!.fillStyle = s.color;
+        ctx!.globalAlpha = isHot ? 0.95 : hoveredSeries ? 0.22 : 0.75;
+        ctx!.fill();
+        if (isHot) {
+          ctx!.strokeStyle = s.color;
+          ctx!.lineWidth = 1.5;
+          ctx!.globalAlpha = 1;
+          ctx!.stroke();
+        }
+      }
+      ctx!.globalAlpha = 1;
+
+      // Year axis
+      ctx!.font = `11px ${monoFont}`;
+      ctx!.fillStyle = mutedColor;
+      ctx!.textAlign = 'center';
+      ctx!.textBaseline = 'top';
+      years.forEach((y, i) => {
+        if (i % 2 !== 0 && years.length > 10) return; // thin labels if crowded
+        ctx!.fillText(String(y), xScale(i + 1), height - padY + 6);
+      });
+
+      // Peak label per band (drawn last so they sit above every fill)
+      for (const s of series) {
+        if (s === hoveredSeries) continue;
+        let peakIdx = 1;
+        let peakVal = -1;
+        for (let i = 1; i < xYears.length - 1; i++) {
+          if (s.values[i] > peakVal) {
+            peakVal = s.values[i];
+            peakIdx = i;
+          }
+        }
+        if (peakVal <= 0) continue;
+        const cx = xScale(peakIdx);
+        const cy = (s.top[peakIdx] + s.bottom[peakIdx]) / 2;
+        const bandThickness = s.top[peakIdx] - s.bottom[peakIdx];
+        if (bandThickness < 13) continue; // too thin to letter
+        ctx!.font = `600 10px ${sansFont}`;
+        ctx!.fillStyle = '#ffffff';
+        ctx!.textAlign = 'center';
+        ctx!.textBaseline = 'middle';
+        const label = s.label.length > 20 ? s.label.slice(0, 18) + '…' : s.label;
+        ctx!.fillText(label, cx, cy);
+      }
+
+      if (hoveredSeries) {
+        ctx!.font = `600 10px ${sansFont}`;
+        ctx!.fillStyle = '#ffffff';
+        ctx!.textAlign = 'center';
+        ctx!.textBaseline = 'middle';
+        let peakIdx = 1;
+        let peakVal = -1;
+        for (let i = 1; i < xYears.length - 1; i++) {
+          if (hoveredSeries.values[i] > peakVal) {
+            peakVal = hoveredSeries.values[i];
+            peakIdx = i;
+          }
+        }
+        const cx = xScale(peakIdx);
+        const cy = (hoveredSeries.top[peakIdx] + hoveredSeries.bottom[peakIdx]) / 2;
+        if (hoveredSeries.top[peakIdx] - hoveredSeries.bottom[peakIdx] >= 13) {
+          ctx!.fillText(hoveredSeries.label, cx, cy);
+        }
+      }
+    }
+
+    let xScale = (yi: number) => yi;
+
+    function resize() {
+      const rect = canvas!.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      xScale = layout();
+      draw(xScale);
+    }
+
+    function seriesAt(px: number, py: number): Series | null {
+      // nearest year index (in the real, non-phantom range)
+      let nearest = 1;
+      let nearestDist = Infinity;
+      for (let i = 1; i < xYears.length - 1; i++) {
+        const d = Math.abs(xScale(i) - px);
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearest = i;
+        }
+      }
+      for (const s of series) {
+        if (py <= s.bottom[nearest] && py >= s.top[nearest]) return s;
+      }
+      return null;
+    }
+
+    canvas!.addEventListener('pointermove', (e) => {
+      const rect = canvas!.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const hit = seriesAt(px, py);
+      hoveredSeries = hit;
+      if (hit && tooltip) {
+        let nearestYearIdx = 0;
+        let nearestDist = Infinity;
+        years.forEach((y, i) => {
+          const d = Math.abs(xScale(i + 1) - px);
+          if (d < nearestDist) {
+            nearestDist = d;
+            nearestYearIdx = i;
+          }
+        });
+        const count = hit.values[nearestYearIdx + 1];
+        tooltip.hidden = false;
+        tooltip.style.left = `${px}px`;
+        tooltip.style.top = `${py}px`;
+        tooltip.innerHTML = `<strong>${hit.label}</strong><br>${years[nearestYearIdx]} — ${count} paper${count === 1 ? '' : 's'}`;
+      } else if (tooltip) {
+        tooltip.hidden = true;
+      }
+      draw(xScale);
+    });
+    canvas!.addEventListener('pointerleave', () => {
+      hoveredSeries = null;
+      if (tooltip) tooltip.hidden = true;
+      draw(xScale);
+    });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => resize());
+      ro.observe(canvas!);
+    } else {
+      window.addEventListener('resize', resize);
+    }
+
+    resize();
+  }
+</script>

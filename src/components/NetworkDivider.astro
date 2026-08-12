@@ -1,0 +1,19 @@
+---
+// A plain section separator. The network/graph motif lives in the two places
+// it means something — the Home hero (built from real publication keywords)
+// and the Research page's Diseasome Explorer — not repeated as decoration.
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<hr class:list={['network-divider', className]} />
+
+<style>
+  .network-divider {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin-block: var(--space-5);
+  }
+</style>

@@ -1,0 +1,88 @@
+---
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+
+const mapsUrl =
+  'https://www.google.com/maps/search/?api=1&query=' +
+  encodeURIComponent('5323 Harry Hines Blvd, Dallas, TX 75390');
+---
+
+<div class:list={['contact-block', { 'contact-block--compact': compact }]}>
+  <div>
+    <p class="eyebrow">Address</p>
+    <p class="contact-block__address">
+      UT Southwestern Medical Center<br />
+      Department of Ophthalmology<br />
+      5323 Harry Hines Blvd<br />
+      Dallas, TX 75390, USA
+    </p>
+    <a class="mono contact-block__map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer"
+      >View on map →</a
+    >
+  </div>
+
+  {
+    !compact && (
+      <div>
+        <p class="eyebrow">Reach us</p>
+        <dl class="contact-block__rows">
+          <div>
+            <dt class="mono">Email</dt>
+            <dd class="contact-block__placeholder">— (coming soon)</dd>
+          </div>
+          <div>
+            <dt class="mono">Phone</dt>
+            <dd class="contact-block__placeholder">— (coming soon)</dd>
+          </div>
+          <div>
+            <dt class="mono">Social</dt>
+            <dd class="contact-block__placeholder">— (coming soon)</dd>
+          </div>
+        </dl>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .contact-block {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+  }
+
+  .contact-block__address {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
+  .contact-block__map-link {
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .contact-block__rows > div {
+    display: flex;
+    gap: var(--space-2);
+    padding-block: var(--space-1);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .contact-block__rows dt {
+    width: 5rem;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .contact-block__placeholder {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .contact-block--compact .contact-block__address {
+    font-size: var(--text-sm);
+  }
+</style>

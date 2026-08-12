@@ -1,0 +1,89 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  member: CollectionEntry<'team'>;
+}
+
+const { member } = Astro.props;
+const { data } = member;
+const { Content } = await render(member);
+---
+
+<article class="team-card">
+  <div class="team-card__photo" aria-hidden="true">
+    <span class="mono">{data.photo ? '' : 'photo'}</span>
+  </div>
+  <div class="team-card__body">
+    <h2>{data.name}</h2>
+    <p class="mono team-card__role">{data.role}</p>
+    <div class="prose team-card__bio">
+      <Content />
+    </div>
+    {
+      data.interests.length > 0 && (
+        <p class="mono team-card__interests">{data.interests.join(' · ')}</p>
+      )
+    }
+    {data.email && (
+      <a class="team-card__email" href={`mailto:${data.email}`}>{data.email}</a>
+    )}
+  </div>
+</article>
+
+<style>
+  .team-card {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: var(--space-4);
+  }
+
+  .team-card__photo {
+    aspect-ratio: 1;
+    background: var(--color-bg-inset);
+    border: 1px dashed var(--color-border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .team-card__body h2 {
+    font-size: var(--text-xl);
+  }
+
+  .team-card__role {
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    margin-block: 0.25em var(--space-2);
+  }
+
+  .team-card__bio :global(p) + :global(p) {
+    margin-top: var(--space-2);
+  }
+
+  .team-card__interests {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+  }
+
+  .team-card__email {
+    display: inline-block;
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 640px) {
+    .team-card {
+      grid-template-columns: 1fr;
+    }
+
+    .team-card__photo {
+      max-width: 10rem;
+    }
+  }
+</style>

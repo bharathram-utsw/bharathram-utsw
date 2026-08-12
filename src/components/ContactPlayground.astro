@@ -1,0 +1,276 @@
+---
+// A small physics toy, because a contact page doesn't have to be a wall of
+// text. Real ways to reach the lab, plus a few honest bits of the PI's bio,
+// as draggable bouncing bubbles with actual gravity. Vanilla Canvas2D.
+const BUBBLES = [
+  { label: '📍 Dallas, TX', weight: 1.3 },
+  { label: '✉️ Email — soon', weight: 1 },
+  { label: '☎️ Phone — soon', weight: 1 },
+  { label: '🐦 Social — soon', weight: 1 },
+  { label: '👋 Say hello', weight: 1.15, accent: true },
+  { label: '🧗 Climbing', weight: 0.85 },
+  { label: '🏃 Running', weight: 0.85 },
+  { label: '🍳 Cooking', weight: 0.85 },
+  { label: '🏔️ Mountains', weight: 0.85 },
+  { label: '✈️ Travel', weight: 0.85 },
+];
+const bubbleData = JSON.stringify(BUBBLES);
+---
+
+<div class="contact-playground">
+  <canvas
+    class="contact-playground__canvas"
+    id="contact-playground-canvas"
+    tabindex="0"
+    role="group"
+    aria-label="A physics toy — drag and fling the bubbles"
+  ></canvas>
+  <script type="application/json" id="contact-playground-data" set:html={bubbleData} />
+  <p class="mono contact-playground__hint">Gravity's on. Drag one.</p>
+</div>
+
+<style>
+  .contact-playground {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: hidden;
+    margin-bottom: var(--space-5);
+  }
+
+  .contact-playground__canvas {
+    display: block;
+    width: 100%;
+    height: 360px;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .contact-playground__canvas:active {
+    cursor: grabbing;
+  }
+
+  .contact-playground__hint {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-2);
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (max-width: 640px) {
+    .contact-playground__canvas {
+      height: 300px;
+    }
+  }
+</style>
+
+<script>
+  interface Bubble {
+    label: string;
+    weight: number;
+    accent?: boolean;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    r: number;
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  const canvas = document.getElementById('contact-playground-canvas') as HTMLCanvasElement | null;
+  const dataEl = document.getElementById('contact-playground-data');
+  if (!canvas || !dataEl) throw new Error('ContactPlayground: missing canvas or data element');
+
+  const defs = JSON.parse(dataEl.textContent || '[]') as { label: string; weight: number; accent?: boolean }[];
+  const ctx = canvas.getContext('2d');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (ctx) {
+    const bgRaised = readVar('--color-bg-raised', '#ffffff');
+    const accentColor = readVar('--color-accent', '#004c97');
+    const inkColor = readVar('--color-ink', '#00355d');
+    const textColor = readVar('--color-text', '#14181d');
+    const sansFont = readVar('--font-sans', 'sans-serif');
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const bubbles: Bubble[] = defs.map((d, i) => ({
+      ...d,
+      x: 40 + i * 30,
+      y: 20 + i * 8,
+      vx: (Math.random() - 0.5) * 2,
+      vy: 0,
+      r: 0,
+    }));
+
+    function sizeBubbles() {
+      const base = Math.min(width, height) * 0.11;
+      for (const b of bubbles) {
+        b.r = Math.max(30, base * b.weight * (0.6 + b.label.length * 0.012));
+      }
+    }
+
+    function resize() {
+      const rect = canvas!.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sizeBubbles();
+    }
+
+    const GRAVITY = 0.32;
+    const DAMPING = 0.72;
+
+    let dragging: Bubble | null = null;
+    let lastPointer = { x: 0, y: 0, t: 0 };
+    let dragVel = { x: 0, y: 0 };
+
+    function step() {
+      for (const b of bubbles) {
+        if (b === dragging) continue;
+        b.vy += GRAVITY;
+        b.x += b.vx;
+        b.y += b.vy;
+
+        if (b.x - b.r < 0) {
+          b.x = b.r;
+          b.vx *= -DAMPING;
+        } else if (b.x + b.r > width) {
+          b.x = width - b.r;
+          b.vx *= -DAMPING;
+        }
+        if (b.y - b.r < 0) {
+          b.y = b.r;
+          b.vy *= -DAMPING;
+        } else if (b.y + b.r > height) {
+          b.y = height - b.r;
+          b.vy *= -DAMPING;
+          b.vx *= 0.98; // floor friction
+        }
+      }
+
+      // gentle mutual repulsion so bubbles don't stack perfectly
+      for (let i = 0; i < bubbles.length; i++) {
+        for (let j = i + 1; j < bubbles.length; j++) {
+          const a = bubbles[i];
+          const b = bubbles[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const minDist = a.r + b.r;
+          if (dist < minDist) {
+            const overlap = (minDist - dist) / 2;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            if (a !== dragging) {
+              a.x -= nx * overlap;
+              a.y -= ny * overlap;
+            }
+            if (b !== dragging) {
+              b.x += nx * overlap;
+              b.y += ny * overlap;
+            }
+          }
+        }
+      }
+    }
+
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+      for (const b of bubbles) {
+        ctx!.beginPath();
+        ctx!.fillStyle = b.accent ? accentColor : bgRaised;
+        ctx!.strokeStyle = b.accent ? accentColor : inkColor;
+        ctx!.lineWidth = 1.5;
+        ctx!.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.stroke();
+
+        ctx!.fillStyle = b.accent ? '#ffffff' : textColor;
+        ctx!.font = `600 13px ${sansFont}`;
+        ctx!.textAlign = 'center';
+        ctx!.textBaseline = 'middle';
+        ctx!.fillText(b.label, b.x, b.y);
+      }
+    }
+
+    function bubbleAt(x: number, y: number) {
+      // topmost (last-drawn) first
+      for (let i = bubbles.length - 1; i >= 0; i--) {
+        if (Math.hypot(bubbles[i].x - x, bubbles[i].y - y) <= bubbles[i].r) return bubbles[i];
+      }
+      return null;
+    }
+
+    function pointerPos(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      const p = pointerPos(e);
+      const hit = bubbleAt(p.x, p.y);
+      if (hit) {
+        dragging = hit;
+        dragging.vx = 0;
+        dragging.vy = 0;
+        lastPointer = { ...p, t: performance.now() };
+        canvas!.setPointerCapture(e.pointerId);
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const p = pointerPos(e);
+      const now = performance.now();
+      const dt = Math.max(now - lastPointer.t, 1);
+      dragVel = { x: ((p.x - lastPointer.x) / dt) * 16, y: ((p.y - lastPointer.y) / dt) * 16 };
+      dragging.x = Math.min(Math.max(p.x, dragging.r), width - dragging.r);
+      dragging.y = Math.min(Math.max(p.y, dragging.r), height - dragging.r);
+      lastPointer = { ...p, t: now };
+      if (reducedMotion) draw();
+    });
+
+    function release(e: PointerEvent) {
+      if (dragging) {
+        dragging.vx = dragVel.x;
+        dragging.vy = dragVel.y;
+        canvas!.releasePointerCapture(e.pointerId);
+        dragging = null;
+      }
+    }
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointerleave', release);
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => resize());
+      ro.observe(canvas);
+    } else {
+      window.addEventListener('resize', resize);
+    }
+
+    resize();
+
+    if (reducedMotion) {
+      // Settle once into a resting pile, then stay put — no ambient motion,
+      // dragging still works.
+      for (let i = 0; i < 200; i++) step();
+      draw();
+    } else {
+      const loop = () => {
+        step();
+        draw();
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    }
+  }
+</script>

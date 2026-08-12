@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ThemeGlyph from '../components/ThemeGlyph.astro';
+import NetworkDivider from '../components/NetworkDivider.astro';
+import DiseasomeExplorer from '../components/DiseasomeExplorer.astro';
+---
+
+<BaseLayout
+  title="Research"
+  description="The Mondal Lab studies retinal diseasome assembly and environmental-molecular interactions in retinal aging, combining genomics, epigenomics, metabolism, and network analysis."
+>
+  <div class="research-hero">
+    <DiseasomeExplorer background />
+    <div class="research-hero__content container">
+      <SectionHeading eyebrow="What we study" level="h1">Research</SectionHeading>
+      <p class="prose research-page__lede">
+        Two convergent research programs, one question: why do so many different causes —
+        genetic, metabolic, environmental — end up producing the same handful of disease outcomes
+        in the retina? <span class="mono research-page__hint">(That's a live model behind this text — drag it.)</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="container research-page">
+    <section class="theme reveal">
+      <span class="big-numeral theme__numeral" aria-hidden="true">01</span>
+      <div class="theme__body">
+        <ThemeGlyph class="theme__glyph" seed={0} />
+        <span class="eyebrow">Theme 01</span>
+        <h2>Retinal Diseasome Assembly</h2>
+        <div class="prose">
+          <p>
+            Unrelated genetic mutations converge on a finite set of disease-onset programs in the
+            retina. We investigate this convergence across both inherited retinal degenerations
+            and complex diseases such as age-related macular degeneration, using multi-omic
+            approaches that integrate genomic, transcriptomic, and proteomic data.
+          </p>
+          <p>
+            Our framework captures genetic factors, pathological processes, and homeostatic
+            recovery mechanisms across a range of retinal conditions — building toward a shared
+            map of how distinct causes lead to overlapping disease states.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <NetworkDivider />
+
+    <section class="theme reveal">
+      <span class="big-numeral theme__numeral" aria-hidden="true">02</span>
+      <div class="theme__body">
+        <ThemeGlyph class="theme__glyph" seed={1} />
+        <span class="eyebrow">Theme 02</span>
+        <h2>Environmental–Molecular Interactions in Retinal Aging</h2>
+        <div class="prose">
+          <p>
+            Lifestyle factors, such as nutrition, influence the retinal molecular landscape over
+            time. Through controlled experiments in mice, we study how diet and other
+            environmental variables shape epigenetic and metabolic states in the aging retina.
+          </p>
+          <p>
+            This work emphasizes the relationship between epigenetic change, metabolism, and the
+            environment — and how these factors interact with age-dependent vision decline that
+            fixed genetic factors alone cannot explain.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .research-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 72vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .research-hero__content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .research-page {
+    padding-block: var(--space-6);
+  }
+
+  .research-page__lede {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    max-width: 56ch;
+  }
+
+  .research-page__hint {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .theme {
+    position: relative;
+  }
+
+  .theme__numeral {
+    position: absolute;
+    top: -1.2rem;
+    right: 0;
+    z-index: 0;
+  }
+
+  .theme__body {
+    position: relative;
+    z-index: 1;
+    max-width: 70ch;
+  }
+
+  .theme__glyph {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: var(--space-2);
+  }
+
+  @media (max-width: 720px) {
+    .theme__numeral {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .research-hero {
+      min-height: auto;
+      padding-block: var(--space-6) var(--space-4);
+    }
+
+    /* The draggable graph needs room to breathe — on narrow screens it just
+       competes with the text, so it steps aside in favor of a plain page. */
+    .research-hero :global(.diseasome--background) {
+      display: none;
+    }
+  }
+</style>
