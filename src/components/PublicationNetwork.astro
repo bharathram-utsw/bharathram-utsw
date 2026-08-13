@@ -56,11 +56,6 @@ const graphData = JSON.stringify({ nodes: topics, edges });
   <div class="pub-network-layout__text">
     <span class="eyebrow">By topic</span>
     <h2>How the topics connect</h2>
-    <p class="prose pub-network-layout__copy">
-      Every keyword becomes a node, sized by how many papers carry it; edges connect topics that
-      co-occur on the same paper. Drag a node to rearrange it, or click one to filter the
-      publications below — scoped to the lab's retina and vision research.
-    </p>
     <p class="mono pub-network-layout__caption">Click a topic to filter. Drag to rearrange.</p>
   </div>
 
@@ -96,14 +91,8 @@ const graphData = JSON.stringify({ nodes: topics, edges });
     margin-bottom: var(--space-5);
   }
 
-  .pub-network-layout__copy {
-    color: var(--color-text-muted);
-    margin-top: var(--space-2);
-    max-width: 40ch;
-  }
-
   .pub-network-layout__caption {
-    margin-top: var(--space-4);
+    margin-top: var(--space-2);
     font-size: var(--text-xs);
     color: var(--color-text-faint);
   }

@@ -77,14 +77,7 @@ const upsetData = JSON.stringify({ categories, combos });
 <div class="upset">
   <div class="upset__text">
     <span class="eyebrow">How the evidence overlaps</span>
-    <h2>Where the research overlaps — a real UpSet plot</h2>
-    <p class="prose upset__copy">
-      Every vision-era paper's own keywords are classified into four broad research themes. Each
-      column below is a combination of themes that actually occurs in the record, with the real
-      count of papers in that exact combination — the standard matrix-based alternative to a Venn
-      diagram once there are more than two or three sets to compare. Computed from the same
-      publication data as the rest of the site; add a paper and this updates on its own.
-    </p>
+    <h2>Where the research overlaps</h2>
     <p class="mono upset__caption">Hover a column for the papers behind it.</p>
   </div>
 
@@ -110,14 +103,8 @@ const upsetData = JSON.stringify({ categories, combos });
     margin-bottom: var(--space-2);
   }
 
-  .upset__copy {
-    color: var(--color-text-muted);
-    margin-top: var(--space-2);
-    max-width: 42ch;
-  }
-
   .upset__caption {
-    margin-top: var(--space-4);
+    margin-top: var(--space-2);
     font-size: var(--text-xs);
     color: var(--color-text-faint);
   }
