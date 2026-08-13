@@ -108,13 +108,6 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
         </ul>
         <span class="mono bento-tile__link">See all news →</span>
       </a>
-
-      <a class="bento-tile bento-tile--contact section-ink" href={withBase('/contact')}>
-        <span class="eyebrow">Find us</span>
-        <h2 class="bento-tile__title">Contact</h2>
-        <p class="bento-tile__body">Dallas, TX</p>
-        <span class="mono bento-tile__link">Get in touch →</span>
-      </a>
     </div>
   </div>
 </BaseLayout>
@@ -280,37 +273,6 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
     grid-row: 2 / 3;
   }
 
-  .bento-tile--contact {
-    grid-column: 1 / 5;
-    grid-row: 3 / 4;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    /* .section-ink (global.css) loses a specificity tie against this
-       component's own scoped .bento-tile rule, so it never actually
-       applied — set the ink treatment directly here instead. */
-    background: var(--color-ink);
-    color: var(--color-on-ink);
-    border-color: var(--color-on-ink-border);
-  }
-
-  .bento-tile--contact .bento-tile__title {
-    margin-bottom: 0;
-  }
-
-  .bento-tile--contact .bento-tile__body {
-    flex-grow: 0;
-    color: var(--color-on-ink-muted);
-    opacity: 1;
-  }
-
-  .bento-tile--contact .bento-tile__link {
-    margin-top: 0;
-    white-space: nowrap;
-    color: var(--color-accent-on-ink);
-  }
-
   @media (max-width: 720px) {
     .home-bento {
       grid-template-columns: 1fr;
@@ -320,15 +282,9 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
     .bento-tile--research1,
     .bento-tile--research2,
     .bento-tile--team,
-    .bento-tile--news,
-    .bento-tile--contact {
+    .bento-tile--news {
       grid-column: 1 / 2;
       grid-row: auto;
-    }
-
-    .bento-tile--contact {
-      flex-direction: column;
-      align-items: flex-start;
     }
 
     .home-statement__stats {

@@ -399,7 +399,7 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
           const hit = arcAt(e.clientX - rect.left, e.clientY - rect.top);
           if (hit) {
             const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-            window.location.href = `${base}/publications?topic=${encodeURIComponent(hit.label)}`;
+            window.location.href = `${base}/publications`;
           }
         });
 

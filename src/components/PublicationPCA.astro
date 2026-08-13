@@ -1,0 +1,365 @@
+---
+// A real PCA plot, not a metaphor: every publication's keyword list becomes
+// a binary presence vector (papers × unique keywords), and we run actual
+// principal component analysis on that matrix — the same class of
+// dimensionality-reduction technique used on real omics data in the lab's
+// own research. Papers sharing more keywords land closer together. Computed
+// once at build time (dual/Gram-matrix PCA — correct and efficient here
+// since there are far more keywords than papers); the client only draws
+// points.
+import { getCollection } from 'astro:content';
+
+const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+const keywords = [...new Set(pubs.flatMap((p) => p.data.keywords))];
+const n = pubs.length;
+
+const X = pubs.map((pub) => keywords.map((kw) => (pub.data.keywords.includes(kw) ? 1 : 0)));
+const colMeans = keywords.map((_, j) => X.reduce((s, row) => s + row[j], 0) / n);
+const Xc = X.map((row) => row.map((v, j) => v - colMeans[j]));
+
+function gram(A: number[][]): number[][] {
+  const G: number[][] = Array.from({ length: A.length }, () => new Array(A.length).fill(0));
+  for (let i = 0; i < A.length; i++) {
+    for (let k = i; k < A.length; k++) {
+      let s = 0;
+      for (let j = 0; j < A[i].length; j++) s += A[i][j] * A[k][j];
+      G[i][k] = s;
+      G[k][i] = s;
+    }
+  }
+  return G;
+}
+
+function matVec(M: number[][], v: number[]): number[] {
+  return M.map((row) => row.reduce((s, val, j) => s + val * v[j], 0));
+}
+
+function norm(v: number[]): number {
+  return Math.sqrt(v.reduce((s, x) => s + x * x, 0)) || 1;
+}
+
+// Deterministic seed (not Math.random) so the layout is stable across
+// rebuilds — the plot shouldn't shuffle itself every time content changes.
+function powerIteration(M: number[][], iterations = 400) {
+  let v = M.map((_, i) => Math.sin(i * 1.37 + 1));
+  for (let iter = 0; iter < iterations; iter++) {
+    v = matVec(M, v).map((x) => x / norm(matVec(M, v)));
+  }
+  const Mv = matVec(M, v);
+  const eigenvalue = v.reduce((s, x, i) => s + x * Mv[i], 0);
+  return { vector: v, eigenvalue: Math.max(eigenvalue, 0) };
+}
+
+const G = gram(Xc);
+const { vector: v1, eigenvalue: lambda1 } = powerIteration(G);
+const G2 = G.map((row, i) => row.map((val, k) => val - lambda1 * v1[i] * v1[k]));
+const { vector: v2, eigenvalue: lambda2 } = powerIteration(G2);
+
+const pc1 = v1.map((x) => x * Math.sqrt(lambda1));
+const pc2 = v2.map((x) => x * Math.sqrt(lambda2));
+const totalVariance = G.reduce((s, row, i) => s + row[i], 0) || 1;
+const pc1Pct = Math.round((lambda1 / totalVariance) * 100);
+const pc2Pct = Math.round((lambda2 / totalVariance) * 100);
+
+const minYear = Math.min(...pubs.map((p) => p.data.year));
+const maxYear = Math.max(...pubs.map((p) => p.data.year));
+
+const points = pubs.map((pub, i) => ({
+  id: pub.id,
+  title: pub.data.title,
+  year: pub.data.year,
+  journal: pub.data.journal,
+  x: pc1[i],
+  y: pc2[i],
+}));
+const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
+---
+
+<div class="pca">
+  <div class="pca__canvas-wrap">
+    <canvas class="pca__canvas" id="pca-canvas" tabindex="0" role="img"
+      aria-label="Principal component analysis plot of publications by keyword similarity — papers that share more keywords appear closer together"
+    ></canvas>
+    <script type="application/json" id="pca-data" set:html={plotData} />
+    <div class="pca__tooltip" id="pca-tooltip" hidden></div>
+  </div>
+  <div class="pca__legend">
+    <span class="mono pca__legend-label">{minYear}</span>
+    <span class="pca__legend-gradient" aria-hidden="true"></span>
+    <span class="mono pca__legend-label">{maxYear}</span>
+    <span class="mono pca__legend-caption">— publication year</span>
+  </div>
+  <p class="mono pca__caption">
+    Real PCA on each paper's keyword vector — closer points share more keywords. Click a point to
+    jump to it below.
+  </p>
+</div>
+
+<style>
+  .pca {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: hidden;
+    margin-bottom: var(--space-5);
+  }
+
+  .pca__canvas-wrap {
+    position: relative;
+  }
+
+  .pca__canvas {
+    display: block;
+    width: 100%;
+    height: 480px;
+    cursor: pointer;
+  }
+
+  .pca__tooltip {
+    position: absolute;
+    pointer-events: none;
+    max-width: 20rem;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 10px));
+    z-index: 2;
+  }
+
+  .pca__tooltip strong {
+    display: block;
+    font-family: var(--font-sans);
+    color: var(--color-accent-on-ink);
+    margin-bottom: 0.2em;
+  }
+
+  .pca__legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3) 0;
+  }
+
+  .pca__legend-label {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .pca__legend-gradient {
+    width: 8rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: linear-gradient(to right, #004c97, #f26531);
+  }
+
+  .pca__legend-caption {
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .pca__caption {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-3) var(--space-2);
+  }
+
+  @media (max-width: 640px) {
+    .pca__canvas {
+      height: 380px;
+    }
+  }
+</style>
+
+<script>
+  interface Point {
+    id: string;
+    title: string;
+    year: number;
+    journal: string;
+    x: number;
+    y: number;
+    px: number;
+    py: number;
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  function lerpColor(a: [number, number, number], b: [number, number, number], t: number) {
+    return `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)}, ${Math.round(a[1] + (b[1] - a[1]) * t)}, ${Math.round(a[2] + (b[2] - a[2]) * t)})`;
+  }
+
+  const canvas = document.getElementById('pca-canvas') as HTMLCanvasElement | null;
+  const dataEl = document.getElementById('pca-data');
+  const tooltip = document.getElementById('pca-tooltip');
+  if (!canvas || !dataEl) throw new Error('PublicationPCA: missing canvas or data element');
+
+  const raw = JSON.parse(dataEl.textContent || '{}') as {
+    points: { id: string; title: string; year: number; journal: string; x: number; y: number }[];
+    minYear: number;
+    maxYear: number;
+    pc1Pct: number;
+    pc2Pct: number;
+  };
+  const ctx = canvas.getContext('2d');
+
+  if (ctx && raw.points?.length > 0) {
+    const gridColor = readVar('--color-border', '#dce3ea');
+    const axisColor = readVar('--color-border-strong', '#b9c5d1');
+    const textColor = readVar('--color-text-muted', '#4a5560');
+    const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+    const BLUE: [number, number, number] = [0, 76, 151];
+    const ORANGE: [number, number, number] = [242, 101, 49];
+
+    const points: Point[] = raw.points.map((p) => ({ ...p, px: 0, py: 0 }));
+    const yearSpan = Math.max(raw.maxYear - raw.minYear, 1);
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pad = 44;
+
+    function layout() {
+      const xs = points.map((p) => p.x);
+      const ys = points.map((p) => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const rangeX = Math.max(maxX - minX, 0.001);
+      const rangeY = Math.max(maxY - minY, 0.001);
+      for (const p of points) {
+        p.px = pad + ((p.x - minX) / rangeX) * (width - pad * 2);
+        p.py = height - pad - ((p.y - minY) / rangeY) * (height - pad * 2);
+      }
+    }
+
+    function resize() {
+      const rect = canvas!.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      layout();
+    }
+
+    let hovered: Point | null = null;
+
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+
+      // axes through the origin-ish center
+      ctx!.strokeStyle = gridColor;
+      ctx!.lineWidth = 1;
+      ctx!.beginPath();
+      ctx!.moveTo(pad, height / 2);
+      ctx!.lineTo(width - pad, height / 2);
+      ctx!.moveTo(width / 2, pad);
+      ctx!.lineTo(width / 2, height - pad);
+      ctx!.stroke();
+
+      ctx!.strokeStyle = axisColor;
+      ctx!.strokeRect(pad, pad, width - pad * 2, height - pad * 2);
+
+      ctx!.font = `11px ${monoFont}`;
+      ctx!.fillStyle = textColor;
+      ctx!.textAlign = 'center';
+      ctx!.fillText(`PC1 (${raw.pc1Pct}%)`, width / 2, height - pad + 22);
+      ctx!.save();
+      ctx!.translate(pad - 26, height / 2);
+      ctx!.rotate(-Math.PI / 2);
+      ctx!.fillText(`PC2 (${raw.pc2Pct}%)`, 0, 0);
+      ctx!.restore();
+
+      for (const p of points) {
+        const t = (p.year - raw.minYear) / yearSpan;
+        const isHot = p === hovered;
+        const color = lerpColor(BLUE, ORANGE, t);
+        ctx!.beginPath();
+        ctx!.fillStyle = color;
+        ctx!.globalAlpha = isHot ? 1 : 0.8;
+        ctx!.arc(p.px, p.py, isHot ? 8 : 6, 0, Math.PI * 2);
+        ctx!.fill();
+        if (isHot) {
+          ctx!.lineWidth = 2;
+          ctx!.strokeStyle = readVar('--color-text', '#14181d');
+          ctx!.stroke();
+        }
+      }
+      ctx!.globalAlpha = 1;
+    }
+
+    function pointAt(x: number, y: number): Point | null {
+      let best: Point | null = null;
+      let bestDist = 14;
+      for (const p of points) {
+        const d = Math.hypot(p.px - x, p.py - y);
+        if (d < bestDist) {
+          bestDist = d;
+          best = p;
+        }
+      }
+      return best;
+    }
+
+    function pointerPos(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointermove', (e) => {
+      const pos = pointerPos(e);
+      const hit = pointAt(pos.x, pos.y);
+      hovered = hit;
+      canvas!.style.cursor = hit ? 'pointer' : 'default';
+      if (hit && tooltip) {
+        tooltip.hidden = false;
+        tooltip.style.left = `${hit.px}px`;
+        tooltip.style.top = `${hit.py}px`;
+        tooltip.innerHTML = `<strong>${hit.title}</strong>${hit.journal}, ${hit.year}`;
+      } else if (tooltip) {
+        tooltip.hidden = true;
+      }
+      draw();
+    });
+    canvas.addEventListener('pointerleave', () => {
+      hovered = null;
+      if (tooltip) tooltip.hidden = true;
+      draw();
+    });
+    canvas.addEventListener('click', (e) => {
+      const pos = pointerPos(e);
+      const hit = pointAt(pos.x, pos.y);
+      if (!hit) return;
+      const card = document.querySelector<HTMLElement>(`[data-pub-id="${hit.id}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('pub-card--flash');
+        setTimeout(() => card.classList.remove('pub-card--flash'), 1500);
+      }
+    });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        resize();
+        draw();
+      });
+      ro.observe(canvas);
+    } else {
+      window.addEventListener('resize', () => {
+        resize();
+        draw();
+      });
+    }
+
+    resize();
+    draw();
+  }
+</script>

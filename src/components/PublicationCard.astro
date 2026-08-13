@@ -2,10 +2,11 @@
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
+  id: string;
   publication: CollectionEntry<'publications'>['data'];
 }
 
-const { publication: pub } = Astro.props;
+const { id, publication: pub } = Astro.props;
 const link = pub.doi ?? pub.url;
 
 const metaParts: string[] = [];
@@ -19,6 +20,7 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
 <article
   class="pub-card"
   data-pub-card
+  data-pub-id={id}
   data-keywords={pub.keywords.join('|')}
   data-year={pub.year}
   data-citations={pub.citations ?? 0}
@@ -86,6 +88,11 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
   .pub-card:hover {
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
+  }
+
+  .pub-card--flash {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
   }
 
   .pub-card[data-dimmed='true'] {

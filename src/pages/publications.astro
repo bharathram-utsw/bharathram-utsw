@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import PublicationCloud from '../components/PublicationCloud.astro';
+import PublicationPCA from '../components/PublicationPCA.astro';
 import PublicationCard from '../components/PublicationCard.astro';
 
 const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
@@ -16,14 +16,13 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     <SectionHeading eyebrow="Selected output" level="h1">Publications</SectionHeading>
     <p class="prose publications-page__lede reveal">
       {publications.length} papers, spanning retinal biology, aging and metabolism, epigenetics,
-      and — earlier in the same throughline — microbial and comparative genomics. Click a topic
-      below to filter.
+      and — earlier in the same throughline — microbial and comparative genomics.
     </p>
 
     <div class="publications-page__section reveal">
-      <span class="eyebrow">By topic</span>
-      <h2>How the topics connect</h2>
-      <PublicationCloud />
+      <span class="eyebrow">By similarity</span>
+      <h2>Mapped by keyword — a real PCA</h2>
+      <PublicationPCA />
     </div>
 
     <div class="publications-page__controls">
@@ -35,7 +34,7 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     </div>
 
     <div class="publications-page__grid reveal" id="pub-grid">
-      {publications.map((pub) => <PublicationCard publication={pub.data} />)}
+      {publications.map((pub) => <PublicationCard id={pub.id} publication={pub.data} />)}
     </div>
   </div>
 </BaseLayout>
@@ -120,9 +119,6 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     countEl.textContent = visible === cards.length ? `${cards.length} shown` : `${visible} of ${cards.length} shown`;
   }
 
-  document.addEventListener('pub-filter-change', updateCount);
-  // PublicationCloud may have already applied a ?topic= filter (and fired
-  // its event) before this listener was registered — sync once on load too.
   updateCount();
 
   sortButtons.forEach((btn) => {
