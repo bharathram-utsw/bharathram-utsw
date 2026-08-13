@@ -2,16 +2,14 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import ContactBlock from '../components/ContactBlock.astro';
-import ContactPlayground from '../components/ContactPlayground.astro';
 ---
 
 <BaseLayout title="Contact" description="Contact the Mondal Lab at UT Southwestern Medical Center.">
   <div class="container contact-page">
     <SectionHeading eyebrow="Get in touch" level="h1">Contact</SectionHeading>
     <div class="reveal">
-      <ContactPlayground />
+      <ContactBlock />
     </div>
-    <ContactBlock />
   </div>
 </BaseLayout>
 

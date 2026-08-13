@@ -1,0 +1,73 @@
+---
+// A deterministic geometric avatar generated from a name — a designed
+// placeholder (in the site's own palette) instead of an empty gray box,
+// for team members without a photo yet. Same input always produces the
+// same pattern, so it reads as identity, not noise.
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+}
+const { name, size = 96, class: className } = Astro.props;
+
+function hash(str: string) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+const PALETTE = ['#004c97', '#009ee2', '#f26531', '#e52334', '#00ab4e', '#776cb1'];
+const seed = hash(name);
+const color = PALETTE[seed % PALETTE.length];
+
+// 5x3 grid, mirrored horizontally for a symmetric identicon-style mark.
+const cols = 3;
+const rows = 5;
+const cells: boolean[][] = [];
+for (let y = 0; y < rows; y++) {
+  const row: boolean[] = [];
+  for (let x = 0; x < cols; x++) {
+    const bit = (seed >> (y * cols + x)) & 1;
+    row.push(bit === 1);
+  }
+  cells.push(row);
+}
+const cellSize = 20;
+const fullCols = cols * 2 - 1;
+---
+
+<svg
+  class:list={['avatar', className]}
+  width={size}
+  height={size}
+  viewBox={`0 0 ${fullCols * cellSize} ${rows * cellSize}`}
+  role="img"
+  aria-label={`Generated avatar for ${name}`}
+>
+  <rect width="100%" height="100%" fill="var(--color-bg-inset)" />
+  {
+    cells.map((row, y) =>
+      row.map(
+        (on, x) =>
+          on && (
+            <>
+              <rect x={x * cellSize} y={y * cellSize} width={cellSize} height={cellSize} fill={color} />
+              {x > 0 && (
+                <rect x={(fullCols - x) * cellSize} y={y * cellSize} width={cellSize} height={cellSize} fill={color} />
+              )}
+            </>
+          ),
+      ),
+    )
+  }
+</svg>
+
+<style>
+  .avatar {
+    display: block;
+    border-radius: var(--radius-lg);
+  }
+</style>

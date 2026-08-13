@@ -2,11 +2,8 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NetworkHero from '../components/NetworkHero.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import ResearchThemeCard from '../components/ResearchThemeCard.astro';
-import NetworkDivider from '../components/NetworkDivider.astro';
-import NewsCard from '../components/NewsCard.astro';
-import ContactBlock from '../components/ContactBlock.astro';
+import ThemeGlyph from '../components/ThemeGlyph.astro';
+import Avatar from '../components/Avatar.astro';
 import { withBase } from '../lib/url';
 
 const latestNews = (await getCollection('news', ({ data }) => !data.draft))
@@ -30,28 +27,6 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
       UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
     </p>
   </NetworkHero>
-
-  <div class="container">
-    <section class="home-research reveal">
-      <SectionHeading eyebrow="What we study">Research</SectionHeading>
-      <div class="home-research__grid">
-        <ResearchThemeCard
-          eyebrow="Theme 01"
-          title="Retinal Diseasome Assembly"
-          summary="How unrelated genetic mutations converge on a finite set of disease-onset programs in the retina, from inherited degenerations to age-related macular degeneration."
-          href="/research"
-          glyphSeed={0}
-        />
-        <ResearchThemeCard
-          eyebrow="Theme 02"
-          title="Environmental–Molecular Interactions in Retinal Aging"
-          summary="How lifestyle factors like nutrition shape the retina's molecular landscape, and what that means for age-related vision decline."
-          href="/research"
-          glyphSeed={1}
-        />
-      </div>
-    </section>
-  </div>
 
   <section class="home-statement section-ink reveal">
     <div class="container home-statement__inner">
@@ -80,35 +55,67 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
     </div>
   </section>
 
-  <div class="container">
-    <NetworkDivider />
+  <div class="container home-bento-wrap">
+    <div class="home-bento reveal">
+      <a class="bento-tile bento-tile--research1" href={withBase('/research')}>
+        <ThemeGlyph class="bento-tile__glyph" seed={0} />
+        <span class="eyebrow">Theme 01</span>
+        <h2 class="bento-tile__title">Retinal Diseasome Assembly</h2>
+        <p class="bento-tile__body">
+          How unrelated genetic mutations converge on a finite set of disease-onset programs in
+          the retina, from inherited degenerations to age-related macular degeneration.
+        </p>
+        <span class="mono bento-tile__link">Read more →</span>
+      </a>
 
-    <section class="home-news reveal">
-      <SectionHeading eyebrow="Latest">News</SectionHeading>
-      <div class="home-news__list">
-        {latestNews.map((post) => <NewsCard post={post} />)}
-      </div>
-      <a class="mono home-news__all" href={withBase('/news')}>See all news →</a>
-    </section>
+      <a class="bento-tile bento-tile--research2" href={withBase('/research')}>
+        <ThemeGlyph class="bento-tile__glyph" seed={1} />
+        <span class="eyebrow">Theme 02</span>
+        <h2 class="bento-tile__title">Environmental–Molecular Interactions in Retinal Aging</h2>
+        <p class="bento-tile__body">
+          How lifestyle factors like nutrition shape the retina's molecular landscape, and what
+          that means for age-related vision decline.
+        </p>
+        <span class="mono bento-tile__link">Read more →</span>
+      </a>
 
-    {
-      pi && (
-        <section class="home-team reveal">
-          <SectionHeading eyebrow="Led by">Team</SectionHeading>
-          <p class="prose">
-            {pi.data.name}, {pi.data.role.toLowerCase()}. {pi.data.bioShort}
-          </p>
-          <a class="mono home-team__link" href={withBase('/team')}>
-            Meet the team →
+      {
+        pi && (
+          <a class="bento-tile bento-tile--team" href={withBase('/team')}>
+            <Avatar name={pi.data.name} size={56} class="bento-tile__avatar" />
+            <span class="eyebrow">Led by</span>
+            <h2 class="bento-tile__title">{pi.data.name}</h2>
+            <p class="bento-tile__body">{pi.data.bioShort}</p>
+            <span class="mono bento-tile__link">Meet the team →</span>
           </a>
-        </section>
-      )
-    }
+        )
+      }
 
-    <section class="home-contact reveal">
-      <SectionHeading eyebrow="Find us">Contact</SectionHeading>
-      <ContactBlock compact />
-    </section>
+      <a class="bento-tile bento-tile--news" href={withBase('/news')}>
+        <span class="eyebrow">Latest</span>
+        <h2 class="bento-tile__title">News</h2>
+        <ul class="bento-tile__news-list">
+          {
+            latestNews.slice(0, 2).map((post) => (
+              <li>
+                <span class="mono bento-tile__news-date">
+                  {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+                {post.data.title}
+              </li>
+            ))
+          }
+        </ul>
+        <span class="mono bento-tile__link">See all news →</span>
+      </a>
+
+      <a class="bento-tile bento-tile--contact section-ink" href={withBase('/contact')}>
+        <span class="eyebrow">Find us</span>
+        <h2 class="bento-tile__title">Contact</h2>
+        <p class="bento-tile__body">Dallas, TX</p>
+        <span class="mono bento-tile__link">Get in touch →</span>
+      </a>
+    </div>
   </div>
 </BaseLayout>
 
@@ -129,12 +136,6 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
     margin-top: var(--space-3);
     font-size: var(--text-xs);
     color: var(--color-text-muted);
-  }
-
-  .home-research__grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-5);
   }
 
   .home-statement {
@@ -175,26 +176,159 @@ const pi = team.find((m) => m.data.isPI) ?? team[0];
     color: var(--color-on-ink-muted);
   }
 
-  .home-news__list > :global(*):last-child {
-    border-bottom: none;
+  /* ---- Bento grid: Dropbox-brand-style blocks of squares ---- */
+  .home-bento-wrap {
+    padding-block: var(--space-7);
   }
 
-  .home-news__all,
-  .home-team__link {
+  .home-bento {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: var(--space-3);
+  }
+
+  .bento-tile {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform 0.2s var(--ease-out),
+      box-shadow 0.2s var(--ease-out);
+  }
+
+  .bento-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .bento-tile__glyph {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: var(--space-2);
+  }
+
+  .bento-tile__title {
+    font-size: var(--text-xl);
+    margin-top: 0.2em;
+    margin-bottom: var(--space-2);
+  }
+
+  .bento-tile__body {
+    color: inherit;
+    opacity: 0.85;
+    flex-grow: 1;
+  }
+
+  .bento-tile__link {
     display: inline-block;
     margin-top: var(--space-3);
     font-size: var(--text-sm);
-    text-decoration: none;
   }
 
-  .home-contact {
-    padding-bottom: var(--space-6);
+  .bento-tile__avatar {
+    margin-bottom: var(--space-2);
+  }
+
+  .bento-tile__news-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .bento-tile__news-list li {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .bento-tile__news-date {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+  }
+
+  .bento-tile--research1 {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+    justify-content: center;
+  }
+
+  .bento-tile--research1 .bento-tile__title {
+    font-size: var(--text-2xl);
+  }
+
+  .bento-tile--research2 {
+    grid-column: 3 / 5;
+    grid-row: 1 / 2;
+    background: var(--color-accent-soft);
+    border: none;
+  }
+
+  .bento-tile--team {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+  }
+
+  .bento-tile--news {
+    grid-column: 4 / 5;
+    grid-row: 2 / 3;
+  }
+
+  .bento-tile--contact {
+    grid-column: 1 / 5;
+    grid-row: 3 / 4;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    /* .section-ink (global.css) loses a specificity tie against this
+       component's own scoped .bento-tile rule, so it never actually
+       applied — set the ink treatment directly here instead. */
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    border-color: var(--color-on-ink-border);
+  }
+
+  .bento-tile--contact .bento-tile__title {
+    margin-bottom: 0;
+  }
+
+  .bento-tile--contact .bento-tile__body {
+    flex-grow: 0;
+    color: var(--color-on-ink-muted);
+    opacity: 1;
+  }
+
+  .bento-tile--contact .bento-tile__link {
+    margin-top: 0;
+    white-space: nowrap;
+    color: var(--color-accent-on-ink);
   }
 
   @media (max-width: 720px) {
-    .home-research__grid {
+    .home-bento {
       grid-template-columns: 1fr;
-      gap: var(--space-4);
+      grid-auto-rows: auto;
+    }
+
+    .bento-tile--research1,
+    .bento-tile--research2,
+    .bento-tile--team,
+    .bento-tile--news,
+    .bento-tile--contact {
+      grid-column: 1 / 2;
+      grid-row: auto;
+    }
+
+    .bento-tile--contact {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .home-statement__stats {

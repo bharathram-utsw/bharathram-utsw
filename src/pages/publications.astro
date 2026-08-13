@@ -4,7 +4,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import PublicationCloud from '../components/PublicationCloud.astro';
 import PublicationCard from '../components/PublicationCard.astro';
-import KeywordStreamgraph from '../components/KeywordStreamgraph.astro';
 
 const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
 ---
@@ -20,12 +19,6 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
       and — earlier in the same throughline — microbial and comparative genomics. Click a topic
       below to filter.
     </p>
-
-    <div class="publications-page__section reveal">
-      <span class="eyebrow">Over time</span>
-      <h2>A career, by keyword</h2>
-      <KeywordStreamgraph />
-    </div>
 
     <div class="publications-page__section reveal">
       <span class="eyebrow">By topic</span>

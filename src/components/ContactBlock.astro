@@ -1,53 +1,63 @@
 ---
-interface Props {
-  compact?: boolean;
-}
-const { compact = false } = Astro.props;
-
-const mapsUrl =
-  'https://www.google.com/maps/search/?api=1&query=' +
-  encodeURIComponent('5323 Harry Hines Blvd, Dallas, TX 75390');
+const ADDRESS = '5323 Harry Hines Blvd, Dallas, TX 75390';
+const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ADDRESS);
+const mapEmbedUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(ADDRESS) + '&output=embed';
 ---
 
-<div class:list={['contact-block', { 'contact-block--compact': compact }]}>
-  <div>
-    <p class="eyebrow">Address</p>
-    <p class="contact-block__address">
-      UT Southwestern Medical Center<br />
-      Department of Ophthalmology<br />
-      5323 Harry Hines Blvd<br />
-      Dallas, TX 75390, USA
-    </p>
-    <a class="mono contact-block__map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer"
-      >View on map →</a
-    >
-  </div>
+<div class="contact-block">
+  <iframe
+    class="contact-block__map"
+    title="Map showing the Mondal Lab's location at UT Southwestern Medical Center"
+    src={mapEmbedUrl}
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"
+  ></iframe>
 
-  {
-    !compact && (
-      <div>
-        <p class="eyebrow">Reach us</p>
-        <dl class="contact-block__rows">
-          <div>
-            <dt class="mono">Email</dt>
-            <dd class="contact-block__placeholder">— (coming soon)</dd>
-          </div>
-          <div>
-            <dt class="mono">Phone</dt>
-            <dd class="contact-block__placeholder">— (coming soon)</dd>
-          </div>
-          <div>
-            <dt class="mono">Social</dt>
-            <dd class="contact-block__placeholder">— (coming soon)</dd>
-          </div>
-        </dl>
-      </div>
-    )
-  }
+  <div class="contact-block__rows-wrap">
+    <div>
+      <p class="eyebrow">Address</p>
+      <p class="contact-block__address">
+        UT Southwestern Medical Center<br />
+        Department of Ophthalmology<br />
+        5323 Harry Hines Blvd<br />
+        Dallas, TX 75390, USA
+      </p>
+      <a class="mono contact-block__map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer"
+        >Open in Google Maps →</a
+      >
+    </div>
+
+    <div>
+      <p class="eyebrow">Reach us</p>
+      <dl class="contact-block__rows">
+        <div>
+          <dt class="mono">Email</dt>
+          <dd class="contact-block__placeholder">— (coming soon)</dd>
+        </div>
+        <div>
+          <dt class="mono">Phone</dt>
+          <dd class="contact-block__placeholder">— (coming soon)</dd>
+        </div>
+        <div>
+          <dt class="mono">Social</dt>
+          <dd class="contact-block__placeholder">— (coming soon)</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
 </div>
 
 <style>
-  .contact-block {
+  .contact-block__map {
+    display: block;
+    width: 100%;
+    height: 260px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-5);
+  }
+
+  .contact-block__rows-wrap {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-6);
@@ -80,9 +90,5 @@ const mapsUrl =
     font-size: var(--text-sm);
     color: var(--color-text-muted);
     font-style: italic;
-  }
-
-  .contact-block--compact .contact-block__address {
-    font-size: var(--text-sm);
   }
 </style>

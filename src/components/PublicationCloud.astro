@@ -319,8 +319,8 @@ const graphData = JSON.stringify({ nodes: topics, edges });
       for (const [a, b, weight] of edges) {
         const near = hovered && (hovered === a || hovered === b);
         ctx!.strokeStyle = near ? PALETTE[a.colorIndex] : edgeColor;
-        ctx!.lineWidth = near ? 1.6 : Math.min(0.6 + weight * 0.3, 2);
-        ctx!.globalAlpha = near ? 0.6 : 0.22;
+        ctx!.lineWidth = near ? 2 : Math.min(0.8 + weight * 0.35, 2.4);
+        ctx!.globalAlpha = near ? 0.65 : 0.3;
         ctx!.beginPath();
         ctx!.moveTo(a.x, a.y);
         ctx!.lineTo(b.x, b.y);
@@ -332,6 +332,14 @@ const graphData = JSON.stringify({ nodes: topics, edges });
         const active = activeFilters.has(n.label);
         const isHot = n === hovered || n === dragging;
         const color = PALETTE[n.colorIndex];
+
+        // Soft glow behind every node — same touch as the Research page graph.
+        ctx!.beginPath();
+        ctx!.fillStyle = color;
+        ctx!.globalAlpha = active || isHot ? 0.25 : 0.14;
+        ctx!.arc(n.x, n.y, n.r + (active || isHot ? 9 : 6), 0, Math.PI * 2);
+        ctx!.fill();
+
         ctx!.beginPath();
         ctx!.fillStyle = color;
         ctx!.globalAlpha = active ? 0.95 : isHot ? 0.85 : 0.62;
