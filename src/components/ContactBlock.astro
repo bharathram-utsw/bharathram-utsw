@@ -1,17 +1,12 @@
 ---
+import VintageMap from './VintageMap.astro';
+
 const ADDRESS = '5323 Harry Hines Blvd, Dallas, TX 75390';
 const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ADDRESS);
-const mapEmbedUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(ADDRESS) + '&output=embed';
 ---
 
 <div class="contact-block">
-  <iframe
-    class="contact-block__map"
-    title="Map showing the Mondal Lab's location at UT Southwestern Medical Center"
-    src={mapEmbedUrl}
-    loading="lazy"
-    referrerpolicy="no-referrer-when-downgrade"
-  ></iframe>
+  <VintageMap class="contact-block__map" />
 
   <div class="contact-block__rows-wrap">
     <div>
@@ -49,12 +44,9 @@ const mapEmbedUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(ADDRES
 
 <style>
   .contact-block__map {
-    display: block;
-    width: 100%;
-    height: 260px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    max-width: 30rem;
     margin-bottom: var(--space-5);
+    border: 1px solid var(--color-border);
   }
 
   .contact-block__rows-wrap {

@@ -1,12 +1,16 @@
 ---
-// A real PCA plot, not a metaphor: every publication's keyword list becomes
-// a binary presence vector (papers × unique keywords), and we run actual
-// principal component analysis on that matrix — the same class of
-// dimensionality-reduction technique used on real omics data in the lab's
-// own research. Papers sharing more keywords land closer together. Computed
-// once at build time (dual/Gram-matrix PCA — correct and efficient here
-// since there are far more keywords than papers); the client only draws
-// points.
+// A real PCA plot: every publication's keyword list becomes a binary
+// presence vector (papers × unique keywords), and we run actual principal
+// component analysis on that matrix — the same class of dimensionality-
+// reduction technique used on real omics data in the lab's own research.
+// Papers sharing more keywords land closer together. Computed once at
+// build time (dual/Gram-matrix PCA — correct and efficient here since
+// there are far more keywords than papers); the client only draws.
+//
+// Each paper is also classified into one of the two real domains in the
+// PI's publication record — by keyword membership, not a hardcoded per-
+// paper label, so a new paper sorts correctly just from its own keyword
+// tags. The client draws a soft outline around each domain's cluster.
 import { getCollection } from 'astro:content';
 
 const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
@@ -61,57 +65,150 @@ const totalVariance = G.reduce((s, row, i) => s + row[i], 0) || 1;
 const pc1Pct = Math.round((lambda1 / totalVariance) * 100);
 const pc2Pct = Math.round((lambda2 / totalVariance) * 100);
 
-const minYear = Math.min(...pubs.map((p) => p.data.year));
-const maxYear = Math.max(...pubs.map((p) => p.data.year));
+// Domain classification: a paper is "Microbial & Comparative Genomics" if
+// it carries any keyword from that distinctive, bounded vocabulary; every
+// other paper defaults to "Retina & Vision" (the lab's current focus, and
+// the larger/catch-all group). Extend this list, not per-paper labels,
+// when new genomics-domain keywords show up.
+const GENOMICS_KEYWORDS = new Set([
+  'Mycobacterium',
+  'Mycobacterium tuberculosis',
+  'CRISPR-Cas',
+  'Horizontal Gene Transfer',
+  'Comparative Genomics',
+  'Bacterial Genomics',
+  'Proteogenomics',
+  'Population Genomics',
+  'Human Genetics',
+  'Gut Microbiome',
+  'Microbial Diversity',
+  'Tuberculosis',
+  'Symbiosis',
+  'Methylotroph',
+  'Copy Number Variation',
+  'DNA-Binding Proteins',
+  'Structural Biology',
+  'Interactome',
+  'Drug Target Discovery',
+  'Infection Model',
+  'Gene Expression Profiling',
+  'Inflammation',
+  'Lymph Node',
+  'Iron Metabolism',
+  'Adipocyte',
+  'Gene Discovery',
+]);
+
+function domainOf(pubKeywords: string[]): 'genomics' | 'vision' {
+  return pubKeywords.some((k) => GENOMICS_KEYWORDS.has(k)) ? 'genomics' : 'vision';
+}
 
 const points = pubs.map((pub, i) => ({
   id: pub.id,
   title: pub.data.title,
   year: pub.data.year,
   journal: pub.data.journal,
+  domain: domainOf(pub.data.keywords),
   x: pc1[i],
   y: pc2[i],
 }));
-const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
+const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
 ---
 
 <div class="pca">
+  <div class="pca__text">
+    <span class="eyebrow">By similarity</span>
+    <h2>Mapped by keyword — a real PCA</h2>
+    <p class="prose pca__copy">
+      Every paper's keyword list becomes a vector; principal component analysis projects that
+      onto two axes. Papers sharing more keywords land closer together — no manual grouping,
+      just the actual overlap in what each paper is about.
+    </p>
+    <ul class="pca__legend">
+      <li>
+        <span class="pca__legend-swatch pca__legend-swatch--vision"></span>
+        Retina &amp; vision biology
+      </li>
+      <li>
+        <span class="pca__legend-swatch pca__legend-swatch--genomics"></span>
+        Microbial &amp; comparative genomics
+      </li>
+    </ul>
+    <p class="mono pca__caption">Click a point to jump to it below.</p>
+  </div>
+
   <div class="pca__canvas-wrap">
     <canvas class="pca__canvas" id="pca-canvas" tabindex="0" role="img"
-      aria-label="Principal component analysis plot of publications by keyword similarity — papers that share more keywords appear closer together"
+      aria-label="Principal component analysis plot of publications by keyword similarity, grouped into two outlined regions: retina and vision biology, and microbial and comparative genomics"
     ></canvas>
     <script type="application/json" id="pca-data" set:html={plotData} />
     <div class="pca__tooltip" id="pca-tooltip" hidden></div>
   </div>
-  <div class="pca__legend">
-    <span class="mono pca__legend-label">{minYear}</span>
-    <span class="pca__legend-gradient" aria-hidden="true"></span>
-    <span class="mono pca__legend-label">{maxYear}</span>
-    <span class="mono pca__legend-caption">— publication year</span>
-  </div>
-  <p class="mono pca__caption">
-    Real PCA on each paper's keyword vector — closer points share more keywords. Click a point to
-    jump to it below.
-  </p>
 </div>
 
 <style>
   .pca {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-raised);
-    overflow: hidden;
-    margin-bottom: var(--space-5);
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) 1fr;
+    gap: var(--space-5);
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+
+  .pca__copy {
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+    max-width: 40ch;
+  }
+
+  .pca__legend {
+    margin-top: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .pca__legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pca__legend-swatch {
+    width: 0.85em;
+    height: 0.85em;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .pca__legend-swatch--vision {
+    background: var(--color-accent);
+  }
+
+  .pca__legend-swatch--genomics {
+    background: var(--color-accent-2);
+  }
+
+  .pca__caption {
+    margin-top: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
   }
 
   .pca__canvas-wrap {
     position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: hidden;
   }
 
   .pca__canvas {
     display: block;
     width: 100%;
-    height: 480px;
+    height: 460px;
     cursor: pointer;
   }
 
@@ -137,39 +234,15 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
     margin-bottom: 0.2em;
   }
 
-  .pca__legend {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3) 0;
-  }
-
-  .pca__legend-label {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-  }
-
-  .pca__legend-gradient {
-    width: 8rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: linear-gradient(to right, #004c97, #f26531);
-  }
-
-  .pca__legend-caption {
-    font-size: var(--text-xs);
-    color: var(--color-text-faint);
-  }
-
-  .pca__caption {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    padding: var(--space-1) var(--space-3) var(--space-2);
+  @media (max-width: 900px) {
+    .pca {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 640px) {
     .pca__canvas {
-      height: 380px;
+      height: 360px;
     }
   }
 </style>
@@ -180,6 +253,7 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
     title: string;
     year: number;
     journal: string;
+    domain: 'genomics' | 'vision';
     x: number;
     y: number;
     px: number;
@@ -191,8 +265,48 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
     return v || fallback;
   }
 
-  function lerpColor(a: [number, number, number], b: [number, number, number], t: number) {
-    return `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)}, ${Math.round(a[1] + (b[1] - a[1]) * t)}, ${Math.round(a[2] + (b[2] - a[2]) * t)})`;
+  // Andrew's monotone chain convex hull, in screen-pixel space (post-layout,
+  // so the same routine works regardless of data scale).
+  function convexHull(pts: { px: number; py: number }[]): { px: number; py: number }[] {
+    if (pts.length < 3) return pts;
+    const sorted = [...pts].sort((a, b) => a.px - b.px || a.py - b.py);
+    const cross = (o: any, a: any, b: any) => (a.px - o.px) * (b.py - o.py) - (a.py - o.py) * (b.px - o.px);
+    const lower: typeof sorted = [];
+    for (const p of sorted) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+      lower.push(p);
+    }
+    const upper: typeof sorted = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const p = sorted[i];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+      upper.push(p);
+    }
+    lower.pop();
+    upper.pop();
+    return lower.concat(upper);
+  }
+
+  function inflateHull(hull: { px: number; py: number }[], amount: number) {
+    const cx = hull.reduce((s, p) => s + p.px, 0) / hull.length;
+    const cy = hull.reduce((s, p) => s + p.py, 0) / hull.length;
+    return hull.map((p) => {
+      const dx = p.px - cx;
+      const dy = p.py - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      return { px: p.px + (dx / d) * amount, py: p.py + (dy / d) * amount };
+    });
+  }
+
+  function smoothClosedPath(ctx: CanvasRenderingContext2D, pts: { px: number; py: number }[]) {
+    if (pts.length < 3) return;
+    const loop = [...pts, pts[0], pts[1]];
+    ctx.moveTo((loop[0].px + loop[loop.length - 1].px) / 2, (loop[0].py + loop[loop.length - 1].py) / 2);
+    for (let i = 0; i < loop.length - 1; i++) {
+      const mx = (loop[i].px + loop[i + 1].px) / 2;
+      const my = (loop[i].py + loop[i + 1].py) / 2;
+      ctx.quadraticCurveTo(loop[i].px, loop[i].py, mx, my);
+    }
   }
 
   const canvas = document.getElementById('pca-canvas') as HTMLCanvasElement | null;
@@ -201,29 +315,27 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
   if (!canvas || !dataEl) throw new Error('PublicationPCA: missing canvas or data element');
 
   const raw = JSON.parse(dataEl.textContent || '{}') as {
-    points: { id: string; title: string; year: number; journal: string; x: number; y: number }[];
-    minYear: number;
-    maxYear: number;
+    points: { id: string; title: string; year: number; journal: string; domain: 'genomics' | 'vision'; x: number; y: number }[];
     pc1Pct: number;
     pc2Pct: number;
   };
   const ctx = canvas.getContext('2d');
 
   if (ctx && raw.points?.length > 0) {
-    const gridColor = readVar('--color-border', '#dce3ea');
     const axisColor = readVar('--color-border-strong', '#b9c5d1');
+    const gridColor = readVar('--color-border', '#dce3ea');
     const textColor = readVar('--color-text-muted', '#4a5560');
     const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
-    const BLUE: [number, number, number] = [0, 76, 151];
-    const ORANGE: [number, number, number] = [242, 101, 49];
+    const visionColor = readVar('--color-accent', '#004c97');
+    const genomicsColor = readVar('--color-accent-2', '#f26531');
+    const domainColor = (d: 'genomics' | 'vision') => (d === 'genomics' ? genomicsColor : visionColor);
 
     const points: Point[] = raw.points.map((p) => ({ ...p, px: 0, py: 0 }));
-    const yearSpan = Math.max(raw.maxYear - raw.minYear, 1);
 
     let width = 0;
     let height = 0;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const pad = 44;
+    const pad = 40;
 
     function layout() {
       const xs = points.map((p) => p.x);
@@ -255,7 +367,6 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
     function draw() {
       ctx!.clearRect(0, 0, width, height);
 
-      // axes through the origin-ish center
       ctx!.strokeStyle = gridColor;
       ctx!.lineWidth = 1;
       ctx!.beginPath();
@@ -264,7 +375,6 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
       ctx!.moveTo(width / 2, pad);
       ctx!.lineTo(width / 2, height - pad);
       ctx!.stroke();
-
       ctx!.strokeStyle = axisColor;
       ctx!.strokeRect(pad, pad, width - pad * 2, height - pad * 2);
 
@@ -273,18 +383,37 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
       ctx!.textAlign = 'center';
       ctx!.fillText(`PC1 (${raw.pc1Pct}%)`, width / 2, height - pad + 22);
       ctx!.save();
-      ctx!.translate(pad - 26, height / 2);
+      ctx!.translate(pad - 24, height / 2);
       ctx!.rotate(-Math.PI / 2);
       ctx!.fillText(`PC2 (${raw.pc2Pct}%)`, 0, 0);
       ctx!.restore();
 
+      // domain outline regions, drawn first so points sit on top
+      for (const domain of ['vision', 'genomics'] as const) {
+        const group = points.filter((p) => p.domain === domain);
+        if (group.length < 2) continue;
+        const hull = inflateHull(convexHull(group), 26);
+        ctx!.beginPath();
+        smoothClosedPath(ctx!, hull);
+        ctx!.closePath();
+        ctx!.fillStyle = domainColor(domain);
+        ctx!.globalAlpha = 0.07;
+        ctx!.fill();
+        ctx!.globalAlpha = 0.35;
+        ctx!.strokeStyle = domainColor(domain);
+        ctx!.lineWidth = 1.5;
+        ctx!.setLineDash([4, 4]);
+        ctx!.stroke();
+        ctx!.setLineDash([]);
+      }
+      ctx!.globalAlpha = 1;
+
       for (const p of points) {
-        const t = (p.year - raw.minYear) / yearSpan;
         const isHot = p === hovered;
-        const color = lerpColor(BLUE, ORANGE, t);
+        const color = domainColor(p.domain);
         ctx!.beginPath();
         ctx!.fillStyle = color;
-        ctx!.globalAlpha = isHot ? 1 : 0.8;
+        ctx!.globalAlpha = isHot ? 1 : 0.82;
         ctx!.arc(p.px, p.py, isHot ? 8 : 6, 0, Math.PI * 2);
         ctx!.fill();
         if (isHot) {
@@ -323,7 +452,8 @@ const plotData = JSON.stringify({ points, minYear, maxYear, pc1Pct, pc2Pct });
         tooltip.hidden = false;
         tooltip.style.left = `${hit.px}px`;
         tooltip.style.top = `${hit.py}px`;
-        tooltip.innerHTML = `<strong>${hit.title}</strong>${hit.journal}, ${hit.year}`;
+        const domainLabel = hit.domain === 'genomics' ? 'Microbial & comparative genomics' : 'Retina & vision biology';
+        tooltip.innerHTML = `<strong>${hit.title}</strong>${hit.journal}, ${hit.year} · ${domainLabel}`;
       } else if (tooltip) {
         tooltip.hidden = true;
       }
