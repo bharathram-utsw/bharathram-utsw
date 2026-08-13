@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import PublicationPCA from '../components/PublicationPCA.astro';
+import PublicationHeatmap from '../components/PublicationHeatmap.astro';
 import PublicationCard from '../components/PublicationCard.astro';
 
 const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
@@ -20,7 +20,7 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     </p>
 
     <div class="publications-page__section reveal">
-      <PublicationPCA />
+      <PublicationHeatmap />
     </div>
 
     <div class="publications-page__controls">

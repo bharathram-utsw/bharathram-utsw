@@ -1,0 +1,460 @@
+---
+// A clustered heatmap — papers × keywords, presence/absence, with both
+// axes reordered by real hierarchical clustering (average-linkage on
+// Jaccard distance) so related papers and related keywords block together.
+// This is the same style of figure (matrix + flanking dendrograms) used
+// throughout genomics for gene-expression heatmaps; here the "expression
+// matrix" is just which paper carries which keyword. Computed once at
+// build time; the client only lays out and draws.
+//
+// Scoped to the vision-era publication record (see src/lib/publications.ts)
+// — the PI's earlier microbial/genomics-era PhD work isn't the lab's
+// current focus, so it's excluded here even though it's still fully listed
+// in the publications grid below.
+import { getCollection } from 'astro:content';
+import { isVisionEra } from '../lib/publications';
+
+const pubs = (await getCollection('publications'))
+  .filter((p) => isVisionEra(p.data.keywords))
+  .sort((a, b) => b.data.year - a.data.year);
+
+interface PaperInfo {
+  id: string;
+  title: string;
+  year: number;
+  journal: string;
+}
+
+const papers: PaperInfo[] = pubs.map((p) => ({ id: p.id, title: p.data.title, year: p.data.year, journal: p.data.journal }));
+
+// Keywords carried by only one paper can't contribute to a block pattern
+// in a clustered heatmap — they'd just be a single isolated cell — so the
+// matrix is restricted to keywords shared by at least two papers.
+const freq = new Map<string, number>();
+for (const p of pubs) for (const k of p.data.keywords) freq.set(k, (freq.get(k) ?? 0) + 1);
+const keywords = [...freq.entries()]
+  .filter(([, count]) => count >= 2)
+  .map(([k]) => k)
+  .sort();
+
+const matrix: number[][] = pubs.map((p) => keywords.map((k) => (p.data.keywords.includes(k) ? 1 : 0)));
+
+function jaccard(a: number[], b: number[]): number {
+  let intersection = 0;
+  let union = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] || b[i]) union++;
+    if (a[i] && b[i]) intersection++;
+  }
+  return union === 0 ? 0 : 1 - intersection / union;
+}
+
+interface DendroNode {
+  members: number[];
+  height: number;
+  left?: DendroNode;
+  right?: DendroNode;
+}
+
+// Average-linkage agglomerative clustering: repeatedly merge whichever two
+// clusters have the lowest mean pairwise distance between their members.
+// The merge order becomes the dendrogram; concatenating each merge's two
+// member lists (left, then right) as we go produces a valid left-to-right
+// leaf ordering with no crossing branches — the same convention real
+// clustered-heatmap tools (pheatmap, seaborn clustermap) use.
+function buildDendrogram(vectors: number[][]): DendroNode {
+  const dist = (i: number, j: number) => jaccard(vectors[i], vectors[j]);
+  let nodes: DendroNode[] = vectors.map((_, i) => ({ members: [i], height: 0 }));
+  while (nodes.length > 1) {
+    let bi = 0;
+    let bj = 1;
+    let bestDist = Infinity;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        let sum = 0;
+        let count = 0;
+        for (const a of nodes[i].members) {
+          for (const b of nodes[j].members) {
+            sum += dist(a, b);
+            count++;
+          }
+        }
+        const d = sum / count;
+        if (d < bestDist) {
+          bestDist = d;
+          bi = i;
+          bj = j;
+        }
+      }
+    }
+    const merged: DendroNode = {
+      members: [...nodes[bi].members, ...nodes[bj].members],
+      height: bestDist,
+      left: nodes[bi],
+      right: nodes[bj],
+    };
+    nodes = nodes.filter((_, idx) => idx !== bi && idx !== bj);
+    nodes.push(merged);
+  }
+  return nodes[0];
+}
+
+interface DendroLayout {
+  pos: number;
+  height: number;
+  isLeaf: boolean;
+  left?: DendroLayout;
+  right?: DendroLayout;
+}
+
+function layoutDendro(node: DendroNode): DendroLayout {
+  let counter = 0;
+  function walk(n: DendroNode): DendroLayout {
+    if (!n.left || !n.right) return { pos: counter++, height: 0, isLeaf: true };
+    const left = walk(n.left);
+    const right = walk(n.right);
+    return { pos: (left.pos + right.pos) / 2, height: n.height, isLeaf: false, left, right };
+  }
+  return walk(node);
+}
+
+const rowVectors = matrix;
+const colVectors = keywords.map((_, j) => matrix.map((row) => row[j]));
+
+const rowDendro = papers.length > 1 ? buildDendrogram(rowVectors) : { members: [0], height: 0 };
+const colDendro = keywords.length > 1 ? buildDendrogram(colVectors) : { members: [0], height: 0 };
+
+const rowOrder = rowDendro.members;
+const colOrder = colDendro.members;
+
+const orderedPapers = rowOrder.map((i) => papers[i]);
+const orderedKeywords = colOrder.map((j) => keywords[j]);
+const orderedMatrix = rowOrder.map((i) => colOrder.map((j) => matrix[i][j]));
+
+const heatmapData = JSON.stringify({
+  papers: orderedPapers,
+  keywords: orderedKeywords,
+  matrix: orderedMatrix,
+  rowDendro: layoutDendro(rowDendro),
+  colDendro: layoutDendro(colDendro),
+});
+---
+
+<div class="hmap">
+  <div class="hmap__text">
+    <span class="eyebrow">Keyword × paper</span>
+    <h2>Clustered by keyword — a real heatmap</h2>
+    <p class="prose hmap__copy">
+      Every paper is a row, every shared keyword a column, and each cell marks whether that paper
+      carries that keyword. Both axes are reordered by real hierarchical clustering — average-linkage
+      on keyword overlap — the same matrix-plus-dendrogram figure used for gene-expression heatmaps
+      throughout genomics. Scoped to the lab's retina and vision research; earlier PhD-era work in
+      microbial genomics is still in the full list below.
+    </p>
+    <p class="mono hmap__caption">Click a row to jump to that paper below.</p>
+  </div>
+
+  <div class="hmap__canvas-wrap">
+    <canvas class="hmap__canvas" id="hmap-canvas" tabindex="0" role="img"
+      aria-label="Clustered heatmap of the lab's retina and vision publications against their shared keywords, both reordered by hierarchical clustering"
+    ></canvas>
+    <script type="application/json" id="hmap-data" set:html={heatmapData} />
+    <div class="hmap__tooltip" id="hmap-tooltip" hidden></div>
+  </div>
+</div>
+
+<style>
+  .hmap {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) 1fr;
+    gap: var(--space-5);
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+
+  .hmap__copy {
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+    max-width: 42ch;
+  }
+
+  .hmap__caption {
+    margin-top: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .hmap__canvas-wrap {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: auto;
+  }
+
+  .hmap__canvas {
+    display: block;
+    cursor: default;
+  }
+
+  .hmap__tooltip {
+    position: absolute;
+    pointer-events: none;
+    max-width: 20rem;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 10px));
+    z-index: 2;
+  }
+
+  .hmap__tooltip strong {
+    display: block;
+    font-family: var(--font-sans);
+    color: var(--color-accent-on-ink);
+    margin-bottom: 0.2em;
+  }
+
+  @media (max-width: 900px) {
+    .hmap {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  interface DendroLayout {
+    pos: number;
+    height: number;
+    isLeaf: boolean;
+    left?: DendroLayout;
+    right?: DendroLayout;
+  }
+  interface PaperInfo {
+    id: string;
+    title: string;
+    year: number;
+    journal: string;
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  function truncate(s: string, n: number) {
+    return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+  }
+
+  const canvas = document.getElementById('hmap-canvas') as HTMLCanvasElement | null;
+  const dataEl = document.getElementById('hmap-data');
+  const tooltip = document.getElementById('hmap-tooltip');
+  if (!canvas || !dataEl) throw new Error('PublicationHeatmap: missing canvas or data element');
+
+  const raw = JSON.parse(dataEl.textContent || '{}') as {
+    papers: PaperInfo[];
+    keywords: string[];
+    matrix: number[][];
+    rowDendro: DendroLayout;
+    colDendro: DendroLayout;
+  };
+  const ctx = canvas.getContext('2d');
+
+  if (ctx && raw.papers?.length > 0 && raw.keywords?.length > 0) {
+    const edgeColor = readVar('--color-border-strong', '#b9c5d1');
+    const gridColor = readVar('--color-border', '#dce3ea');
+    const nodeColor = readVar('--color-accent', '#004c97');
+    const textColor = readVar('--color-text', '#14181d');
+    const mutedColor = readVar('--color-text-muted', '#4a5560');
+    const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+    const insetBg = readVar('--color-bg-inset', '#f3f1ed');
+
+    const pad = 16;
+    const cellW = 30;
+    const cellH = 26;
+    const rowDendroW = 34;
+    const rowLabelW = 176;
+    const colDendroH = 34;
+    const colLabelH = 92;
+
+    const numRows = raw.papers.length;
+    const numCols = raw.keywords.length;
+
+    const gridOriginX = pad + rowDendroW + rowLabelW;
+    const gridOriginY = pad + colDendroH + colLabelH;
+    const width = gridOriginX + numCols * cellW + pad;
+    const height = gridOriginY + numRows * cellH + pad;
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const maxRowHeight = raw.rowDendro.height || 1;
+    const maxColHeight = raw.colDendro.height || 1;
+
+    function rowY(pos: number) {
+      return gridOriginY + (pos + 0.5) * cellH;
+    }
+    function colX(pos: number) {
+      return gridOriginX + (pos + 0.5) * cellW;
+    }
+    function rowDendroX(h: number) {
+      return pad + 4 + (rowDendroW - 4) * (1 - h / maxRowHeight);
+    }
+    function colDendroY(h: number) {
+      return pad + 4 + (colDendroH - 4) * (1 - h / maxColHeight);
+    }
+
+    type Hit = { row: number; col: number | null; x: number; y: number; w: number; h: number };
+    let hits: Hit[] = [];
+    let hovered: Hit | null = null;
+
+    function drawRowDendro(node: DendroLayout): { x: number; y: number } {
+      if (node.isLeaf) return { x: pad + rowDendroW, y: rowY(node.pos) };
+      const L = drawRowDendro(node.left!);
+      const R = drawRowDendro(node.right!);
+      const x = rowDendroX(node.height);
+      ctx!.strokeStyle = edgeColor;
+      ctx!.lineWidth = 1;
+      ctx!.beginPath();
+      ctx!.moveTo(x, L.y);
+      ctx!.lineTo(x, R.y);
+      ctx!.moveTo(x, L.y);
+      ctx!.lineTo(L.x, L.y);
+      ctx!.moveTo(x, R.y);
+      ctx!.lineTo(R.x, R.y);
+      ctx!.stroke();
+      return { x, y: (L.y + R.y) / 2 };
+    }
+
+    function drawColDendro(node: DendroLayout): { x: number; y: number } {
+      if (node.isLeaf) return { x: colX(node.pos), y: pad + colDendroH };
+      const L = drawColDendro(node.left!);
+      const R = drawColDendro(node.right!);
+      const y = colDendroY(node.height);
+      ctx!.strokeStyle = edgeColor;
+      ctx!.lineWidth = 1;
+      ctx!.beginPath();
+      ctx!.moveTo(L.x, y);
+      ctx!.lineTo(R.x, y);
+      ctx!.moveTo(L.x, y);
+      ctx!.lineTo(L.x, L.y);
+      ctx!.moveTo(R.x, y);
+      ctx!.lineTo(R.x, R.y);
+      ctx!.stroke();
+      return { x: (L.x + R.x) / 2, y };
+    }
+
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+      hits = [];
+
+      drawRowDendro(raw.rowDendro);
+      drawColDendro(raw.colDendro);
+
+      // column labels, rotated
+      ctx!.font = `10px ${monoFont}`;
+      ctx!.fillStyle = mutedColor;
+      raw.keywords.forEach((kw, c) => {
+        const x = colX(c);
+        const y = pad + colDendroH + colLabelH - 6;
+        ctx!.save();
+        ctx!.translate(x, y);
+        ctx!.rotate(-Math.PI / 3);
+        ctx!.textAlign = 'left';
+        ctx!.fillText(truncate(kw, 22), 0, 0);
+        ctx!.restore();
+      });
+
+      // row labels + cells
+      raw.papers.forEach((p, r) => {
+        const isRowHot = hovered?.row === r;
+        const labelY = rowY(r);
+        ctx!.font = `${isRowHot ? '600 ' : ''}10px ${monoFont}`;
+        ctx!.fillStyle = isRowHot ? textColor : mutedColor;
+        ctx!.textAlign = 'left';
+        ctx!.fillText(truncate(`${p.title} · ${p.year}`, 26), pad + rowDendroW + 6, labelY + 3);
+
+        raw.matrix[r].forEach((v, c) => {
+          const x = gridOriginX + c * cellW;
+          const y = gridOriginY + r * cellH;
+          const isHot = hovered?.row === r && hovered?.col === c;
+          ctx!.fillStyle = v ? nodeColor : isRowHot ? insetBg : 'transparent';
+          ctx!.globalAlpha = v ? (isHot ? 1 : 0.82) : 1;
+          ctx!.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
+          ctx!.globalAlpha = 1;
+          if (isHot) {
+            ctx!.strokeStyle = textColor;
+            ctx!.lineWidth = 1.5;
+            ctx!.strokeRect(x + 1, y + 1, cellW - 2, cellH - 2);
+          }
+          ctx!.strokeStyle = gridColor;
+          ctx!.lineWidth = 1;
+          ctx!.strokeRect(x, y, cellW, cellH);
+          hits.push({ row: r, col: c, x, y, w: cellW, h: cellH });
+        });
+
+        hits.push({ row: r, col: null, x: pad + rowDendroW, y: gridOriginY + r * cellH, w: rowLabelW, h: cellH });
+      });
+    }
+
+    function hitAt(x: number, y: number): Hit | null {
+      for (const h of hits) {
+        if (x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return h;
+      }
+      return null;
+    }
+
+    function pointerPos(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointermove', (e) => {
+      const pos = pointerPos(e);
+      const hit = hitAt(pos.x, pos.y);
+      hovered = hit;
+      canvas!.style.cursor = hit ? 'pointer' : 'default';
+      if (hit && tooltip) {
+        const p = raw.papers[hit.row];
+        tooltip.hidden = false;
+        tooltip.style.left = `${hit.x + hit.w / 2}px`;
+        tooltip.style.top = `${hit.y}px`;
+        if (hit.col === null) {
+          tooltip.innerHTML = `<strong>${p.title}</strong>${p.journal}, ${p.year}`;
+        } else {
+          const has = raw.matrix[hit.row][hit.col] === 1;
+          tooltip.innerHTML = `<strong>${p.title}</strong>${raw.keywords[hit.col]}: ${has ? 'present' : 'absent'}`;
+        }
+      } else if (tooltip) {
+        tooltip.hidden = true;
+      }
+      draw();
+    });
+    canvas.addEventListener('pointerleave', () => {
+      hovered = null;
+      if (tooltip) tooltip.hidden = true;
+      draw();
+    });
+    canvas.addEventListener('click', (e) => {
+      const pos = pointerPos(e);
+      const hit = hitAt(pos.x, pos.y);
+      if (!hit) return;
+      const p = raw.papers[hit.row];
+      const card = document.querySelector<HTMLElement>(`[data-pub-id="${p.id}"]`);
+      if (card) {
+        card.classList.add('pub-card--flash');
+        setTimeout(() => card.classList.remove('pub-card--flash'), 1500);
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+
+    draw();
+  }
+</script>
