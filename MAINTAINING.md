@@ -120,12 +120,12 @@ collection. Edit the text in both files directly when the framing of a research 
 changes. This is deliberate: theme descriptions change rarely and read better hand-tuned
 than templated.
 
-The background diagram on the Research page (`DiseasomeExplorer.astro`, the draggable
-node graph) is also **hand-authored data**, not derived from publications — it's a
-conceptual illustration of how mutations and environmental factors converge on disease
-programs, not a plot of real data points. Only touch it if the actual conceptual model
-of the two research themes changes (rare); it does not need updating when you add a
-publication or news post.
+The Sankey diagram on the Research page (`ResearchSankey.astro`) is also
+**hand-authored data**, not derived from publications — its node/link values are an
+illustrative model of how causes converge on shared disease programs and outcomes, not a
+plot of real data points (the layout math is real; the numbers feeding it are not). Only
+touch it if the actual conceptual model of the two research themes changes (rare); it
+does not need updating when you add a publication or news post.
 
 ## Gallery page
 

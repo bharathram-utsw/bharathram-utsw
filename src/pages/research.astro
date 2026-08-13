@@ -3,26 +3,27 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import ThemeGlyph from '../components/ThemeGlyph.astro';
 import NetworkDivider from '../components/NetworkDivider.astro';
-import DiseasomeExplorer from '../components/DiseasomeExplorer.astro';
+import ResearchSankey from '../components/ResearchSankey.astro';
 ---
 
 <BaseLayout
   title="Research"
   description="The Mondal Lab studies retinal diseasome assembly and environmental-molecular interactions in retinal aging, combining genomics, epigenomics, metabolism, and network analysis."
 >
-  <div class="research-hero">
-    <DiseasomeExplorer background />
-    <div class="research-hero__content container">
-      <SectionHeading eyebrow="What we study" level="h1">Research</SectionHeading>
-      <p class="prose research-page__lede">
-        Two convergent research programs, one question: why do so many different causes —
-        genetic, metabolic, environmental — end up producing the same handful of disease outcomes
-        in the retina? <span class="mono research-page__hint">(That's a live model behind this text — drag it.)</span>
-      </p>
-    </div>
-  </div>
-
   <div class="container research-page">
+    <SectionHeading eyebrow="What we study" level="h1">Research</SectionHeading>
+    <p class="prose research-page__lede reveal">
+      Two convergent research programs, one question: why do so many different causes — genetic,
+      metabolic, environmental — end up producing the same handful of disease outcomes in the
+      retina?
+    </p>
+
+    <div class="research-page__section reveal">
+      <span class="eyebrow">The convergence model</span>
+      <h2>How causes become outcomes</h2>
+      <ResearchSankey />
+    </div>
+
     <section class="theme reveal">
       <span class="big-numeral theme__numeral" aria-hidden="true">01</span>
       <div class="theme__body">
@@ -71,19 +72,6 @@ import DiseasomeExplorer from '../components/DiseasomeExplorer.astro';
 </BaseLayout>
 
 <style>
-  .research-hero {
-    position: relative;
-    overflow: hidden;
-    min-height: 84vh;
-    display: flex;
-    align-items: center;
-  }
-
-  .research-hero__content {
-    position: relative;
-    z-index: 1;
-  }
-
   .research-page {
     padding-block: var(--space-6);
   }
@@ -92,13 +80,15 @@ import DiseasomeExplorer from '../components/DiseasomeExplorer.astro';
     font-size: var(--text-lg);
     color: var(--color-text-muted);
     max-width: 56ch;
+    margin-bottom: var(--space-4);
   }
 
-  .research-page__hint {
-    display: block;
-    margin-top: var(--space-2);
-    font-size: var(--text-xs);
-    color: var(--color-text-faint);
+  .research-page__section {
+    margin-bottom: var(--space-7);
+  }
+
+  .research-page__section h2 {
+    margin-bottom: var(--space-2);
   }
 
   .theme {
@@ -130,16 +120,4 @@ import DiseasomeExplorer from '../components/DiseasomeExplorer.astro';
     }
   }
 
-  @media (max-width: 640px) {
-    .research-hero {
-      min-height: auto;
-      padding-block: var(--space-6) var(--space-4);
-    }
-
-    /* The draggable graph needs room to breathe — on narrow screens it just
-       competes with the text, so it steps aside in favor of a plain page. */
-    .research-hero :global(.diseasome--background) {
-      display: none;
-    }
-  }
 </style>

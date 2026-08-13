@@ -81,9 +81,6 @@ const graphData = JSON.stringify({ nodes: topics, edges });
 
   .pub-network__canvas-wrap {
     position: relative;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-raised);
     overflow: hidden;
   }
 
@@ -233,8 +230,8 @@ const graphData = JSON.stringify({ nodes: topics, edges });
 
     function sizeNodes() {
       const maxCount = Math.max(...nodes.map((n) => n.count));
-      const minR = Math.min(width, height) * 0.028;
-      const maxR = Math.min(width, height) * 0.1;
+      const minR = Math.min(width, height) * 0.024;
+      const maxR = Math.min(width, height) * 0.052;
       for (const n of nodes) {
         n.r = minR + (n.count / maxCount) * (maxR - minR);
       }
@@ -281,14 +278,14 @@ const graphData = JSON.stringify({ nodes: topics, edges });
           const dx = n.x - other.x;
           const dy = n.y - other.y;
           const distSq = Math.max(dx * dx + dy * dy, 200);
-          const force = 1800 / distSq;
+          const force = 2200 / distSq;
           fx += (dx / Math.sqrt(distSq)) * force;
           fy += (dy / Math.sqrt(distSq)) * force;
         }
         n.vx = (n.vx + fx) * 0.86;
         n.vy = (n.vy + fy) * 0.86;
       }
-      const REST = 90;
+      const REST = 118;
       for (const [a, b, weight] of edges) {
         const dx = b.x - a.x;
         const dy = b.y - a.y;
@@ -314,14 +311,43 @@ const graphData = JSON.stringify({ nodes: topics, edges });
       }
     }
 
+    // Every label sits below its node at a fixed offset, then this pass
+    // nudges any that collide (by measured text width) further down until
+    // clear — recomputed only after the layout settles, not every frame,
+    // since a stationary graph only needs it done once.
+    type LabelPos = { x: number; y: number; w: number };
+    const labelPos = new Map<Node, LabelPos>();
+    function computeLabelLayout() {
+      labelPos.clear();
+      ctx!.font = `10px ${monoFont}`;
+      const h = 13;
+      const placed: { x: number; y: number; w: number; h: number }[] = [];
+      const byTopY = [...nodes].sort((a, b) => a.y - b.y);
+      for (const n of byTopY) {
+        const text = n.label.length > 20 ? `${n.label.slice(0, 18)}…` : n.label;
+        const w = ctx!.measureText(text).width + 8;
+        let y = n.y + n.r + 13;
+        let guard = 0;
+        while (
+          guard++ < 8 &&
+          placed.some((p) => Math.abs(p.x - n.x) < (p.w + w) / 2 && Math.abs(p.y - y) < (p.h + h) / 2)
+        ) {
+          y += h + 2;
+        }
+        const box = { x: n.x, y, w, h };
+        placed.push(box);
+        labelPos.set(n, { x: n.x, y, w });
+      }
+    }
+
     function draw() {
       ctx!.clearRect(0, 0, width, height);
 
       for (const [a, b, weight] of edges) {
         const near = hovered && (hovered === a || hovered === b);
         ctx!.strokeStyle = near ? PALETTE[a.colorIndex] : edgeColor;
-        ctx!.lineWidth = near ? 2 : Math.min(0.8 + weight * 0.35, 2.4);
-        ctx!.globalAlpha = near ? 0.65 : 0.3;
+        ctx!.lineWidth = near ? 2.25 : Math.min(1.1 + weight * 0.35, 2.6);
+        ctx!.globalAlpha = near ? 0.85 : 0.55;
         ctx!.beginPath();
         ctx!.moveTo(a.x, a.y);
         ctx!.lineTo(b.x, b.y);
@@ -343,7 +369,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
 
         ctx!.beginPath();
         ctx!.fillStyle = color;
-        ctx!.globalAlpha = active ? 0.95 : isHot ? 0.85 : 0.62;
+        ctx!.globalAlpha = active ? 0.95 : isHot ? 0.85 : 0.7;
         ctx!.arc(n.x, n.y, isHot ? n.r * 1.08 : n.r, 0, Math.PI * 2);
         ctx!.fill();
         if (active) {
@@ -352,38 +378,31 @@ const graphData = JSON.stringify({ nodes: topics, edges });
           ctx!.globalAlpha = 1;
           ctx!.stroke();
         }
-
         ctx!.globalAlpha = 1;
-        ctx!.font = `${isHot || active ? '600 ' : ''}${Math.max(9, Math.min(n.r * 0.34, 14))}px ${monoFont}`;
-        ctx!.textAlign = 'center';
-        ctx!.textBaseline = 'middle';
-        if (n.r > 24) {
-          ctx!.fillStyle = '#ffffff';
-          wrapText(n.label, n.x, n.y, n.r * 1.7);
-        } else {
-          ctx!.fillStyle = labelColor;
-          ctx!.fillText(n.label.length > 16 ? n.label.slice(0, 14) + '…' : n.label, n.x, n.y + n.r + 11);
-        }
       }
-    }
 
-    function wrapText(text: string, x: number, y: number, maxWidth: number) {
-      const words = text.split(' ');
-      const lines: string[] = [];
-      let line = '';
-      for (const word of words) {
-        const test = line ? `${line} ${word}` : word;
-        if (ctx!.measureText(test).width > maxWidth && line) {
-          lines.push(line);
-          line = word;
-        } else {
-          line = test;
-        }
+      // Labels drawn as a separate pass, on top of every node/edge, so a
+      // label is never partially hidden behind a neighboring node.
+      ctx!.font = `10px ${monoFont}`;
+      ctx!.textAlign = 'center';
+      ctx!.textBaseline = 'middle';
+      for (const n of nodes) {
+        const pos = labelPos.get(n);
+        if (!pos) continue;
+        const active = activeFilters.has(n.label);
+        const isHot = n === hovered || n === dragging;
+        const text = n.label.length > 20 ? `${n.label.slice(0, 18)}…` : n.label;
+        ctx!.font = `${isHot || active ? '600 ' : ''}10px ${monoFont}`;
+        // A soft halo behind the text keeps it legible over the now-
+        // transparent canvas background, regardless of what's behind it.
+        ctx!.lineWidth = 3;
+        ctx!.strokeStyle = readVar('--color-bg', '#fbfaf8');
+        ctx!.globalAlpha = 0.9;
+        ctx!.strokeText(text, pos.x, pos.y);
+        ctx!.globalAlpha = 1;
+        ctx!.fillStyle = isHot || active ? readVar('--color-text', '#14181d') : labelColor;
+        ctx!.fillText(text, pos.x, pos.y);
       }
-      if (line) lines.push(line);
-      const lineHeight = 13;
-      const startY = y - ((lines.length - 1) * lineHeight) / 2;
-      lines.forEach((l, i) => ctx!.fillText(l, x, startY + i * lineHeight));
     }
 
     function nodeAt(x: number, y: number) {
@@ -422,7 +441,11 @@ const graphData = JSON.stringify({ nodes: topics, edges });
         dragging.x = Math.min(Math.max(p.x, dragging.r + 4), width - dragging.r - 4);
         dragging.y = Math.min(Math.max(p.y, dragging.r + 4), height - dragging.r - 4);
         showTooltip(dragging, e.clientX, e.clientY);
-        if (reducedMotion) draw();
+        // The graph is otherwise stationary — only nudge neighbors while a
+        // node is actively being dragged, for a live feel without any
+        // perpetual idle animation.
+        if (!reducedMotion) for (let i = 0; i < 3; i++) step();
+        draw();
         return;
       }
       const hit = nodeAt(p.x, p.y);
@@ -430,7 +453,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
       canvas!.style.cursor = hit ? 'grab' : 'default';
       if (hit) showTooltip(hit, e.clientX, e.clientY);
       else if (tooltip) tooltip.hidden = true;
-      if (reducedMotion) draw();
+      draw();
     });
 
     function endDrag(e: PointerEvent) {
@@ -442,6 +465,9 @@ const graphData = JSON.stringify({ nodes: topics, edges });
           applyFilters();
         }
         dragging = null;
+        if (!reducedMotion) for (let i = 0; i < 120; i++) step();
+        computeLabelLayout();
+        draw();
       }
       pointerDownAt = null;
     }
@@ -450,19 +476,25 @@ const graphData = JSON.stringify({ nodes: topics, edges });
       endDrag(e);
       hovered = null;
       if (tooltip) tooltip.hidden = true;
-      if (reducedMotion) draw();
+      draw();
     });
+
+    function settleAndDraw() {
+      for (let i = 0; i < 260; i++) step();
+      computeLabelLayout();
+      draw();
+    }
 
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
         resize();
-        draw();
+        settleAndDraw();
       });
       ro.observe(canvas);
     } else {
       window.addEventListener('resize', () => {
         resize();
-        draw();
+        settleAndDraw();
       });
     }
 
@@ -473,36 +505,6 @@ const graphData = JSON.stringify({ nodes: topics, edges });
     });
 
     resize();
-    draw();
-
-    if (reducedMotion) {
-      for (let i = 0; i < 220; i++) step();
-      draw();
-    } else {
-      let raf = 0;
-      const loop = () => {
-        step();
-        draw();
-        raf = requestAnimationFrame(loop);
-      };
-      raf = requestAnimationFrame(loop);
-
-      if (typeof IntersectionObserver !== 'undefined') {
-        const io = new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) {
-                if (!raf) raf = requestAnimationFrame(loop);
-              } else if (raf) {
-                cancelAnimationFrame(raf);
-                raf = 0;
-              }
-            }
-          },
-          { threshold: 0.05 },
-        );
-        io.observe(canvas);
-      }
-    }
+    settleAndDraw();
   }
 </script>
