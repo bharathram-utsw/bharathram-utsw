@@ -29,10 +29,11 @@ object per paper. Copy an existing entry as a template. Fields:
 
 **`keywords` is what drives the site's visuals.** Reuse existing keyword strings where
 the paper is genuinely about the same topic (`"Retina"`, `"Epigenetics"`, `"Multiomics"`,
-etc.) rather than inventing near-duplicates — the network hero and the heatmap both work
-by matching *identical* keyword strings across papers, so `"Multiomics"` and
-`"Multi-omics"` are two different columns to the code even though they mean the same
-thing to a person. Skim a few existing entries' `keywords` arrays before adding new tags.
+etc.) rather than inventing near-duplicates — the Home hero and the Publications topic
+network both work by matching *identical* keyword strings across papers, so
+`"Multiomics"` and `"Multi-omics"` are two different nodes to the code even though they
+mean the same thing to a person. Skim a few existing entries' `keywords` arrays before
+adding new tags.
 
 Run `npx astro check` after editing — the build fails loudly (with a field-level error
 message) on a typo'd field name or wrong type, before it ever reaches a page.
@@ -41,12 +42,11 @@ message) on a typo'd field name or wrong type, before it ever reaches a page.
 
 - **Publications page**: the new card appears, sorted into place by year/citations —
   every publication shows here, regardless of era.
-- **Publications page heatmap** (papers × keywords, clustered) and **Home page hero**
-  (the circular keyword diagram): both recomputed from scratch on every build, and both
-  scoped to *vision-era* publications only (see
-  [Vision-era filtering](#vision-era-filtering-in-the-visuals) below) — a new vision-era
-  paper's `keywords` shift the heatmap/hero automatically, including which papers and
-  keywords cluster next to each other.
+- **Publications page topic network** and **Home page hero** (the circular keyword
+  diagram): both recomputed from scratch on every build, and both scoped to *vision-era*
+  publications only (see [Vision-era filtering](#vision-era-filtering-in-the-visuals)
+  below) — a new vision-era paper's `keywords` shift the network/hero automatically,
+  including which topics appear, how big their nodes are, and which topics connect.
 - **Home page "Publications" stat**: the count in the bento stats row (counts every
   publication, all eras).
 
@@ -140,11 +140,11 @@ The PI's publication record spans two eras: current retina/vision research at UT
 Southwestern, and earlier microbial/comparative-genomics work from his PhD. The PhD-era
 work is real and stays fully visible in the Publications page list — but it's not the
 lab's current focus, so the site's two computed visuals (Home hero keyword diagram,
-Publications page heatmap) are scoped to vision-era papers only.
+Publications page topic network) are scoped to vision-era papers only.
 
 This is decided by a keyword allow-list in `src/lib/publications.ts`
 (`PRE_VISION_KEYWORDS`) and its exported `isVisionEra(keywords)` check, imported by both
-`NetworkHero.astro` and `PublicationHeatmap.astro`: if a paper carries *any* keyword from
+`NetworkHero.astro` and `PublicationNetwork.astro`: if a paper carries *any* keyword from
 that set (`"Tuberculosis"`, `"CRISPR-Cas"`, `"Mycobacterium"`, etc.), it's excluded from
 both visuals. This means:
 

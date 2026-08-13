@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import PublicationHeatmap from '../components/PublicationHeatmap.astro';
+import PublicationNetwork from '../components/PublicationNetwork.astro';
 import PublicationCard from '../components/PublicationCard.astro';
 
 const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
@@ -16,11 +16,14 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     <SectionHeading eyebrow="Selected output" level="h1">Publications</SectionHeading>
     <p class="prose publications-page__lede reveal">
       {publications.length} papers, spanning retinal biology, aging and metabolism, epigenetics,
-      and — earlier in the same throughline — microbial and comparative genomics.
+      and — earlier in the same throughline — microbial and comparative genomics. Click a topic
+      below to filter.
     </p>
 
     <div class="publications-page__section reveal">
-      <PublicationHeatmap />
+      <span class="eyebrow">By topic</span>
+      <h2>How the topics connect</h2>
+      <PublicationNetwork />
     </div>
 
     <div class="publications-page__controls">
@@ -117,6 +120,9 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     countEl.textContent = visible === cards.length ? `${cards.length} shown` : `${visible} of ${cards.length} shown`;
   }
 
+  document.addEventListener('pub-filter-change', updateCount);
+  // PublicationNetwork may have already applied a filter (and fired its
+  // event) before this listener was registered — sync once on load too.
   updateCount();
 
   sortButtons.forEach((btn) => {

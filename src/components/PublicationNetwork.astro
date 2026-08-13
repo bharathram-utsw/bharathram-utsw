@@ -1,0 +1,508 @@
+---
+// An interactive topic network: one node per keyword, sized by how many
+// publications carry it; edges connect topics that co-occur on the same
+// paper. Drag nodes around, or click one (or several) to filter the card
+// grid below — the same real keyword data that drives the Home hero, reused
+// here as both art and navigation.
+//
+// Scoped to the vision-era publication record (see src/lib/publications.ts)
+// — the PI's earlier microbial/genomics-era PhD work isn't the lab's
+// current focus, so it's excluded here even though it's still fully listed
+// (and still filterable-away, once a vision topic is selected) in the
+// publications grid below.
+import { getCollection } from 'astro:content';
+import { isVisionEra } from '../lib/publications';
+
+const pubs = (await getCollection('publications')).filter((p) => isVisionEra(p.data.keywords));
+const counts = new Map<string, number>();
+for (const pub of pubs) {
+  for (const kw of pub.data.keywords) {
+    counts.set(kw, (counts.get(kw) ?? 0) + 1);
+  }
+}
+
+const edgeWeights = new Map<string, number>();
+for (const pub of pubs) {
+  const kws = pub.data.keywords;
+  for (let i = 0; i < kws.length; i++) {
+    for (let j = i + 1; j < kws.length; j++) {
+      const key = [kws[i], kws[j]].sort().join('|');
+      edgeWeights.set(key, (edgeWeights.get(key) ?? 0) + 1);
+    }
+  }
+}
+
+const TOP_N = 34;
+const topKeywords = new Set(
+  [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, TOP_N)
+    .map(([label]) => label),
+);
+
+const topics = [...counts.entries()]
+  .filter(([label]) => topKeywords.has(label))
+  .map(([label, count]) => ({ label, count }));
+const edges = [...edgeWeights.entries()]
+  .map(([key, weight]) => {
+    const [a, b] = key.split('|');
+    return { a, b, weight };
+  })
+  .filter((e) => topKeywords.has(e.a) && topKeywords.has(e.b));
+const graphData = JSON.stringify({ nodes: topics, edges });
+---
+
+<div class="pub-network">
+  <div class="pub-network__canvas-wrap">
+    <canvas
+      class="pub-network__canvas"
+      id="pub-network-canvas"
+      tabindex="0"
+      role="group"
+      aria-label="Interactive topic network — drag a node, or click to filter publications below"
+    ></canvas>
+    <div class="pub-network__tooltip" id="pub-network-tooltip" hidden></div>
+    <script type="application/json" id="pub-network-data" set:html={graphData} />
+  </div>
+  <div class="pub-network__active" id="pub-network-active" hidden>
+    <span class="mono">Filtered by:</span>
+    <span id="pub-network-active-list"></span>
+    <button type="button" class="mono pub-network__clear" id="pub-network-clear">Clear ×</button>
+  </div>
+  <noscript>
+    <p class="mono pub-network__noscript">JavaScript is off — showing every publication below, unfiltered.</p>
+  </noscript>
+</div>
+
+<style>
+  .pub-network {
+    margin-bottom: var(--space-5);
+  }
+
+  .pub-network__canvas-wrap {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    overflow: hidden;
+  }
+
+  .pub-network__canvas {
+    display: block;
+    width: 100%;
+    height: 600px;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .pub-network__canvas:active {
+    cursor: grabbing;
+  }
+
+  .pub-network__tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 10px));
+    z-index: 2;
+    white-space: nowrap;
+  }
+
+  .pub-network__active {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pub-network__active[hidden] {
+    display: none;
+  }
+
+  .pub-network__clear {
+    border: 1px solid var(--color-border-strong);
+    background: none;
+    padding: 0.2em 0.6em;
+    border-radius: var(--radius);
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .pub-network__clear:hover {
+    color: var(--color-accent-strong);
+    border-color: var(--color-accent);
+  }
+
+  .pub-network__noscript {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    padding: var(--space-2);
+  }
+
+  @media (max-width: 640px) {
+    .pub-network__canvas {
+      height: 420px;
+    }
+  }
+</style>
+
+<script>
+  interface Node {
+    label: string;
+    count: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    r: number;
+    colorIndex: number;
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  const canvas = document.getElementById('pub-network-canvas') as HTMLCanvasElement | null;
+  const dataEl = document.getElementById('pub-network-data');
+  const tooltip = document.getElementById('pub-network-tooltip');
+  const activeBar = document.getElementById('pub-network-active');
+  const activeList = document.getElementById('pub-network-active-list');
+  const clearBtn = document.getElementById('pub-network-clear');
+  if (!canvas || !dataEl) throw new Error('PublicationNetwork: missing canvas or data element');
+
+  const raw = JSON.parse(dataEl.textContent || '{"nodes":[],"edges":[]}') as {
+    nodes: { label: string; count: number }[];
+    edges: { a: string; b: string; weight: number }[];
+  };
+  const ctx = canvas.getContext('2d');
+
+  const PALETTE = ['#004c97', '#009ee2', '#f26531', '#e52334', '#00ab4e', '#776cb1'];
+  const activeFilters = new Set<string>();
+
+  function applyFilters() {
+    const cards = document.querySelectorAll<HTMLElement>('[data-pub-card]');
+    for (const card of cards) {
+      const kws = (card.dataset.keywords ?? '').split('|');
+      const matches = activeFilters.size === 0 || kws.some((k) => activeFilters.has(k));
+      card.dataset.dimmed = matches ? 'false' : 'true';
+    }
+    if (activeBar && activeList) {
+      if (activeFilters.size === 0) {
+        activeBar.hidden = true;
+      } else {
+        activeBar.hidden = false;
+        activeList.textContent = [...activeFilters].join(', ');
+      }
+    }
+    document.dispatchEvent(new CustomEvent('pub-filter-change'));
+  }
+
+  if (ctx && raw.nodes.length > 0) {
+    const labelColor = readVar('--color-text', '#14181d');
+    const edgeColor = readVar('--color-border-strong', '#b9c5d1');
+    const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const nodes: Node[] = raw.nodes.map((n, i) => ({
+      ...n,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      r: 0,
+      colorIndex: i % PALETTE.length,
+    }));
+    const byLabel = new Map(nodes.map((n) => [n.label, n]));
+    const edges = raw.edges
+      .map((e) => [byLabel.get(e.a), byLabel.get(e.b), e.weight] as const)
+      .filter((e): e is [Node, Node, number] => !!e[0] && !!e[1]);
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function sizeNodes() {
+      const maxCount = Math.max(...nodes.map((n) => n.count));
+      const minR = Math.min(width, height) * 0.028;
+      const maxR = Math.min(width, height) * 0.1;
+      for (const n of nodes) {
+        n.r = minR + (n.count / maxCount) * (maxR - minR);
+      }
+    }
+
+    function layoutInitial() {
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(width, height) * 0.4;
+      nodes.forEach((n, i) => {
+        const angle = (i / nodes.length) * Math.PI * 2;
+        n.x = cx + Math.cos(angle) * radius * (0.4 + Math.random() * 0.6);
+        n.y = cy + Math.sin(angle) * radius * (0.4 + Math.random() * 0.6);
+        n.vx = 0;
+        n.vy = 0;
+      });
+    }
+
+    function resize() {
+      const rect = canvas!.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sizeNodes();
+      layoutInitial();
+    }
+
+    let dragging: Node | null = null;
+    let hovered: Node | null = null;
+    let pointerDownAt: { x: number; y: number } | null = null;
+    let didDrag = false;
+
+    function step() {
+      const cx = width / 2;
+      const cy = height / 2;
+      for (const n of nodes) {
+        if (n === dragging) continue;
+        let fx = (cx - n.x) * 0.0018;
+        let fy = (cy - n.y) * 0.0018;
+        for (const other of nodes) {
+          if (other === n) continue;
+          const dx = n.x - other.x;
+          const dy = n.y - other.y;
+          const distSq = Math.max(dx * dx + dy * dy, 200);
+          const force = 1800 / distSq;
+          fx += (dx / Math.sqrt(distSq)) * force;
+          fy += (dy / Math.sqrt(distSq)) * force;
+        }
+        n.vx = (n.vx + fx) * 0.86;
+        n.vy = (n.vy + fy) * 0.86;
+      }
+      const REST = 90;
+      for (const [a, b, weight] of edges) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const diff = (dist - REST) * 0.012 * Math.min(weight, 3);
+        const nx = dx / dist;
+        const ny = dy / dist;
+        if (a !== dragging) {
+          a.vx += nx * diff;
+          a.vy += ny * diff;
+        }
+        if (b !== dragging) {
+          b.vx -= nx * diff;
+          b.vy -= ny * diff;
+        }
+      }
+      for (const n of nodes) {
+        if (n === dragging) continue;
+        n.x += n.vx;
+        n.y += n.vy;
+        n.x = Math.min(Math.max(n.x, n.r + 4), width - n.r - 4);
+        n.y = Math.min(Math.max(n.y, n.r + 4), height - n.r - 4);
+      }
+    }
+
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+
+      for (const [a, b, weight] of edges) {
+        const near = hovered && (hovered === a || hovered === b);
+        ctx!.strokeStyle = near ? PALETTE[a.colorIndex] : edgeColor;
+        ctx!.lineWidth = near ? 2 : Math.min(0.8 + weight * 0.35, 2.4);
+        ctx!.globalAlpha = near ? 0.65 : 0.3;
+        ctx!.beginPath();
+        ctx!.moveTo(a.x, a.y);
+        ctx!.lineTo(b.x, b.y);
+        ctx!.stroke();
+      }
+      ctx!.globalAlpha = 1;
+
+      for (const n of nodes) {
+        const active = activeFilters.has(n.label);
+        const isHot = n === hovered || n === dragging;
+        const color = PALETTE[n.colorIndex];
+
+        // Soft glow behind every node — same touch as the Research page graph.
+        ctx!.beginPath();
+        ctx!.fillStyle = color;
+        ctx!.globalAlpha = active || isHot ? 0.25 : 0.14;
+        ctx!.arc(n.x, n.y, n.r + (active || isHot ? 9 : 6), 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.beginPath();
+        ctx!.fillStyle = color;
+        ctx!.globalAlpha = active ? 0.95 : isHot ? 0.85 : 0.62;
+        ctx!.arc(n.x, n.y, isHot ? n.r * 1.08 : n.r, 0, Math.PI * 2);
+        ctx!.fill();
+        if (active) {
+          ctx!.lineWidth = 2;
+          ctx!.strokeStyle = color;
+          ctx!.globalAlpha = 1;
+          ctx!.stroke();
+        }
+
+        ctx!.globalAlpha = 1;
+        ctx!.font = `${isHot || active ? '600 ' : ''}${Math.max(9, Math.min(n.r * 0.34, 14))}px ${monoFont}`;
+        ctx!.textAlign = 'center';
+        ctx!.textBaseline = 'middle';
+        if (n.r > 24) {
+          ctx!.fillStyle = '#ffffff';
+          wrapText(n.label, n.x, n.y, n.r * 1.7);
+        } else {
+          ctx!.fillStyle = labelColor;
+          ctx!.fillText(n.label.length > 16 ? n.label.slice(0, 14) + '…' : n.label, n.x, n.y + n.r + 11);
+        }
+      }
+    }
+
+    function wrapText(text: string, x: number, y: number, maxWidth: number) {
+      const words = text.split(' ');
+      const lines: string[] = [];
+      let line = '';
+      for (const word of words) {
+        const test = line ? `${line} ${word}` : word;
+        if (ctx!.measureText(test).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      if (line) lines.push(line);
+      const lineHeight = 13;
+      const startY = y - ((lines.length - 1) * lineHeight) / 2;
+      lines.forEach((l, i) => ctx!.fillText(l, x, startY + i * lineHeight));
+    }
+
+    function nodeAt(x: number, y: number) {
+      return nodes.find((n) => Math.hypot(n.x - x, n.y - y) <= n.r + 3);
+    }
+
+    function pointerPos(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function showTooltip(n: Node, clientX: number, clientY: number) {
+      if (!tooltip) return;
+      const rect = canvas!.getBoundingClientRect();
+      tooltip.hidden = false;
+      tooltip.style.left = `${clientX - rect.left}px`;
+      tooltip.style.top = `${clientY - rect.top - n.r}px`;
+      tooltip.textContent = `${n.label} — ${n.count} paper${n.count === 1 ? '' : 's'}`;
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      const p = pointerPos(e);
+      const hit = nodeAt(p.x, p.y);
+      pointerDownAt = p;
+      didDrag = false;
+      if (hit) {
+        dragging = hit;
+        canvas!.setPointerCapture(e.pointerId);
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      const p = pointerPos(e);
+      if (dragging && pointerDownAt) {
+        if (Math.hypot(p.x - pointerDownAt.x, p.y - pointerDownAt.y) > 4) didDrag = true;
+        dragging.x = Math.min(Math.max(p.x, dragging.r + 4), width - dragging.r - 4);
+        dragging.y = Math.min(Math.max(p.y, dragging.r + 4), height - dragging.r - 4);
+        showTooltip(dragging, e.clientX, e.clientY);
+        if (reducedMotion) draw();
+        return;
+      }
+      const hit = nodeAt(p.x, p.y);
+      hovered = hit ?? null;
+      canvas!.style.cursor = hit ? 'grab' : 'default';
+      if (hit) showTooltip(hit, e.clientX, e.clientY);
+      else if (tooltip) tooltip.hidden = true;
+      if (reducedMotion) draw();
+    });
+
+    function endDrag(e: PointerEvent) {
+      if (dragging) {
+        canvas!.releasePointerCapture(e.pointerId);
+        if (!didDrag) {
+          if (activeFilters.has(dragging.label)) activeFilters.delete(dragging.label);
+          else activeFilters.add(dragging.label);
+          applyFilters();
+        }
+        dragging = null;
+      }
+      pointerDownAt = null;
+    }
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointerleave', (e) => {
+      endDrag(e);
+      hovered = null;
+      if (tooltip) tooltip.hidden = true;
+      if (reducedMotion) draw();
+    });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        resize();
+        draw();
+      });
+      ro.observe(canvas);
+    } else {
+      window.addEventListener('resize', () => {
+        resize();
+        draw();
+      });
+    }
+
+    clearBtn?.addEventListener('click', () => {
+      activeFilters.clear();
+      applyFilters();
+      draw();
+    });
+
+    resize();
+    draw();
+
+    if (reducedMotion) {
+      for (let i = 0; i < 220; i++) step();
+      draw();
+    } else {
+      let raf = 0;
+      const loop = () => {
+        step();
+        draw();
+        raf = requestAnimationFrame(loop);
+      };
+      raf = requestAnimationFrame(loop);
+
+      if (typeof IntersectionObserver !== 'undefined') {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                if (!raf) raf = requestAnimationFrame(loop);
+              } else if (raf) {
+                cancelAnimationFrame(raf);
+                raf = 0;
+              }
+            }
+          },
+          { threshold: 0.05 },
+        );
+        io.observe(canvas);
+      }
+    }
+  }
+</script>
