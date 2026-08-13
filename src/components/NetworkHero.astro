@@ -7,15 +7,20 @@
 // paper, weighted by how often they do. Vanilla Canvas2D, computed once at
 // build time from the content collection. Docked to one side of the hero
 // (bleeding past the edge) so it never sits behind the headline text.
+//
+// Scoped to the vision-era publication record (see src/lib/publications.ts)
+// so this front-door visual reflects the lab's current retina/vision focus,
+// not the PI's earlier PhD-era microbial genomics work.
 import { getCollection } from 'astro:content';
 import { withBase } from '../lib/url';
+import { isVisionEra } from '../lib/publications';
 
 interface Props {
   class?: string;
 }
 const { class: className } = Astro.props;
 
-const pubs = await getCollection('publications');
+const pubs = (await getCollection('publications')).filter((p) => isVisionEra(p.data.keywords));
 
 const counts = new Map<string, number>();
 for (const pub of pubs) {

@@ -23,6 +23,12 @@ public/
 
 ## Editing content
 
+See **[MAINTAINING.md](./MAINTAINING.md)** for the full step-by-step guide — adding a
+publication, news post, or team member, and exactly which visuals (Home hero, PCA plot)
+regenerate automatically from that content versus which page copy is hand-maintained.
+
+Quick reference:
+
 - **Publications**: add an entry to `src/content/publications/publications.json`. Fields
   are validated against the schema in `src/content.config.ts` — the build fails loudly on
   a typo'd field.

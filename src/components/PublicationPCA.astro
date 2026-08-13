@@ -7,13 +7,16 @@
 // build time (dual/Gram-matrix PCA — correct and efficient here since
 // there are far more keywords than papers); the client only draws.
 //
-// Each paper is also classified into one of the two real domains in the
-// PI's publication record — by keyword membership, not a hardcoded per-
-// paper label, so a new paper sorts correctly just from its own keyword
-// tags. The client draws a soft outline around each domain's cluster.
+// Scoped to the vision-era publication record only (see
+// src/lib/publications.ts) — the PI's earlier microbial/genomics-era PhD
+// work isn't the lab's current focus, so it's excluded from this plot even
+// though it's still fully listed in the publications grid below.
 import { getCollection } from 'astro:content';
+import { isVisionEra } from '../lib/publications';
 
-const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+const pubs = (await getCollection('publications'))
+  .filter((p) => isVisionEra(p.data.keywords))
+  .sort((a, b) => b.data.year - a.data.year);
 const keywords = [...new Set(pubs.flatMap((p) => p.data.keywords))];
 const n = pubs.length;
 
@@ -65,50 +68,11 @@ const totalVariance = G.reduce((s, row, i) => s + row[i], 0) || 1;
 const pc1Pct = Math.round((lambda1 / totalVariance) * 100);
 const pc2Pct = Math.round((lambda2 / totalVariance) * 100);
 
-// Domain classification: a paper is "Microbial & Comparative Genomics" if
-// it carries any keyword from that distinctive, bounded vocabulary; every
-// other paper defaults to "Retina & Vision" (the lab's current focus, and
-// the larger/catch-all group). Extend this list, not per-paper labels,
-// when new genomics-domain keywords show up.
-const GENOMICS_KEYWORDS = new Set([
-  'Mycobacterium',
-  'Mycobacterium tuberculosis',
-  'CRISPR-Cas',
-  'Horizontal Gene Transfer',
-  'Comparative Genomics',
-  'Bacterial Genomics',
-  'Proteogenomics',
-  'Population Genomics',
-  'Human Genetics',
-  'Gut Microbiome',
-  'Microbial Diversity',
-  'Tuberculosis',
-  'Symbiosis',
-  'Methylotroph',
-  'Copy Number Variation',
-  'DNA-Binding Proteins',
-  'Structural Biology',
-  'Interactome',
-  'Drug Target Discovery',
-  'Infection Model',
-  'Gene Expression Profiling',
-  'Inflammation',
-  'Lymph Node',
-  'Iron Metabolism',
-  'Adipocyte',
-  'Gene Discovery',
-]);
-
-function domainOf(pubKeywords: string[]): 'genomics' | 'vision' {
-  return pubKeywords.some((k) => GENOMICS_KEYWORDS.has(k)) ? 'genomics' : 'vision';
-}
-
 const points = pubs.map((pub, i) => ({
   id: pub.id,
   title: pub.data.title,
   year: pub.data.year,
   journal: pub.data.journal,
-  domain: domainOf(pub.data.keywords),
   x: pc1[i],
   y: pc2[i],
 }));
@@ -122,24 +86,15 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
     <p class="prose pca__copy">
       Every paper's keyword list becomes a vector; principal component analysis projects that
       onto two axes. Papers sharing more keywords land closer together — no manual grouping,
-      just the actual overlap in what each paper is about.
+      just the actual overlap in what each paper is about. Scoped to the lab's retina and vision
+      research; earlier PhD-era work in microbial genomics is still in the full list below.
     </p>
-    <ul class="pca__legend">
-      <li>
-        <span class="pca__legend-swatch pca__legend-swatch--vision"></span>
-        Retina &amp; vision biology
-      </li>
-      <li>
-        <span class="pca__legend-swatch pca__legend-swatch--genomics"></span>
-        Microbial &amp; comparative genomics
-      </li>
-    </ul>
     <p class="mono pca__caption">Click a point to jump to it below.</p>
   </div>
 
   <div class="pca__canvas-wrap">
     <canvas class="pca__canvas" id="pca-canvas" tabindex="0" role="img"
-      aria-label="Principal component analysis plot of publications by keyword similarity, grouped into two outlined regions: retina and vision biology, and microbial and comparative genomics"
+      aria-label="Principal component analysis plot of the lab's retina and vision publications, grouped by keyword similarity"
     ></canvas>
     <script type="application/json" id="pca-data" set:html={plotData} />
     <div class="pca__tooltip" id="pca-tooltip" hidden></div>
@@ -159,36 +114,6 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
     color: var(--color-text-muted);
     margin-top: var(--space-2);
     max-width: 40ch;
-  }
-
-  .pca__legend {
-    margin-top: var(--space-4);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .pca__legend li {
-    display: flex;
-    align-items: center;
-    gap: 0.6em;
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
-
-  .pca__legend-swatch {
-    width: 0.85em;
-    height: 0.85em;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .pca__legend-swatch--vision {
-    background: var(--color-accent);
-  }
-
-  .pca__legend-swatch--genomics {
-    background: var(--color-accent-2);
   }
 
   .pca__caption {
@@ -253,7 +178,6 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
     title: string;
     year: number;
     journal: string;
-    domain: 'genomics' | 'vision';
     x: number;
     y: number;
     px: number;
@@ -315,7 +239,7 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
   if (!canvas || !dataEl) throw new Error('PublicationPCA: missing canvas or data element');
 
   const raw = JSON.parse(dataEl.textContent || '{}') as {
-    points: { id: string; title: string; year: number; journal: string; domain: 'genomics' | 'vision'; x: number; y: number }[];
+    points: { id: string; title: string; year: number; journal: string; x: number; y: number }[];
     pc1Pct: number;
     pc2Pct: number;
   };
@@ -326,9 +250,7 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
     const gridColor = readVar('--color-border', '#dce3ea');
     const textColor = readVar('--color-text-muted', '#4a5560');
     const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
-    const visionColor = readVar('--color-accent', '#004c97');
-    const genomicsColor = readVar('--color-accent-2', '#f26531');
-    const domainColor = (d: 'genomics' | 'vision') => (d === 'genomics' ? genomicsColor : visionColor);
+    const pointColor = readVar('--color-accent', '#004c97');
 
     const points: Point[] = raw.points.map((p) => ({ ...p, px: 0, py: 0 }));
 
@@ -388,19 +310,17 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
       ctx!.fillText(`PC2 (${raw.pc2Pct}%)`, 0, 0);
       ctx!.restore();
 
-      // domain outline regions, drawn first so points sit on top
-      for (const domain of ['vision', 'genomics'] as const) {
-        const group = points.filter((p) => p.domain === domain);
-        if (group.length < 2) continue;
-        const hull = inflateHull(convexHull(group), 26);
+      // soft outline around the whole cluster, drawn first so points sit on top
+      if (points.length >= 3) {
+        const hull = inflateHull(convexHull(points), 26);
         ctx!.beginPath();
         smoothClosedPath(ctx!, hull);
         ctx!.closePath();
-        ctx!.fillStyle = domainColor(domain);
-        ctx!.globalAlpha = 0.07;
+        ctx!.fillStyle = pointColor;
+        ctx!.globalAlpha = 0.06;
         ctx!.fill();
-        ctx!.globalAlpha = 0.35;
-        ctx!.strokeStyle = domainColor(domain);
+        ctx!.globalAlpha = 0.3;
+        ctx!.strokeStyle = pointColor;
         ctx!.lineWidth = 1.5;
         ctx!.setLineDash([4, 4]);
         ctx!.stroke();
@@ -410,9 +330,8 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
 
       for (const p of points) {
         const isHot = p === hovered;
-        const color = domainColor(p.domain);
         ctx!.beginPath();
-        ctx!.fillStyle = color;
+        ctx!.fillStyle = pointColor;
         ctx!.globalAlpha = isHot ? 1 : 0.82;
         ctx!.arc(p.px, p.py, isHot ? 8 : 6, 0, Math.PI * 2);
         ctx!.fill();
@@ -452,8 +371,7 @@ const plotData = JSON.stringify({ points, pc1Pct, pc2Pct });
         tooltip.hidden = false;
         tooltip.style.left = `${hit.px}px`;
         tooltip.style.top = `${hit.py}px`;
-        const domainLabel = hit.domain === 'genomics' ? 'Microbial & comparative genomics' : 'Retina & vision biology';
-        tooltip.innerHTML = `<strong>${hit.title}</strong>${hit.journal}, ${hit.year} · ${domainLabel}`;
+        tooltip.innerHTML = `<strong>${hit.title}</strong>${hit.journal}, ${hit.year}`;
       } else if (tooltip) {
         tooltip.hidden = true;
       }
