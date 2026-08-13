@@ -176,27 +176,34 @@ const { class: className, height = 460, background = false } = Astro.props;
     // left (same composition as the Home hero) — bias the wheel rightward
     // and spread it wider so it reads as a bold side element, full strength.
     const isBackground = root.classList.contains('diseasome--background');
-    const centerXFactor = isBackground ? 0.72 : 0.5;
+    const centerXFactor = isBackground ? 0.7 : 0.5;
     const alphaScale = 1;
 
     let width = 0;
     let height = 0;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // The graph's settled size is dictated by edge rest-length and repulsion
+    // strength, not the canvas size — without this, a bigger background box
+    // just leaves more empty space around the same small cluster. `scale`
+    // grows those forces (and node/edge/label rendering) with the canvas.
+    let scale = 1;
 
     const nodes: GraphNode[] = NODE_DEFS.map((def) => ({ ...def, x: 0, y: 0, vx: 0, vy: 0 }));
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const edges = EDGES.map(([a, b]) => [byId.get(a)!, byId.get(b)!] as [GraphNode, GraphNode]);
+    const baseRadii = new Map(nodes.map((n) => [n.id, n.r]));
 
     function layoutInitial() {
       const cx = width * centerXFactor;
       const cy = height / 2;
-      const radius = Math.min(width, height) * (isBackground ? 0.42 : 0.32);
+      const radius = Math.min(width, height) * (isBackground ? 0.38 : 0.32);
       nodes.forEach((n, i) => {
         const angle = (i / nodes.length) * Math.PI * 2;
         n.x = cx + Math.cos(angle) * radius + (Math.random() - 0.5) * 20;
         n.y = cy + Math.sin(angle) * radius + (Math.random() - 0.5) * 20;
         n.vx = 0;
         n.vy = 0;
+        n.r = baseRadii.get(n.id)! * scale;
       });
     }
 
@@ -207,6 +214,9 @@ const { class: className, height = 460, background = false } = Astro.props;
       canvas!.width = width * dpr;
       canvas!.height = height * dpr;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // 480px is roughly the size this graph was originally tuned to look
+      // right at — scale everything up from there for bigger canvases.
+      scale = isBackground ? Math.max(1, Math.min(width, height) / 480) : 1;
       layoutInitial();
     }
 
@@ -229,7 +239,7 @@ const { class: className, height = 460, background = false } = Astro.props;
           const dx = n.x - other.x;
           const dy = n.y - other.y;
           const distSq = Math.max(dx * dx + dy * dy, 100);
-          const force = 1400 / distSq;
+          const force = (1400 * scale * scale) / distSq;
           fx += (dx / Math.sqrt(distSq)) * force;
           fy += (dy / Math.sqrt(distSq)) * force;
         }
@@ -243,7 +253,7 @@ const { class: className, height = 460, background = false } = Astro.props;
       }
 
       // spring attraction along edges
-      const REST_LENGTH = 110;
+      const REST_LENGTH = 110 * scale;
       for (const [a, b] of edges) {
         const dx = b.x - a.x;
         const dy = b.y - a.y;
@@ -274,7 +284,7 @@ const { class: className, height = 460, background = false } = Astro.props;
       ctx!.clearRect(0, 0, width, height);
 
       ctx!.strokeStyle = edgeColor;
-      ctx!.lineWidth = 1;
+      ctx!.lineWidth = Math.max(1, scale);
       ctx!.globalAlpha = alphaScale;
       for (const [a, b] of edges) {
         ctx!.beginPath();
@@ -285,17 +295,29 @@ const { class: className, height = 460, background = false } = Astro.props;
 
       for (const n of nodes) {
         const isActive = n === hovered || n === dragging;
+        const color = CATEGORY_COLOR[n.category] || textColor;
+
+        // A soft glow behind every node is the "fancy" touch in background
+        // mode — skipped in the compact/foreground variant to stay crisp.
+        if (isBackground) {
+          ctx!.beginPath();
+          ctx!.fillStyle = color;
+          ctx!.globalAlpha = (isActive ? 0.28 : 0.16) * alphaScale;
+          ctx!.arc(n.x, n.y, n.r + (isActive ? 10 : 7) * scale, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
         ctx!.beginPath();
-        ctx!.fillStyle = CATEGORY_COLOR[n.category] || textColor;
-        ctx!.globalAlpha = (isActive ? 1 : 0.85) * alphaScale;
-        ctx!.arc(n.x, n.y, isActive ? n.r + 2 : n.r, 0, Math.PI * 2);
+        ctx!.fillStyle = color;
+        ctx!.globalAlpha = (isActive ? 1 : 0.9) * alphaScale;
+        ctx!.arc(n.x, n.y, isActive ? n.r + 2 * scale : n.r, 0, Math.PI * 2);
         ctx!.fill();
 
         ctx!.globalAlpha = isActive ? 1 : alphaScale;
-        ctx!.font = `${isActive ? '600 ' : ''}11px ${monoFont}`;
+        ctx!.font = `${isActive ? '600 ' : ''}${Math.round(11 * Math.max(scale, 1))}px ${monoFont}`;
         ctx!.fillStyle = textColor;
         ctx!.textBaseline = 'middle';
-        ctx!.fillText(n.label, n.x + n.r + 8, n.y);
+        ctx!.fillText(n.label, n.x + n.r + 8 * scale, n.y);
       }
       ctx!.globalAlpha = 1;
     }

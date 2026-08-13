@@ -347,8 +347,12 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
             const ly = Math.sin(mid) * (R + 14);
             ctx!.save();
             ctx!.translate(lx, ly);
-            let deg = (mid * 180) / Math.PI;
-            const flip = deg > 90 || deg < -90;
+            // Flip based on the label's actual on-screen angle (its static
+            // arc angle plus the wheel's current live rotation) — using the
+            // static angle alone left half the labels upside-down as soon as
+            // the wheel turned away from its starting position.
+            const onScreenDeg = (((mid + rotation) * 180) / Math.PI + 540) % 360 - 180;
+            const flip = onScreenDeg > 90 || onScreenDeg < -90;
             ctx!.rotate(mid + (flip ? Math.PI : 0));
             ctx!.textAlign = flip ? 'right' : 'left';
             ctx!.textBaseline = 'middle';
