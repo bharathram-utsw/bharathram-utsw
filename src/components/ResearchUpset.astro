@@ -1,0 +1,355 @@
+---
+// A real UpSet plot — the modern, matrix-based alternative to a Venn
+// diagram for showing how more than two or three sets overlap. Unlike the
+// Sankey it replaces, nothing here is illustrative: each vision-era
+// publication's own keywords (see src/lib/publications.ts) are classified
+// into a handful of broad research themes by keyword membership, and the
+// plot shows every combination of themes that actually occurs across the
+// real publication record, with real counts. Add a paper with the right
+// keywords and this plot changes on the next build — no separate step.
+import { getCollection } from 'astro:content';
+import { isVisionEra } from '../lib/publications';
+
+const CATEGORY_KEYWORDS: Record<string, Set<string>> = {
+  'Disease mechanism': new Set([
+    'Photoreceptor Degeneration',
+    'Retinitis Pigmentosa',
+    'Retinal Disease',
+    'Retinal Ciliopathy',
+    'Retinal Degeneration',
+    'Photoreceptor',
+    'Autophagy',
+    'Proteostasis',
+    'Network Biology',
+    'Therapy',
+    'Drug Repurposing',
+    'Reserpine',
+    'Retinal Organoids',
+    'Retinal Development',
+    'Stem Cells',
+  ]),
+  Metabolism: new Set(['Metabolism', 'Multiomics', 'Mitochondrial Stress', 'Fatty Acids', 'Cardiometabolic Risk', 'Liver', 'Transcriptomics']),
+  'Aging & epigenetics': new Set(['Aging', 'Epigenome', 'DNA Methylation', 'Intervention']),
+  'Diet & environment': new Set(['Diet', 'Fatty Acids', 'Cardiometabolic Risk', 'Sex Differences']),
+};
+
+function classify(keywords: string[]): string[] {
+  const cats: string[] = [];
+  for (const [cat, set] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some((k) => set.has(k))) cats.push(cat);
+  }
+  return cats;
+}
+
+const pubs = (await getCollection('publications')).filter((p) => isVisionEra(p.data.keywords));
+const classified = pubs.map((p) => ({
+  id: p.id,
+  title: p.data.title,
+  year: p.data.year,
+  cats: classify(p.data.keywords),
+}));
+
+interface Combo {
+  cats: string[];
+  count: number;
+  papers: { id: string; title: string; year: number }[];
+}
+
+const comboMap = new Map<string, Combo>();
+for (const p of classified) {
+  if (p.cats.length === 0) continue;
+  const key = [...p.cats].sort().join('|');
+  if (!comboMap.has(key)) comboMap.set(key, { cats: [...p.cats].sort(), count: 0, papers: [] });
+  const entry = comboMap.get(key)!;
+  entry.count++;
+  entry.papers.push({ id: p.id, title: p.title, year: p.year });
+}
+const combos = [...comboMap.values()].sort((a, b) => b.count - a.count);
+
+const categoryNames = Object.keys(CATEGORY_KEYWORDS);
+const categories = categoryNames
+  .map((cat) => ({ cat, size: classified.filter((p) => p.cats.includes(cat)).length }))
+  .sort((a, b) => b.size - a.size);
+
+const upsetData = JSON.stringify({ categories, combos });
+---
+
+<div class="upset">
+  <div class="upset__text">
+    <span class="eyebrow">How the evidence overlaps</span>
+    <h2>Where the research overlaps — a real UpSet plot</h2>
+    <p class="prose upset__copy">
+      Every vision-era paper's own keywords are classified into four broad research themes. Each
+      column below is a combination of themes that actually occurs in the record, with the real
+      count of papers in that exact combination — the standard matrix-based alternative to a Venn
+      diagram once there are more than two or three sets to compare. Computed from the same
+      publication data as the rest of the site; add a paper and this updates on its own.
+    </p>
+    <p class="mono upset__caption">Hover a column for the papers behind it.</p>
+  </div>
+
+  <div class="upset__canvas-wrap">
+    <canvas
+      class="upset__canvas"
+      id="upset-canvas"
+      tabindex="0"
+      role="img"
+      aria-label="UpSet plot of how the lab's four broad research themes overlap across its vision-era publications"
+    ></canvas>
+    <script type="application/json" id="upset-data" set:html={upsetData} />
+    <div class="upset__tooltip" id="upset-tooltip" hidden></div>
+  </div>
+</div>
+
+<style>
+  .upset {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) 1fr;
+    gap: var(--space-5);
+    align-items: center;
+    margin-bottom: var(--space-2);
+  }
+
+  .upset__copy {
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+    max-width: 42ch;
+  }
+
+  .upset__caption {
+    margin-top: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  .upset__canvas-wrap {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .upset__canvas {
+    display: block;
+  }
+
+  .upset__tooltip {
+    position: absolute;
+    pointer-events: none;
+    max-width: 22rem;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius);
+    transform: translate(-50%, calc(-100% - 10px));
+    z-index: 2;
+  }
+
+  .upset__tooltip strong {
+    display: block;
+    font-family: var(--font-sans);
+    color: var(--color-accent-on-ink);
+    margin-bottom: 0.3em;
+  }
+
+  .upset__tooltip div + div {
+    margin-top: 0.3em;
+  }
+
+  @media (max-width: 900px) {
+    .upset {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  interface CategoryDatum {
+    cat: string;
+    size: number;
+  }
+  interface ComboDatum {
+    cats: string[];
+    count: number;
+    papers: { id: string; title: string; year: number }[];
+  }
+
+  function readVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  function truncate(s: string, n: number) {
+    return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+  }
+
+  const canvas = document.getElementById('upset-canvas') as HTMLCanvasElement | null;
+  const dataEl = document.getElementById('upset-data');
+  const tooltip = document.getElementById('upset-tooltip');
+  if (!canvas || !dataEl) throw new Error('ResearchUpset: missing canvas or data element');
+
+  const raw = JSON.parse(dataEl.textContent || '{}') as { categories: CategoryDatum[]; combos: ComboDatum[] };
+  const ctx = canvas.getContext('2d');
+
+  if (ctx && raw.combos?.length > 0) {
+    const accent = readVar('--color-accent', '#004c97');
+    const textColor = readVar('--color-text', '#14181d');
+    const mutedColor = readVar('--color-text-muted', '#4a5560');
+    const borderColor = readVar('--color-border-strong', '#b9c5d1');
+    const dimColor = readVar('--color-border', '#dce3ea');
+    const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
+    const sansFont = readVar('--font-sans', 'sans-serif');
+
+    const pad = 20;
+    const leftLabelW = 150;
+    const leftBarW = 90;
+    const topBarH = 150;
+    const rowH = 34;
+    const colW = 64;
+
+    const numRows = raw.categories.length;
+    const numCols = raw.combos.length;
+    const width = pad + leftLabelW + leftBarW + numCols * colW + pad;
+    const height = pad + topBarH + numRows * rowH + pad + 10;
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const matrixX = pad + leftLabelW + leftBarW;
+    const matrixTop = pad + topBarH;
+    const maxCount = Math.max(...raw.combos.map((c) => c.count));
+    const maxSize = Math.max(...raw.categories.map((c) => c.size));
+
+    function colX(i: number) {
+      return matrixX + i * colW + colW / 2;
+    }
+    function rowY(i: number) {
+      return matrixTop + i * rowH + rowH / 2;
+    }
+
+    type Hit = { x: number; y: number; w: number; h: number; combo?: ComboDatum; category?: CategoryDatum };
+    let hits: Hit[] = [];
+    let hoveredCombo: ComboDatum | null = null;
+    let hoveredCategory: CategoryDatum | null = null;
+
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+      hits = [];
+
+      // row labels + set-size bars
+      raw.categories.forEach((cat, r) => {
+        const y = rowY(r);
+        const isHot = hoveredCategory === cat;
+        ctx!.font = `${isHot ? '600 ' : ''}11px ${sansFont}`;
+        ctx!.fillStyle = isHot ? textColor : mutedColor;
+        ctx!.textAlign = 'right';
+        ctx!.textBaseline = 'middle';
+        ctx!.fillText(cat.cat, pad + leftLabelW - 10, y);
+
+        const barMaxW = leftBarW - 14;
+        const barW = (cat.size / maxSize) * barMaxW;
+        const barX = pad + leftLabelW + (leftBarW - 14) - barW;
+        ctx!.fillStyle = isHot ? accent : borderColor;
+        ctx!.fillRect(barX, y - 7, barW, 14);
+        ctx!.font = `9px ${monoFont}`;
+        ctx!.fillStyle = mutedColor;
+        ctx!.textAlign = 'right';
+        ctx!.fillText(String(cat.size), pad + leftLabelW + (leftBarW - 14) + 12, y);
+
+        hits.push({ x: pad, y: y - rowH / 2, w: leftLabelW + leftBarW, h: rowH, category: cat });
+
+        // faint background row band under the matrix for readability
+        ctx!.fillStyle = r % 2 === 0 ? 'transparent' : dimColor;
+        ctx!.globalAlpha = 0.35;
+        ctx!.fillRect(matrixX, y - rowH / 2, numCols * colW, rowH);
+        ctx!.globalAlpha = 1;
+      });
+
+      // combo columns: top bars, matrix dots, connecting lines
+      raw.combos.forEach((combo, i) => {
+        const x = colX(i);
+        const isHot = hoveredCombo === combo;
+
+        // top bar
+        const barH = (combo.count / maxCount) * (topBarH - 30);
+        const barTop = pad + topBarH - 14 - barH;
+        ctx!.fillStyle = isHot ? accent : mutedColor;
+        ctx!.globalAlpha = isHot ? 1 : 0.75;
+        ctx!.fillRect(x - 9, barTop, 18, barH);
+        ctx!.globalAlpha = 1;
+        ctx!.font = `${isHot ? '600 ' : ''}10px ${monoFont}`;
+        ctx!.fillStyle = textColor;
+        ctx!.textAlign = 'center';
+        ctx!.fillText(String(combo.count), x, barTop - 6);
+
+        hits.push({ x: x - colW / 2, y: pad, w: colW, h: topBarH, combo });
+
+        // matrix dots + connector line
+        const activeRows = raw.categories.map((c, r) => (combo.cats.includes(c.cat) ? r : -1)).filter((r) => r >= 0);
+        if (activeRows.length > 1) {
+          ctx!.strokeStyle = isHot ? accent : textColor;
+          ctx!.lineWidth = isHot ? 2.5 : 2;
+          ctx!.beginPath();
+          ctx!.moveTo(x, rowY(activeRows[0]));
+          ctx!.lineTo(x, rowY(activeRows[activeRows.length - 1]));
+          ctx!.stroke();
+        }
+        raw.categories.forEach((c, r) => {
+          const active = combo.cats.includes(c.cat);
+          ctx!.beginPath();
+          ctx!.fillStyle = active ? (isHot ? accent : textColor) : dimColor;
+          ctx!.arc(x, rowY(r), active ? 7 : 4, 0, Math.PI * 2);
+          ctx!.fill();
+        });
+
+        hits.push({ x: x - colW / 2, y: matrixTop, w: colW, h: numRows * rowH, combo });
+      });
+    }
+
+    function hitAt(x: number, y: number): Hit | null {
+      for (const h of hits) {
+        if (x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return h;
+      }
+      return null;
+    }
+
+    function pointerPos(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointermove', (e) => {
+      const pos = pointerPos(e);
+      const hit = hitAt(pos.x, pos.y);
+      hoveredCombo = hit?.combo ?? null;
+      hoveredCategory = hit?.category ?? null;
+      if (hit && tooltip) {
+        tooltip.hidden = false;
+        tooltip.style.left = `${pos.x}px`;
+        tooltip.style.top = `${Math.max(pos.y - 10, 10)}px`;
+        if (hit.combo) {
+          const label = hit.combo.cats.join(' + ');
+          const list = hit.combo.papers.map((p) => `<div>${truncate(p.title, 44)} (${p.year})</div>`).join('');
+          tooltip.innerHTML = `<strong>${label}</strong>${list}`;
+        } else if (hit.category) {
+          tooltip.innerHTML = `<strong>${hit.category.cat}</strong>${hit.category.size} paper${hit.category.size === 1 ? '' : 's'} touch this theme`;
+        }
+      } else if (tooltip) {
+        tooltip.hidden = true;
+      }
+      draw();
+    });
+    canvas.addEventListener('pointerleave', () => {
+      hoveredCombo = null;
+      hoveredCategory = null;
+      if (tooltip) tooltip.hidden = true;
+      draw();
+    });
+
+    draw();
+  }
+</script>

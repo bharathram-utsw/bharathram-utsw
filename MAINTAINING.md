@@ -120,12 +120,15 @@ collection. Edit the text in both files directly when the framing of a research 
 changes. This is deliberate: theme descriptions change rarely and read better hand-tuned
 than templated.
 
-The Sankey diagram on the Research page (`ResearchSankey.astro`) is also
-**hand-authored data**, not derived from publications — its node/link values are an
-illustrative model of how causes converge on shared disease programs and outcomes, not a
-plot of real data points (the layout math is real; the numbers feeding it are not). Only
-touch it if the actual conceptual model of the two research themes changes (rare); it
-does not need updating when you add a publication or news post.
+The UpSet plot on the Research page (`ResearchUpset.astro`) is different from the graph
+this section used to describe — it's **real, computed data**, not hand-authored. It
+classifies every vision-era publication's own keywords into four broad research themes
+(`CATEGORY_KEYWORDS` in that file) and plots the real combinations of themes that occur
+across the actual publication record, with real counts. Adding a vision-era publication
+with keywords already covered by `CATEGORY_KEYWORDS` updates this automatically — nothing
+to do. If a new publication's keywords don't match any existing category (rare, since the
+four themes are broad), it simply won't count toward any column until someone adds the
+new keyword to the relevant category's set in `ResearchUpset.astro`.
 
 ## Gallery page
 

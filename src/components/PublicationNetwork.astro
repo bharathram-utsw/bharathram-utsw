@@ -52,31 +52,66 @@ const edges = [...edgeWeights.entries()]
 const graphData = JSON.stringify({ nodes: topics, edges });
 ---
 
-<div class="pub-network">
-  <div class="pub-network__canvas-wrap">
-    <canvas
-      class="pub-network__canvas"
-      id="pub-network-canvas"
-      tabindex="0"
-      role="group"
-      aria-label="Interactive topic network — drag a node, or click to filter publications below"
-    ></canvas>
-    <div class="pub-network__tooltip" id="pub-network-tooltip" hidden></div>
-    <script type="application/json" id="pub-network-data" set:html={graphData} />
+<div class="pub-network-layout">
+  <div class="pub-network-layout__text">
+    <span class="eyebrow">By topic</span>
+    <h2>How the topics connect</h2>
+    <p class="prose pub-network-layout__copy">
+      Every keyword becomes a node, sized by how many papers carry it; edges connect topics that
+      co-occur on the same paper. Drag a node to rearrange it, or click one to filter the
+      publications below — scoped to the lab's retina and vision research.
+    </p>
+    <p class="mono pub-network-layout__caption">Click a topic to filter. Drag to rearrange.</p>
   </div>
-  <div class="pub-network__active" id="pub-network-active" hidden>
-    <span class="mono">Filtered by:</span>
-    <span id="pub-network-active-list"></span>
-    <button type="button" class="mono pub-network__clear" id="pub-network-clear">Clear ×</button>
+
+  <div class="pub-network">
+    <div class="pub-network__canvas-wrap">
+      <canvas
+        class="pub-network__canvas"
+        id="pub-network-canvas"
+        tabindex="0"
+        role="group"
+        aria-label="Interactive topic network — drag a node, or click to filter publications below"
+      ></canvas>
+      <div class="pub-network__tooltip" id="pub-network-tooltip" hidden></div>
+      <script type="application/json" id="pub-network-data" set:html={graphData} />
+    </div>
+    <div class="pub-network__active" id="pub-network-active" hidden>
+      <span class="mono">Filtered by:</span>
+      <span id="pub-network-active-list"></span>
+      <button type="button" class="mono pub-network__clear" id="pub-network-clear">Clear ×</button>
+    </div>
+    <noscript>
+      <p class="mono pub-network__noscript">JavaScript is off — showing every publication below, unfiltered.</p>
+    </noscript>
   </div>
-  <noscript>
-    <p class="mono pub-network__noscript">JavaScript is off — showing every publication below, unfiltered.</p>
-  </noscript>
 </div>
 
 <style>
-  .pub-network {
+  .pub-network-layout {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) 1fr;
+    gap: var(--space-5);
+    align-items: center;
     margin-bottom: var(--space-5);
+  }
+
+  .pub-network-layout__copy {
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+    max-width: 40ch;
+  }
+
+  .pub-network-layout__caption {
+    margin-top: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+  }
+
+  @media (max-width: 900px) {
+    .pub-network-layout {
+      grid-template-columns: 1fr;
+    }
   }
 
   .pub-network__canvas-wrap {
