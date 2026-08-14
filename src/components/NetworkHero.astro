@@ -221,12 +221,12 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
           canvas.style.width = `${width}px`;
           canvas.style.height = `${height}px`;
           ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-          // Centered and fully visible — this now lives inside its own
-          // bordered widget panel rather than bleeding off a full-viewport
-          // hero, so the whole wheel should read as one contained diagram.
-          cx = width / 2;
-          cy = height / 2;
-          R = Math.max(90, Math.min(height, width) * 0.38);
+          // Centered right at the edge — only the left half of the wheel is
+          // ever on-canvas, a cropped medallion bleeding off the right side
+          // rather than a fully contained diagram.
+          cx = width;
+          cy = height * 0.46;
+          R = Math.max(180, Math.min(height * 0.58, width * 0.5));
         }
 
         function arcAt(x: number, y: number): Arc | null {
