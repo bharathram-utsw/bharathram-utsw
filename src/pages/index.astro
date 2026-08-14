@@ -41,16 +41,23 @@ const minuteAngle = minutes * 6;
 
 <BaseLayout title="Mondal Lab">
   <div class="container home">
-    <div class="home__intro reveal">
-      <h1>Mondal Lab</h1>
-      <p class="prose home__mission">
-        We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
-        to discover mechanisms that maintain healthy vision and identify the earliest molecular
-        patterns linked with blindness.
-      </p>
-      <p class="mono home__affiliation">
-        UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
-      </p>
+    <div class="home__hero reveal">
+      <div id="publications" class="widget widget--network home__hero-graph">
+        <p class="widget__label">Keyword network — click a segment to browse related publications</p>
+        <NetworkHero />
+      </div>
+
+      <div class="home__intro">
+        <h1>Mondal Lab</h1>
+        <p class="prose home__mission">
+          We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
+          to discover mechanisms that maintain healthy vision and identify the earliest molecular
+          patterns linked with blindness.
+        </p>
+        <p class="mono home__affiliation">
+          UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
+        </p>
+      </div>
     </div>
 
     <div class="home__widgets reveal">
@@ -98,61 +105,71 @@ const minuteAngle = minutes * 6;
       </div>
     </div>
 
-    <div id="publications" class="widget widget--network reveal">
-      <p class="widget__label">Keyword network — click a segment to browse related publications</p>
-      <NetworkHero />
-    </div>
-
     <div class="home__feed reveal">
-      <div class="home__rows">
-        <a id="research" class="feed-row" href={withBase('/research')}>
-          <ThemeGlyph class="feed-row__glyph" seed={0} />
-          <div class="feed-row__body">
-            <span class="mono feed-row__meta">Theme 01</span>
-            <h2 class="feed-row__title">Retinal Diseasome Assembly</h2>
-            <p class="feed-row__excerpt">
-              How unrelated genetic mutations converge on a finite set of disease-onset programs in
-              the retina, from inherited degenerations to age-related macular degeneration.
-            </p>
-          </div>
-        </a>
-
-        <a class="feed-row" href={withBase('/research')}>
-          <ThemeGlyph class="feed-row__glyph" seed={1} />
-          <div class="feed-row__body">
-            <span class="mono feed-row__meta">Theme 02</span>
-            <h2 class="feed-row__title">Environmental–Molecular Interactions in Retinal Aging</h2>
-            <p class="feed-row__excerpt">
-              How lifestyle factors like nutrition shape the retina's molecular landscape, and what
-              that means for age-related vision decline.
-            </p>
-          </div>
-        </a>
-
-        {pi && (
-          <a id="team" class="feed-row" href={withBase('/team')}>
-            <div class="feed-row__photo" aria-hidden="true"></div>
+      <div id="research" class="home__feed-group">
+        <p class="feed-section-label">Research</p>
+        <div class="home__rows">
+          <a class="feed-row" href={withBase('/research')}>
+            <ThemeGlyph class="feed-row__glyph" seed={0} />
             <div class="feed-row__body">
-              <span class="mono feed-row__meta">Led by</span>
-              <h2 class="feed-row__title">{pi.data.name}</h2>
-              <p class="feed-row__excerpt">{pi.data.bioShort}</p>
+              <span class="mono feed-row__meta">Theme 01</span>
+              <h2 class="feed-row__title">Retinal Diseasome Assembly</h2>
+              <p class="feed-row__excerpt">
+                How unrelated genetic mutations converge on a finite set of disease-onset programs in
+                the retina, from inherited degenerations to age-related macular degeneration.
+              </p>
             </div>
           </a>
-        )}
 
-        {latestNews.map((post, i) => (
-          <a id={i === 0 ? 'news' : undefined} class="feed-row" href={withBase(`/news/${post.id}/`)}>
-            <div class="feed-row__photo feed-row__photo--news" aria-hidden="true"></div>
+          <a class="feed-row" href={withBase('/research')}>
+            <ThemeGlyph class="feed-row__glyph" seed={1} />
             <div class="feed-row__body">
-              <span class="mono feed-row__meta">
-                {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
-              </span>
-              <h2 class="feed-row__title">{post.data.title}</h2>
-              <p class="feed-row__excerpt">{post.data.excerpt}</p>
+              <span class="mono feed-row__meta">Theme 02</span>
+              <h2 class="feed-row__title">Environmental–Molecular Interactions in Retinal Aging</h2>
+              <p class="feed-row__excerpt">
+                How lifestyle factors like nutrition shape the retina's molecular landscape, and what
+                that means for age-related vision decline.
+              </p>
             </div>
           </a>
-        ))}
+        </div>
       </div>
+
+      {pi && (
+        <div id="team" class="home__feed-group">
+          <p class="feed-section-label">Team</p>
+          <div class="home__rows">
+            <a class="feed-row" href={withBase('/team')}>
+              <div class="feed-row__photo" aria-hidden="true"></div>
+              <div class="feed-row__body">
+                <span class="mono feed-row__meta">Led by</span>
+                <h2 class="feed-row__title">{pi.data.name}</h2>
+                <p class="feed-row__excerpt">{pi.data.bioShort}</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {latestNews.length > 0 && (
+        <div id="news" class="home__feed-group">
+          <p class="feed-section-label">News</p>
+          <div class="home__rows">
+            {latestNews.map((post) => (
+              <a class="feed-row" href={withBase(`/news/${post.id}/`)}>
+                <div class="feed-row__photo feed-row__photo--news" aria-hidden="true"></div>
+                <div class="feed-row__body">
+                  <span class="mono feed-row__meta">
+                    {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
+                  </span>
+                  <h2 class="feed-row__title">{post.data.title}</h2>
+                  <p class="feed-row__excerpt">{post.data.excerpt}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   </div>
 </BaseLayout>
@@ -162,13 +179,20 @@ const minuteAngle = minutes * 6;
     padding-block: var(--space-5) var(--space-7);
   }
 
-  .home__intro {
-    max-width: 60ch;
-    margin-bottom: var(--space-4);
+  .home__hero {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(280px, 1fr);
+    gap: var(--space-4);
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+
+  .home__hero-graph {
+    height: 100%;
   }
 
   .home__intro h1 {
-    font-size: var(--text-5xl);
+    font-size: var(--text-4xl);
   }
 
   .home__mission {
@@ -305,7 +329,20 @@ const minuteAngle = minutes * 6;
     margin-bottom: 0;
   }
 
-  /* ---- Main feed: list rows, full pane width ---- */
+  /* ---- Main feed: grouped list rows, full pane width ---- */
+  .home__feed-group + .home__feed-group {
+    margin-top: var(--space-5);
+  }
+
+  .feed-section-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
   .home__rows {
     display: flex;
     flex-direction: column;
@@ -367,6 +404,10 @@ const minuteAngle = minutes * 6;
   }
 
   @media (max-width: 860px) {
+    .home__hero {
+      grid-template-columns: 1fr;
+    }
+
     .home__widgets {
       grid-template-columns: 1fr;
     }
@@ -374,7 +415,7 @@ const minuteAngle = minutes * 6;
 
   @media (max-width: 640px) {
     .home__intro h1 {
-      font-size: var(--text-4xl);
+      font-size: var(--text-2xl);
     }
   }
 </style>
