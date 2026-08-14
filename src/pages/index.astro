@@ -37,16 +37,6 @@ const minutes = today.getMinutes();
 const hourAngle = ((hours24 % 12) + minutes / 60) * 30;
 const minuteAngle = minutes * 6;
 
-// Sections that exist right on this page scroll to them in place; sections
-// with no on-page presence (Gallery, Contact) still navigate to their page.
-const indexLinks = [
-  { href: '#research', label: 'Research' },
-  { href: '#team', label: 'Team' },
-  { href: '#publications', label: 'Publications' },
-  { href: '#news', label: 'News' },
-  { href: withBase('/gallery'), label: 'Gallery' },
-  { href: withBase('/contact'), label: 'Contact' },
-];
 ---
 
 <BaseLayout title="Mondal Lab">
@@ -114,15 +104,6 @@ const indexLinks = [
     </div>
 
     <div class="home__feed reveal">
-      <nav class="widget home__index" aria-label="Site index">
-        <p class="widget__label">Index</p>
-        <ul>
-          {indexLinks.map((item) => (
-            <li><a class="mono" href={item.href}>{item.label}</a></li>
-          ))}
-        </ul>
-      </nav>
-
       <div class="home__rows">
         <a id="research" class="feed-row" href={withBase('/research')}>
           <ThemeGlyph class="feed-row__glyph" seed={0} />
@@ -324,40 +305,7 @@ const indexLinks = [
     margin-bottom: 0;
   }
 
-  /* ---- Main feed: index sidebar + list rows ---- */
-  .home__feed {
-    display: grid;
-    grid-template-columns: 14rem 1fr;
-    gap: var(--space-3);
-  }
-
-  .home__index ul {
-    display: flex;
-    flex-direction: column;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .home__index a {
-    display: block;
-    padding-block: 0.5em;
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--color-text-muted);
-    text-decoration: none;
-    border-bottom: 1px solid var(--color-bg-inset);
-  }
-
-  .home__index li:last-child a {
-    border-bottom: none;
-  }
-
-  .home__index a:hover {
-    color: var(--color-accent);
-  }
-
+  /* ---- Main feed: list rows, full pane width ---- */
   .home__rows {
     display: flex;
     flex-direction: column;
@@ -420,10 +368,6 @@ const indexLinks = [
 
   @media (max-width: 860px) {
     .home__widgets {
-      grid-template-columns: 1fr;
-    }
-
-    .home__feed {
       grid-template-columns: 1fr;
     }
   }

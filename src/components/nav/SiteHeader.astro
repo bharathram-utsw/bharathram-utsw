@@ -37,22 +37,9 @@ function isActive(href: string) {
 
     <p class="mono site-header__date" aria-hidden="true">{today} · DALLAS, TX</p>
 
-    <!-- Desktop nav -->
-    <nav class="site-header__nav" aria-label="Primary">
-      <ul>
-        {
-          navItems.map((item) => (
-            <li>
-              <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-
-    <!-- Mobile nav: pure HTML/CSS, no JS -->
+    <!-- Mobile nav: the persistent index sidebar (SiteSidebar) hides below
+         860px, so this is the only way to reach it on narrow viewports.
+         Pure HTML/CSS, no JS. -->
     <details class="site-header__mobile">
       <summary aria-label="Open menu">
         <span class="mono">Menu</span>
@@ -152,45 +139,18 @@ function isActive(href: string) {
     }
   }
 
-  .site-header__nav ul {
-    display: flex;
-    gap: var(--space-3);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .site-header__nav a {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    text-decoration: none;
-    padding-bottom: 0.25em;
-    border-bottom: 1px solid transparent;
-  }
-
-  .site-header__nav a:hover {
-    color: var(--color-text);
-  }
-
-  .site-header__nav a[aria-current='page'] {
-    color: var(--color-text);
-    border-bottom-color: var(--color-accent);
-  }
-
   .site-header__mobile {
-    display: none;
+    display: block;
   }
 
-  @media (max-width: 720px) {
-    .site-header__nav {
+  @media (min-width: 860px) {
+    .site-header__mobile {
       display: none;
     }
+  }
 
+  @media (max-width: 859px) {
     .site-header__mobile {
-      display: block;
       position: relative;
     }
 
