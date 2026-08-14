@@ -2,14 +2,13 @@
 @import './network-motif.css';
 
 /* Self-hosted fonts via @fontsource — no external CDN request */
-@import '@fontsource/jost/400.css';
-@import '@fontsource/jost/500.css';
-@import '@fontsource/jost/600.css';
-@import '@fontsource/source-serif-4/400.css';
-@import '@fontsource/source-serif-4/400-italic.css';
-@import '@fontsource/source-serif-4/600.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+@import '@fontsource/archivo/900.css';
 
 /* ---- Reset ---- */
 *,
@@ -21,6 +20,12 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body,
@@ -65,7 +70,7 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
@@ -75,15 +80,17 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-sans);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 900;
   line-height: var(--leading-tight);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
   color: var(--color-text);
 }
 
 h1 {
   font-size: var(--text-4xl);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.005em;
 }
 h2 {
   font-size: var(--text-2xl);

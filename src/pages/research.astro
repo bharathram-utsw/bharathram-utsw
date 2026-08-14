@@ -7,6 +7,7 @@ import NetworkDivider from '../components/NetworkDivider.astro';
 import ResearchUpset from '../components/ResearchUpset.astro';
 
 const funding = (await getCollection('funding')).sort((a, b) => a.data.order - b.data.order);
+const resources = (await getCollection('resources')).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <BaseLayout
@@ -90,6 +91,29 @@ const funding = (await getCollection('funding')).sort((a, b) => a.data.order - b
         }
       </ul>
     </section>
+
+    <NetworkDivider />
+
+    <section class="research-page__section reveal resources">
+      <span class="eyebrow">For other researchers</span>
+      <h2>Resources</h2>
+      <ul class="resources__list">
+        {
+          resources.map((r) => (
+            <li class="resources__item">
+              {r.data.url ? (
+                <a class="resources__title" href={r.data.url} target="_blank" rel="noopener noreferrer">
+                  {r.data.title}
+                </a>
+              ) : (
+                <p class="resources__title">{r.data.title}</p>
+              )}
+              <p class="resources__desc">{r.data.description}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
   </div>
 </BaseLayout>
 
@@ -148,15 +172,23 @@ const funding = (await getCollection('funding')).sort((a, b) => a.data.order - b
   }
 
   .funding__list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    max-width: var(--prose-width);
   }
 
   .funding__item {
     padding: var(--space-3);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    transition: background 0.15s var(--ease-out);
+  }
+
+  .funding__item + .funding__item {
+    border-top: none;
+  }
+
+  .funding__item:hover {
+    background: var(--color-bg-inset);
   }
 
   .funding__title {
@@ -168,10 +200,45 @@ const funding = (await getCollection('funding')).sort((a, b) => a.data.order - b
     color: var(--color-text-muted);
   }
 
-  @media (max-width: 640px) {
-    .funding__list {
-      grid-template-columns: 1fr;
-    }
+  .resources h2 {
+    margin-top: 0.2em;
+    margin-bottom: var(--space-4);
   }
 
+  .resources__list {
+    display: flex;
+    flex-direction: column;
+    max-width: var(--prose-width);
+  }
+
+  .resources__item {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    transition: background 0.15s var(--ease-out);
+  }
+
+  .resources__item + .resources__item {
+    border-top: none;
+  }
+
+  .resources__item:hover {
+    background: var(--color-bg-inset);
+  }
+
+  .resources__title {
+    display: block;
+    margin-bottom: 0.3em;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  a.resources__title:hover {
+    color: var(--color-accent);
+  }
+
+  .resources__desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
 </style>

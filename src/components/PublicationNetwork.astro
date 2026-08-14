@@ -183,7 +183,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
   };
   const ctx = canvas.getContext('2d');
 
-  const PALETTE = ['#004c97', '#009ee2', '#f26531', '#e52334', '#00ab4e', '#776cb1'];
+  const PALETTE = ['#0a0a0a', '#2b2b2e', '#4a4a4f', '#6b6b70', '#8f8f94', '#b5b5ba'];
   const activeFilters = new Set<string>();
 
   function applyFilters() {
@@ -207,6 +207,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
   if (ctx && raw.nodes.length > 0) {
     const labelColor = readVar('--color-text', '#14181d');
     const edgeColor = readVar('--color-border-strong', '#b9c5d1');
+    const accentColor = readVar('--color-accent', '#e0202c');
     const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -345,7 +346,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
 
       for (const [a, b, weight] of edges) {
         const near = hovered && (hovered === a || hovered === b);
-        ctx!.strokeStyle = near ? PALETTE[a.colorIndex] : edgeColor;
+        ctx!.strokeStyle = near ? accentColor : edgeColor;
         ctx!.lineWidth = near ? 2.25 : Math.min(1.1 + weight * 0.35, 2.6);
         ctx!.globalAlpha = near ? 0.85 : 0.55;
         ctx!.beginPath();
@@ -358,7 +359,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
       for (const n of nodes) {
         const active = activeFilters.has(n.label);
         const isHot = n === hovered || n === dragging;
-        const color = PALETTE[n.colorIndex];
+        const color = active || isHot ? accentColor : PALETTE[n.colorIndex];
 
         // Soft glow behind every node — same touch as the Research page graph.
         ctx!.beginPath();

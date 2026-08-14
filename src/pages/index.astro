@@ -3,8 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NetworkHero from '../components/NetworkHero.astro';
 import ThemeGlyph from '../components/ThemeGlyph.astro';
-import Avatar from '../components/Avatar.astro';
 import { withBase } from '../lib/url';
+import { isVisionEra } from '../lib/publications';
 
 const latestNews = (await getCollection('news', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
@@ -13,282 +13,424 @@ const latestNews = (await getCollection('news', ({ data }) => !data.draft))
 const publications = await getCollection('publications');
 const team = await getCollection('team');
 const pi = team.find((m) => m.data.isPI) ?? team[0];
+
+const totalCitations = publications.reduce((sum, p) => sum + (p.data.citations ?? 0), 0);
+
+const visionPubs = publications.filter((p) => isVisionEra(p.data.keywords));
+const keywordCounts = new Map<string, number>();
+for (const pub of visionPubs) {
+  for (const kw of pub.data.keywords) {
+    keywordCounts.set(kw, (keywordCounts.get(kw) ?? 0) + 1);
+  }
+}
+const topTopics = [...keywordCounts.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 12)
+  .map(([label]) => label);
+
+const today = new Date();
+const dateLabel = today
+  .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  .toUpperCase();
+const hours24 = today.getHours();
+const minutes = today.getMinutes();
+const hourAngle = ((hours24 % 12) + minutes / 60) * 30;
+const minuteAngle = minutes * 6;
+
+// Sections that exist right on this page scroll to them in place; sections
+// with no on-page presence (Gallery, Contact) still navigate to their page.
+const indexLinks = [
+  { href: '#research', label: 'Research' },
+  { href: '#team', label: 'Team' },
+  { href: '#publications', label: 'Publications' },
+  { href: '#news', label: 'News' },
+  { href: withBase('/gallery'), label: 'Gallery' },
+  { href: withBase('/contact'), label: 'Contact' },
+];
 ---
 
 <BaseLayout title="Mondal Lab">
-  <NetworkHero>
-    <h1 class="network-hero__title">Mondal Lab</h1>
-    <p class="prose network-hero__mission">
-      We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
-      to discover mechanisms that maintain healthy vision and identify the earliest molecular
-      patterns linked with blindness.
-    </p>
-    <p class="mono network-hero__affiliation">
-      UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
-    </p>
-  </NetworkHero>
-
-  <section class="home-statement section-ink reveal">
-    <div class="container home-statement__inner">
-      <span class="eyebrow">Why computational biology</span>
-      <p class="home-statement__quote">
-        More than 300 genes are already linked to inherited retinal disease, and complex
-        conditions like age-related macular degeneration add hundreds more contributing factors
-        on top. No single experiment can test that many variables at once — it takes
-        computational methods to integrate genomic, epigenomic, and metabolic data across many
-        studies and find the patterns a wet lab alone would miss.
+  <div class="container home">
+    <div class="home__intro reveal">
+      <h1>Mondal Lab</h1>
+      <p class="prose home__mission">
+        We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
+        to discover mechanisms that maintain healthy vision and identify the earliest molecular
+        patterns linked with blindness.
       </p>
-      <dl class="home-statement__stats">
-        <div>
-          <dt class="home-statement__stat-num">2</dt>
-          <dd class="mono">Research programs</dd>
-        </div>
-        <div>
-          <dt class="home-statement__stat-num">{publications.length}</dt>
-          <dd class="mono">Publications</dd>
-        </div>
-        <div>
-          <dt class="home-statement__stat-num">1</dt>
-          <dd class="mono">Question driving both</dd>
-        </div>
-      </dl>
+      <p class="mono home__affiliation">
+        UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
+      </p>
     </div>
-  </section>
 
-  <div class="container home-bento-wrap">
-    <div class="home-bento reveal">
-      <a class="bento-tile bento-tile--research1" href={withBase('/research')}>
-        <ThemeGlyph class="bento-tile__glyph" seed={0} />
-        <span class="eyebrow">Theme 01</span>
-        <h2 class="bento-tile__title">Retinal Diseasome Assembly</h2>
-        <p class="bento-tile__body">
-          How unrelated genetic mutations converge on a finite set of disease-onset programs in
-          the retina, from inherited degenerations to age-related macular degeneration.
-        </p>
-        <span class="mono bento-tile__link">Read more →</span>
-      </a>
+    <div class="home__widgets reveal">
+      <div class="widget widget--today">
+        <p class="widget__label">Today</p>
+        <div class="widget__today-body">
+          <svg class="widget__clock" viewBox="0 0 60 60" aria-hidden="true">
+            <circle cx="30" cy="30" r="27" class="widget__clock-face" />
+            {[...Array(12)].map((_, i) => (
+              <line
+                x1="30"
+                y1="4.5"
+                x2="30"
+                y2={i % 3 === 0 ? 7.5 : 6.5}
+                class="widget__clock-tick"
+                transform={`rotate(${i * 30}, 30, 30)`}
+              />
+            ))}
+            <line x1="30" y1="30" x2="30" y2="16" class="widget__clock-hand widget__clock-hand--hour" transform={`rotate(${hourAngle}, 30, 30)`} />
+            <line x1="30" y1="30" x2="30" y2="10" class="widget__clock-hand widget__clock-hand--minute" transform={`rotate(${minuteAngle}, 30, 30)`} />
+            <circle cx="30" cy="30" r="1.6" class="widget__clock-pin" />
+          </svg>
+          <div>
+            <p class="mono widget__date">{dateLabel}</p>
+            <p class="mono widget__loc">Dallas, TX · UTC−05:00</p>
+          </div>
+        </div>
+      </div>
 
-      <a class="bento-tile bento-tile--research2" href={withBase('/research')}>
-        <ThemeGlyph class="bento-tile__glyph" seed={1} />
-        <span class="eyebrow">Theme 02</span>
-        <h2 class="bento-tile__title">Environmental–Molecular Interactions in Retinal Aging</h2>
-        <p class="bento-tile__body">
-          How lifestyle factors like nutrition shape the retina's molecular landscape, and what
-          that means for age-related vision decline.
-        </p>
-        <span class="mono bento-tile__link">Read more →</span>
-      </a>
+      <div class="widget widget--stats">
+        <p class="widget__label">Lab</p>
+        <dl class="widget__stat-rows mono">
+          <div><dt>Publications</dt><dd>{String(publications.length).padStart(3, '0')}</dd></div>
+          <div><dt>Citations</dt><dd>{String(totalCitations).padStart(3, '0')}</dd></div>
+          <div><dt>Team</dt><dd>{String(team.length).padStart(3, '0')}</dd></div>
+          <div><dt>Programs</dt><dd>002</dd></div>
+        </dl>
+      </div>
 
-      {
-        pi && (
-          <a class="bento-tile bento-tile--team" href={withBase('/team')}>
-            <Avatar name={pi.data.name} size={56} class="bento-tile__avatar" />
-            <span class="eyebrow">Led by</span>
-            <h2 class="bento-tile__title">{pi.data.name}</h2>
-            <p class="bento-tile__body">{pi.data.bioShort}</p>
-            <span class="mono bento-tile__link">Meet the team →</span>
-          </a>
-        )
-      }
+      <div class="widget widget--topics">
+        <p class="widget__label">Topics</p>
+        <div class="widget__tags">
+          {topTopics.map((kw) => <span class="mono widget__tag">{kw}</span>)}
+        </div>
+      </div>
+    </div>
 
-      <a class="bento-tile bento-tile--news" href={withBase('/news')}>
-        <span class="eyebrow">Latest</span>
-        <h2 class="bento-tile__title">News</h2>
-        <ul class="bento-tile__news-list">
-          {
-            latestNews.slice(0, 2).map((post) => (
-              <li>
-                <span class="mono bento-tile__news-date">
-                  {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </span>
-                {post.data.title}
-              </li>
-            ))
-          }
+    <div id="publications" class="widget widget--network reveal">
+      <p class="widget__label">Keyword network — click a segment to browse related publications</p>
+      <NetworkHero />
+    </div>
+
+    <div class="home__feed reveal">
+      <nav class="widget home__index" aria-label="Site index">
+        <p class="widget__label">Index</p>
+        <ul>
+          {indexLinks.map((item) => (
+            <li><a class="mono" href={item.href}>{item.label}</a></li>
+          ))}
         </ul>
-        <span class="mono bento-tile__link">See all news →</span>
-      </a>
+      </nav>
+
+      <div class="home__rows">
+        <a id="research" class="feed-row" href={withBase('/research')}>
+          <ThemeGlyph class="feed-row__glyph" seed={0} />
+          <div class="feed-row__body">
+            <span class="mono feed-row__meta">Theme 01</span>
+            <h2 class="feed-row__title">Retinal Diseasome Assembly</h2>
+            <p class="feed-row__excerpt">
+              How unrelated genetic mutations converge on a finite set of disease-onset programs in
+              the retina, from inherited degenerations to age-related macular degeneration.
+            </p>
+          </div>
+        </a>
+
+        <a class="feed-row" href={withBase('/research')}>
+          <ThemeGlyph class="feed-row__glyph" seed={1} />
+          <div class="feed-row__body">
+            <span class="mono feed-row__meta">Theme 02</span>
+            <h2 class="feed-row__title">Environmental–Molecular Interactions in Retinal Aging</h2>
+            <p class="feed-row__excerpt">
+              How lifestyle factors like nutrition shape the retina's molecular landscape, and what
+              that means for age-related vision decline.
+            </p>
+          </div>
+        </a>
+
+        {pi && (
+          <a id="team" class="feed-row" href={withBase('/team')}>
+            <div class="feed-row__photo" aria-hidden="true"></div>
+            <div class="feed-row__body">
+              <span class="mono feed-row__meta">Led by</span>
+              <h2 class="feed-row__title">{pi.data.name}</h2>
+              <p class="feed-row__excerpt">{pi.data.bioShort}</p>
+            </div>
+          </a>
+        )}
+
+        {latestNews.map((post, i) => (
+          <a id={i === 0 ? 'news' : undefined} class="feed-row" href={withBase(`/news/${post.id}/`)}>
+            <div class="feed-row__photo feed-row__photo--news" aria-hidden="true"></div>
+            <div class="feed-row__body">
+              <span class="mono feed-row__meta">
+                {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
+              </span>
+              <h2 class="feed-row__title">{post.data.title}</h2>
+              <p class="feed-row__excerpt">{post.data.excerpt}</p>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
   </div>
 </BaseLayout>
 
 <style>
-  .network-hero__title {
-    font-size: var(--text-5xl);
-    letter-spacing: -0.02em;
+  .home {
+    padding-block: var(--space-5) var(--space-7);
   }
 
-  .network-hero__mission {
+  .home__intro {
+    max-width: 60ch;
+    margin-bottom: var(--space-4);
+  }
+
+  .home__intro h1 {
+    font-size: var(--text-5xl);
+  }
+
+  .home__mission {
     margin-top: var(--space-3);
-    font-size: var(--text-xl);
-    max-width: 34ch;
+    font-size: var(--text-lg);
     color: var(--color-text-muted);
   }
 
-  .network-hero__affiliation {
-    margin-top: var(--space-3);
+  .home__affiliation {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+  }
+
+  /* ---- Widgets ---- */
+  .widget {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    padding: var(--space-3);
+  }
+
+  .widget__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .home__widgets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .widget--today .widget__today-body {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .widget__clock {
+    width: 3.25rem;
+    height: 3.25rem;
+    flex-shrink: 0;
+  }
+
+  .widget__clock-face {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .widget__clock-tick {
+    stroke: var(--color-text-muted);
+    stroke-width: 1;
+  }
+
+  .widget__clock-hand {
+    stroke: var(--color-text);
+    stroke-linecap: round;
+  }
+
+  .widget__clock-hand--hour {
+    stroke-width: 2.5;
+  }
+
+  .widget__clock-hand--minute {
+    stroke-width: 1.5;
+    stroke: var(--color-accent);
+  }
+
+  .widget__clock-pin {
+    fill: var(--color-accent);
+  }
+
+  .widget__date {
+    font-size: var(--text-xs);
+    letter-spacing: 0.02em;
+  }
+
+  .widget__loc {
+    margin-top: 0.3em;
     font-size: var(--text-xs);
     color: var(--color-text-muted);
   }
 
-  .home-statement {
-    margin-top: var(--space-7);
-    padding-block: var(--space-7);
-  }
-
-  .home-statement__inner {
-    max-width: 62rem;
-  }
-
-  .home-statement__quote {
-    font-family: var(--font-sans);
-    font-size: var(--text-lg);
-    font-weight: 500;
-    line-height: var(--leading-snug);
-    max-width: 58ch;
-    margin-top: var(--space-2);
-  }
-
-  .home-statement__stats {
+  .widget__stat-rows div {
     display: flex;
-    gap: var(--space-6);
-    margin-top: var(--space-6);
-    flex-wrap: wrap;
-  }
-
-  .home-statement__stat-num {
-    font-family: var(--font-mono);
-    font-size: var(--text-4xl);
-    color: var(--color-accent-on-ink);
-    line-height: 1;
-  }
-
-  .home-statement__stats dd {
-    margin-top: 0.4em;
+    justify-content: space-between;
+    padding-block: 0.35em;
+    border-bottom: 1px solid var(--color-bg-inset);
     font-size: var(--text-sm);
-    color: var(--color-on-ink-muted);
   }
 
-  /* ---- Bento grid: Dropbox-brand-style blocks of squares ---- */
-  .home-bento-wrap {
-    padding-block: var(--space-7);
+  .widget__stat-rows div:last-child {
+    border-bottom: none;
   }
 
-  .home-bento {
+  .widget__stat-rows dt {
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .widget__stat-rows dd {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .widget__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+  }
+
+  .widget__tag {
+    font-size: var(--text-xs);
+    border: 1px solid var(--color-border);
+    padding: 0.2em 0.55em;
+    color: var(--color-text-muted);
+  }
+
+  .widget--network {
+    margin-bottom: var(--space-3);
+  }
+
+  .widget--network .widget__label {
+    margin-bottom: 0;
+  }
+
+  /* ---- Main feed: index sidebar + list rows ---- */
+  .home__feed {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: minmax(180px, auto);
+    grid-template-columns: 14rem 1fr;
     gap: var(--space-3);
   }
 
-  .bento-tile {
+  .home__index ul {
     display: flex;
     flex-direction: column;
-    padding: var(--space-4);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-raised);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .home__index a {
+    display: block;
+    padding-block: 0.5em;
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-bg-inset);
+  }
+
+  .home__index li:last-child a {
+    border-bottom: none;
+  }
+
+  .home__index a:hover {
+    color: var(--color-accent);
+  }
+
+  .home__rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feed-row {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3);
     border: 1px solid var(--color-border);
     text-decoration: none;
     color: inherit;
-    transition:
-      transform 0.2s var(--ease-out),
-      box-shadow 0.2s var(--ease-out);
   }
 
-  .bento-tile:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card-hover);
+  .feed-row + .feed-row {
+    border-top: none;
   }
 
-  .bento-tile__glyph {
-    width: 2.75rem;
-    height: 2.75rem;
-    margin-bottom: var(--space-2);
+  .feed-row:hover {
+    background: var(--color-bg-inset);
   }
 
-  .bento-tile__title {
-    font-size: var(--text-xl);
+  .feed-row:hover .feed-row__title {
+    color: var(--color-accent);
+  }
+
+  .feed-row__glyph {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .feed-row__photo {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    background: var(--color-text);
+  }
+
+  .feed-row__body {
+    min-width: 0;
+  }
+
+  .feed-row__meta {
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    color: var(--color-accent);
+  }
+
+  .feed-row__title {
+    font-size: var(--text-lg);
     margin-top: 0.2em;
-    margin-bottom: var(--space-2);
+    margin-bottom: 0.3em;
   }
 
-  .bento-tile__body {
-    color: inherit;
-    opacity: 0.85;
-    flex-grow: 1;
-  }
-
-  .bento-tile__link {
-    display: inline-block;
-    margin-top: var(--space-3);
-    font-size: var(--text-sm);
-  }
-
-  .bento-tile__avatar {
-    margin-bottom: var(--space-2);
-  }
-
-  .bento-tile__news-list {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .bento-tile__news-list li {
+  .feed-row__excerpt {
     font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 
-  .bento-tile__news-date {
-    display: block;
-    font-size: var(--text-xs);
-    color: var(--color-accent);
-  }
-
-  .bento-tile--research1 {
-    grid-column: 1 / 3;
-    grid-row: 1 / 3;
-    justify-content: center;
-  }
-
-  .bento-tile--research1 .bento-tile__title {
-    font-size: var(--text-2xl);
-  }
-
-  .bento-tile--research2 {
-    grid-column: 3 / 5;
-    grid-row: 1 / 2;
-    background: var(--color-accent-soft);
-    border: none;
-  }
-
-  .bento-tile--team {
-    grid-column: 3 / 4;
-    grid-row: 2 / 3;
-  }
-
-  .bento-tile--news {
-    grid-column: 4 / 5;
-    grid-row: 2 / 3;
-  }
-
-  @media (max-width: 720px) {
-    .home-bento {
+  @media (max-width: 860px) {
+    .home__widgets {
       grid-template-columns: 1fr;
-      grid-auto-rows: auto;
     }
 
-    .bento-tile--research1,
-    .bento-tile--research2,
-    .bento-tile--team,
-    .bento-tile--news {
-      grid-column: 1 / 2;
-      grid-row: auto;
+    .home__feed {
+      grid-template-columns: 1fr;
     }
+  }
 
-    .home-statement__stats {
-      gap: var(--space-4);
+  @media (max-width: 640px) {
+    .home__intro h1 {
+      font-size: var(--text-4xl);
     }
   }
 </style>

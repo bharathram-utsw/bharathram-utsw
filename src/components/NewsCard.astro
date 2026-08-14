@@ -47,12 +47,21 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
 
 <style>
   .news-card {
-    padding-block: var(--space-4);
-    border-bottom: 1px solid var(--color-border);
+    border: 1px solid var(--color-border);
+    transition: background 0.15s var(--ease-out);
+  }
+
+  .news-card + .news-card {
+    border-top: none;
+  }
+
+  .news-card:hover {
+    background: var(--color-bg-inset);
   }
 
   .news-card__link {
     display: block;
+    padding: var(--space-3);
     text-decoration: none;
     color: inherit;
   }
@@ -68,16 +77,16 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
   .news-card__badge {
     margin-left: var(--space-2);
     font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     color: var(--color-text-muted);
     border: 1px solid var(--color-border-strong);
     padding: 0.1em 0.5em;
-    border-radius: var(--radius);
   }
 
   .news-card__badge--press {
-    color: var(--color-accent-2-strong);
-    background: var(--color-accent-2-soft);
-    border-color: transparent;
+    color: var(--color-accent);
+    border-color: var(--color-accent);
   }
 
   .news-card__title {
@@ -101,6 +110,8 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
 
   .news-card__tags li {
     font-size: var(--text-xs);
-    color: var(--color-accent);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    padding: 0.15em 0.55em;
   }
 </style>

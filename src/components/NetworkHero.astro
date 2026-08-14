@@ -76,20 +76,13 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
     />
   </div>
   <div class="network-hero__tooltip" id="network-hero-tooltip" hidden aria-hidden="true"></div>
-  <div class="network-hero__content container">
-    <slot />
-  </div>
-  <div class="network-hero__scroll-cue" aria-hidden="true"><span></span></div>
 </section>
 
 <style>
   .network-hero {
     position: relative;
     overflow: hidden;
-    min-height: 82vh;
-    display: flex;
-    align-items: center;
-    padding-block: var(--space-7);
+    height: 420px;
   }
 
   .network-hero__canvas {
@@ -103,19 +96,13 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     opacity: 0.5;
   }
 
   /* Hidden as soon as the JS sketch successfully mounts a <canvas> */
   .network-hero__canvas:has(canvas) .network-hero__fallback {
     display: none;
-  }
-
-  .network-hero__content {
-    position: relative;
-    z-index: 1;
-    width: 100%;
   }
 
   .network-hero__tooltip {
@@ -128,7 +115,6 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
     font-size: var(--text-xs);
     line-height: 1.4;
     padding: 0.5em 0.75em;
-    border-radius: var(--radius);
     transform: translate(-50%, calc(-100% - 12px));
     white-space: nowrap;
   }
@@ -137,55 +123,13 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
     color: var(--color-accent-on-ink);
   }
 
-  .network-hero__scroll-cue {
-    position: absolute;
-    left: 50%;
-    bottom: var(--space-4);
-    transform: translateX(-50%);
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4em;
-    color: var(--color-text-muted);
-  }
-
-  .network-hero__scroll-cue span {
-    width: 1px;
-    height: 2.2rem;
-    background: var(--color-border-strong);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .network-hero__scroll-cue span {
-      animation: scroll-cue 1.8s ease-in-out infinite;
-    }
-  }
-
-  @keyframes scroll-cue {
-    0%,
-    100% {
-      transform: scaleY(0.6);
-      opacity: 0.5;
-    }
-    50% {
-      transform: scaleY(1);
-      opacity: 1;
-    }
-  }
-
   @media (max-width: 640px) {
     .network-hero {
-      min-height: auto;
-      padding-block: var(--space-6) var(--space-5);
+      height: 320px;
     }
 
     .network-hero__fallback {
       opacity: 0.35;
-    }
-
-    .network-hero__scroll-cue {
-      display: none;
     }
   }
 </style>
@@ -226,9 +170,11 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
       const ctx = canvas.getContext('2d');
 
       if (ctx) {
-        // UT Southwestern's own Accent Palette 1 — vibrant and multi-hued
-        // (in the Circos/genome-plot spirit) while staying on-brand.
-        const PALETTE = ['#004c97', '#009ee2', '#f26531', '#e52334', '#00ab4e', '#776cb1'];
+        // Near-monochrome ramp — the one saturated hue (the site's single
+        // signal red) is reserved for the hovered arc, not spent on
+        // distinguishing every category.
+        const PALETTE = ['#0a0a0a', '#2b2b2e', '#4a4a4f', '#6b6b70', '#8f8f94', '#b5b5ba'];
+        const accentColor = readVar('--color-accent', '#e0202c');
         const edgeBaseColor = readVar('--color-border-strong', '#b9c5d1');
         const labelColor = readVar('--color-text-muted', '#4a5560');
         const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
@@ -275,12 +221,12 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
           canvas.style.width = `${width}px`;
           canvas.style.height = `${height}px`;
           ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-          // Centered right at the edge — only the left half of the wheel is
-          // ever on-canvas, a cropped medallion rather than a wash behind
-          // the headline text.
-          cx = width;
-          cy = height * 0.46;
-          R = Math.max(180, Math.min(height * 0.58, width * 0.5));
+          // Centered and fully visible — this now lives inside its own
+          // bordered widget panel rather than bleeding off a full-viewport
+          // hero, so the whole wheel should read as one contained diagram.
+          cx = width / 2;
+          cy = height / 2;
+          R = Math.max(90, Math.min(height, width) * 0.38);
         }
 
         function arcAt(x: number, y: number): Arc | null {
@@ -317,7 +263,7 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
             const bx = Math.cos(bMid) * (R - 6);
             const by = Math.sin(bMid) * (R - 6);
             const near = hovered && (hovered === a || hovered === b);
-            ctx!.strokeStyle = near ? a.color : edgeBaseColor;
+            ctx!.strokeStyle = near ? accentColor : edgeBaseColor;
             ctx!.lineWidth = near ? 1.6 : Math.min(0.5 + weight * 0.4, 2);
             ctx!.globalAlpha = near ? 0.65 : 0.16;
             ctx!.beginPath();
@@ -330,7 +276,7 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
           const ringWidth = 10;
           for (const arc of arcs) {
             const near = hovered === arc;
-            ctx!.strokeStyle = arc.color;
+            ctx!.strokeStyle = near ? accentColor : arc.color;
             ctx!.globalAlpha = near ? 1 : 0.82;
             ctx!.lineWidth = near ? ringWidth + 4 : ringWidth;
             ctx!.beginPath();
@@ -361,7 +307,7 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
             ctx!.rotate(mid + (flip ? Math.PI : 0));
             ctx!.textAlign = flip ? 'right' : 'left';
             ctx!.textBaseline = 'middle';
-            ctx!.fillStyle = near ? arc.color : labelColor;
+            ctx!.fillStyle = near ? accentColor : labelColor;
             ctx!.globalAlpha = near ? 1 : 0.7;
             ctx!.font = `${near ? '600 ' : ''}${10 + Math.min(arc.count, 4)}px ${monoFont}`;
             ctx!.fillText(arc.label, 0, 0);

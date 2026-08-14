@@ -96,4 +96,15 @@ const funding = defineCollection({
   }),
 });
 
-export const collections = { publications, news, team, gallery, funding };
+const resources = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/resources' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    url: z.string().url().optional(),
+    placeholder: z.boolean().default(false),
+    order: z.number().default(0),
+  }),
+});
+
+export const collections = { publications, news, team, gallery, funding, resources };
