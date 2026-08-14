@@ -21,11 +21,18 @@ object per paper. Copy an existing entry as a template. Fields:
 | `title`       | yes      |                                                                          |
 | `journal`     | yes      |                                                                          |
 | `year`        | yes      | Number, not string                                                      |
-| `month`, `volume`, `issue`, `pages`, `articleNumber`, `doi`, `url` | no | |
+| `month`, `volume`, `issue`, `pages`, `articleNumber`, `doi`, `url` | no | `doi`/`url` must be a full URL (e.g. `"https://doi.org/10.xxxx/..."`), not a bare DOI string |
 | `type`        | no       | `"journal-article"` (default), `"review"`, or `"book-chapter"`         |
 | `featured`    | no       | Boolean, default `false`                                                |
 | `keywords`    | **yes, in practice** | Array of subject tags — see below, this is the important one |
 | `citations`   | no       | From Google Scholar; powers the "Most cited" sort                       |
+| `summary`     | no, but strongly recommended | A short *original* summary in plain language — see below       |
+
+**`summary` must not be the published abstract copied verbatim** — that text is the
+publisher's copyrighted material. Write a couple of original sentences describing what
+the paper found, in your own words, and let `doi`/`url` be where a reader goes for the
+real abstract and figures. The 21 papers on the site as of this writing were summarized
+this way; use one as a length/tone reference.
 
 **`keywords` is what drives the site's visuals.** Reuse existing keyword strings where
 the paper is genuinely about the same topic (`"Retina"`, `"Epigenetics"`, `"Multiomics"`,

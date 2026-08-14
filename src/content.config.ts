@@ -20,6 +20,10 @@ const publications = defineCollection({
     url: z.string().url().optional(),
     type: z.enum(['journal-article', 'review', 'book-chapter']).default('journal-article'),
     featured: z.boolean().default(false),
+    // A short original summary in plain language — not the published
+    // abstract verbatim (that's the publisher's copyrighted text; the DOI
+    // link is where a reader gets the real abstract and figures).
+    summary: z.string().optional(),
     // Real subject-matter tags, drawn from a controlled vocabulary shared
     // across entries so overlapping keywords form a meaningful graph — used
     // to drive the Home page's keyword-network hero.

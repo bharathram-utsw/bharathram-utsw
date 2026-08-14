@@ -22,11 +22,22 @@
     "doi": "https://doi.org/10.7554/eLife.103888",
     "type": "journal-article",
     "featured": true,
-    "keywords": ["Photoreceptor Degeneration", "Retinitis Pigmentosa", "Reserpine", "Sex Differences"]
+    "keywords": [
+      "Photoreceptor Degeneration",
+      "Retinitis Pigmentosa",
+      "Reserpine",
+      "Sex Differences"
+    ],
+    "summary": "Extends earlier work on the drug reserpine into a rat model of autosomal dominant retinitis pigmentosa, finding that female rats respond more strongly \u2014 with better rod and cone preservation and distinct gene-expression changes \u2014 underscoring sex as a variable in retinal therapy research."
   },
   {
     "id": "mondal-2024-trends-genetics",
-    "authors": ["Mondal AK", "Gaur M", "Advani J", "Swaroop A"],
+    "authors": [
+      "Mondal AK",
+      "Gaur M",
+      "Advani J",
+      "Swaroop A"
+    ],
     "piHighlight": "Mondal AK",
     "title": "Epigenome-metabolism nexus in the retina: implications for aging and disease",
     "journal": "Trends in Genetics",
@@ -39,7 +50,13 @@
     "type": "review",
     "featured": true,
     "citations": 25,
-    "keywords": ["Epigenome", "Metabolism", "Retina", "Aging"]
+    "keywords": [
+      "Epigenome",
+      "Metabolism",
+      "Retina",
+      "Aging"
+    ],
+    "summary": "A review arguing that the retina's heavy metabolic demands and its epigenome are tightly linked, and that this coupling \u2014 disrupted with age \u2014 helps explain conditions like age-related macular degeneration and glaucoma, pointing toward lifestyle-based interventions."
   },
   {
     "id": "mondal-2024-iscience",
@@ -66,11 +83,21 @@
     "doi": "https://doi.org/10.1016/j.isci.2024.108979",
     "type": "journal-article",
     "citations": 7,
-    "keywords": ["Metabolism", "Retina", "Diet", "Liver", "Transcriptomics"]
+    "keywords": [
+      "Metabolism",
+      "Retina",
+      "Diet",
+      "Liver",
+      "Transcriptomics"
+    ],
+    "summary": "Feeding mice a high-glycemic diet altered liver gene expression within a month, while the retina only showed comparable metabolic disruption after a full year \u2014 revealing that different tissues adapt to diet-driven blood sugar stress on very different timescales."
   },
   {
     "id": "mondal-2023-aemb",
-    "authors": ["Mondal AK", "Swaroop A"],
+    "authors": [
+      "Mondal AK",
+      "Swaroop A"
+    ],
     "piHighlight": "Mondal AK",
     "title": "Network Biology and Medicine to Rescue: Applications for Retinal Disease Mechanisms and Therapy",
     "journal": "Advances in Experimental Medicine and Biology",
@@ -79,11 +106,24 @@
     "pages": "165-171",
     "url": "https://pubmed.ncbi.nlm.nih.gov/37440030/",
     "type": "book-chapter",
-    "keywords": ["Network Biology", "Retinal Disease", "Therapy"]
+    "keywords": [
+      "Network Biology",
+      "Retinal Disease",
+      "Therapy"
+    ],
+    "summary": "Makes the case for treating inherited retinal diseases as a connected \u201cdiseasome\u201d \u2014 a network of shared genes, proteins, and pathways \u2014 rather than as isolated conditions, arguing this framework could guide gene-agnostic therapies."
   },
   {
     "id": "chen-2023-elife",
-    "authors": ["Chen HY", "Swaroop M", "Papal S", "Mondal AK", "Song HB", "Campello L", "et al."],
+    "authors": [
+      "Chen HY",
+      "Swaroop M",
+      "Papal S",
+      "Mondal AK",
+      "Song HB",
+      "Campello L",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Reserpine maintains photoreceptor survival in retinal ciliopathy by resolving proteostasis imbalance and ciliogenesis defects",
     "journal": "eLife",
@@ -93,18 +133,43 @@
     "doi": "https://doi.org/10.7554/eLife.83205",
     "type": "journal-article",
     "citations": 37,
-    "keywords": ["Reserpine", "Retinal Ciliopathy", "Proteostasis", "Photoreceptor", "Drug Repurposing"]
+    "keywords": [
+      "Reserpine",
+      "Retinal Ciliopathy",
+      "Proteostasis",
+      "Photoreceptor",
+      "Drug Repurposing"
+    ],
+    "summary": "A high-throughput drug screen in patient-derived retinal organoids identified reserpine as a molecule that preserves photoreceptors in a ciliopathy model by correcting an imbalance between autophagy and the cell's protein-disposal machinery."
   },
   {
     "id": "yang-2023-iscience",
-    "authors": ["Yang ZH", "Gorusupudi A", "Lydic TA", "Mondal AK", "Sato S", "Yamazaki I", "et al."],
+    "authors": [
+      "Yang ZH",
+      "Gorusupudi A",
+      "Lydic TA",
+      "Mondal AK",
+      "Sato S",
+      "Yamazaki I",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Dietary fish oil enriched in very-long-chain polyunsaturated fatty acid reduces cardiometabolic risk factors and improves retinal function",
     "journal": "iScience",
     "year": 2023,
     "type": "journal-article",
     "citations": 13,
-    "keywords": ["Diet", "Fatty Acids", "Cardiometabolic Risk", "Retina"]
+    "keywords": [
+      "Diet",
+      "Fatty Acids",
+      "Cardiometabolic Risk",
+      "Retina"
+    ],
+    "doi": "https://doi.org/10.1016/j.isci.2023.108411",
+    "volume": "26",
+    "issue": "12",
+    "articleNumber": "108411",
+    "summary": "A specialized very-long-chain fatty acid concentrated from fish oil improved cardiometabolic markers and measurable retinal function in mice, acting in part through PPAR signaling \u2014 pointing to a possible dietary supplement for eye health."
   },
   {
     "id": "jiang-2022-hmg",
@@ -129,22 +194,54 @@
     "doi": "https://doi.org/10.1093/hmg/ddac013",
     "type": "journal-article",
     "citations": 49,
-    "keywords": ["Multiomics", "Metabolism", "Mitochondrial Stress", "Photoreceptor Degeneration", "Retinal Degeneration"]
+    "keywords": [
+      "Multiomics",
+      "Metabolism",
+      "Mitochondrial Stress",
+      "Photoreceptor Degeneration",
+      "Retinal Degeneration"
+    ],
+    "summary": "Combined transcriptomics, proteomics, and direct measurements of mitochondrial function in a classic mouse model of inherited blindness to show that metabolic and mitochondrial stress precede \u2014 and likely drive \u2014 photoreceptor cell death, rather than simply following it."
   },
   {
     "id": "singh-2021-msystems",
-    "authors": ["Singh A", "Gaur M", "Sharma V", "Khanna P", "Bothra A", "Bhaduri A", "Mondal AK", "et al."],
+    "authors": [
+      "Singh A",
+      "Gaur M",
+      "Sharma V",
+      "Khanna P",
+      "Bothra A",
+      "Bhaduri A",
+      "Mondal AK",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
-    "title": "Comparative Genomic Analysis of Mycobacteriaceae Reveals Horizontal Gene Transfer-Mediated Evolution of the CRISPR-Cas System in the Mycobacterium",
+    "title": "Comparative Genomic Analysis of Mycobacteriaceae Reveals Horizontal Gene Transfer-Mediated Evolution of the CRISPR-Cas System in the Mycobacterium tuberculosis Complex",
     "journal": "mSystems",
     "year": 2021,
     "type": "journal-article",
     "citations": 25,
-    "keywords": ["Mycobacterium", "CRISPR-Cas", "Horizontal Gene Transfer", "Comparative Genomics"]
+    "keywords": [
+      "Mycobacterium",
+      "CRISPR-Cas",
+      "Horizontal Gene Transfer",
+      "Comparative Genomics"
+    ],
+    "doi": "https://doi.org/10.1128/mSystems.00934-20",
+    "volume": "6",
+    "issue": "1",
+    "summary": "Comparing 141 mycobacterial genomes traced the CRISPR-Cas defense system in the tuberculosis-causing bacterial complex to a horizontal gene transfer event from an environmental relative, with later genome rearrangements explaining strain-to-strain differences."
   },
   {
     "id": "campello-2021-avs",
-    "authors": ["Campello L", "Singh N", "Advani J", "Mondal AK", "Corso-Díaz X", "Swaroop A"],
+    "authors": [
+      "Campello L",
+      "Singh N",
+      "Advani J",
+      "Mondal AK",
+      "Corso-D\u00edaz X",
+      "Swaroop A"
+    ],
     "piHighlight": "Mondal AK",
     "title": "Aging of the Retina: Molecular and Metabolic Turbulences and Potential Interventions",
     "journal": "Annual Review of Vision Science",
@@ -155,138 +252,347 @@
     "doi": "https://doi.org/10.1146/annurev-vision-100419-114940",
     "type": "review",
     "citations": 77,
-    "keywords": ["Aging", "Retina", "Metabolism", "Intervention"]
+    "keywords": [
+      "Aging",
+      "Retina",
+      "Metabolism",
+      "Intervention"
+    ],
+    "summary": "A review of how metabolism and the epigenome shift together as the retina ages, and what that turbulence means for vision loss \u2014 closing with a look at lifestyle changes that might support healthier aging in the eye."
   },
   {
     "id": "corso-diaz-2020-cellreports",
-    "authors": ["Corso-Díaz X", "Gentry J", "Rebernick R", "Jaeger C", "Brooks MJ", "van Asten F", "et al.", "Mondal AK"],
+    "authors": [
+      "Corso-D\u00edaz X",
+      "Gentry J",
+      "Rebernick R",
+      "Jaeger C",
+      "Brooks MJ",
+      "van Asten F",
+      "et al.",
+      "Mondal AK"
+    ],
     "piHighlight": "Mondal AK",
     "title": "Genome-wide profiling identifies DNA methylation signatures of aging in rod photoreceptors associated with alterations in energy metabolism",
     "journal": "Cell Reports",
     "year": 2020,
     "type": "journal-article",
     "citations": 44,
-    "keywords": ["DNA Methylation", "Epigenome", "Aging", "Photoreceptor", "Metabolism"]
+    "keywords": [
+      "DNA Methylation",
+      "Epigenome",
+      "Aging",
+      "Photoreceptor",
+      "Metabolism"
+    ],
+    "doi": "https://doi.org/10.1016/j.celrep.2020.107525",
+    "volume": "31",
+    "issue": "3",
+    "articleNumber": "107525",
+    "summary": "Genome-wide methylation mapping of aging mouse rod photoreceptors uncovered thousands of age-related changes concentrated in regulatory regions, several of which tie back to declining mitochondrial function \u2014 linking DNA methylation directly to metabolic aging in the retina."
   },
   {
     "id": "hargrove-grimes-2020-plosgenetics",
-    "authors": ["Hargrove-Grimes P", "Mondal AK", "Gumerson J", "Nellissery J", "Aponte AM", "et al."],
+    "authors": [
+      "Hargrove-Grimes P",
+      "Mondal AK",
+      "Gumerson J",
+      "Nellissery J",
+      "Aponte AM",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Loss of endocytosis-associated RabGEF1 causes aberrant morphogenesis and altered autophagy in photoreceptors leading to retinal degeneration",
     "journal": "PLoS Genetics",
     "year": 2020,
     "type": "journal-article",
     "citations": 11,
-    "keywords": ["Autophagy", "Photoreceptor", "Retinal Degeneration"]
+    "keywords": [
+      "Autophagy",
+      "Photoreceptor",
+      "Retinal Degeneration"
+    ],
+    "doi": "https://doi.org/10.1371/journal.pgen.1009259",
+    "volume": "16",
+    "issue": "12",
+    "articleNumber": "e1009259",
+    "summary": "Deleting the trafficking gene Rabgef1 in mice disrupted photoreceptor structure and vision almost immediately, with the affected cells showing signs of stalled autophagy \u2014 implicating this endocytic pathway as a new candidate for syndromic retinal disease."
   },
   {
     "id": "brooks-2019-stemcellreports",
-    "authors": ["Brooks MJ", "Chen HY", "Kelley RA", "Mondal AK", "Nagashima K", "De Val N", "Li T", "et al."],
+    "authors": [
+      "Brooks MJ",
+      "Chen HY",
+      "Kelley RA",
+      "Mondal AK",
+      "Nagashima K",
+      "De Val N",
+      "Li T",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Improved retinal organoid differentiation by modulating signaling pathways revealed by comparative transcriptome analyses with development in vivo",
     "journal": "Stem Cell Reports",
     "year": 2019,
     "type": "journal-article",
     "citations": 118,
-    "keywords": ["Retinal Organoids", "Transcriptomics", "Stem Cells", "Retinal Development"]
+    "keywords": [
+      "Retinal Organoids",
+      "Transcriptomics",
+      "Stem Cells",
+      "Retinal Development"
+    ],
+    "doi": "https://doi.org/10.1016/j.stemcr.2019.09.009",
+    "volume": "13",
+    "issue": "5",
+    "pages": "891-905",
+    "summary": "Comparing gene activity in lab-grown retinal organoids against real developing retinas pinpointed which signaling steps organoids were missing, and supplementing cultures with DHA and a growth factor produced more mature, functional photoreceptors as a result."
   },
   {
     "id": "chauhan-2018-frontiersmicrobiology",
-    "authors": ["Chauhan NS", "Pandey R", "Mondal AK", "Gupta S", "Verma MK", "Jain S", "et al."],
+    "authors": [
+      "Chauhan NS",
+      "Pandey R",
+      "Mondal AK",
+      "Gupta S",
+      "Verma MK",
+      "Jain S",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Western Indian Rural Gut Microbial Diversity in Extreme Prakriti Endo-Phenotypes Reveals Signature Microbes",
     "journal": "Frontiers in Microbiology",
     "year": 2018,
     "type": "journal-article",
     "citations": 68,
-    "keywords": ["Gut Microbiome", "Microbial Diversity", "Comparative Genomics"]
+    "keywords": [
+      "Gut Microbiome",
+      "Microbial Diversity",
+      "Comparative Genomics"
+    ],
+    "doi": "https://doi.org/10.3389/fmicb.2018.00118",
+    "volume": "9",
+    "articleNumber": "118",
+    "summary": "Sequencing gut bacteria across a genetically similar rural Indian population found that traditional Ayurvedic constitution types (\u201cPrakriti\u201d) correspond to real, measurable differences in which microbes are enriched \u2014 suggesting a biological basis for this personalized-medicine framework."
   },
   {
     "id": "nandy-2018-infectionimmunity",
-    "authors": ["Nandy A", "Mondal AK", "Pandey R", "Arumugam P", "Dawa S", "Jaisinghani N", "et al."],
+    "authors": [
+      "Nandy A",
+      "Mondal AK",
+      "Pandey R",
+      "Arumugam P",
+      "Dawa S",
+      "Jaisinghani N",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Adipocyte model of Mycobacterium tuberculosis infection reveals differential availability of iron to bacilli in the lipid-rich caseous environment",
     "journal": "Infection and Immunity",
     "year": 2018,
     "type": "journal-article",
     "citations": 15,
-    "keywords": ["Mycobacterium tuberculosis", "Adipocyte", "Iron Metabolism", "Infection Model"]
+    "keywords": [
+      "Mycobacterium tuberculosis",
+      "Adipocyte",
+      "Iron Metabolism",
+      "Infection Model"
+    ],
+    "doi": "https://doi.org/10.1128/IAI.00041-18",
+    "volume": "86",
+    "issue": "6",
+    "summary": "Infecting fat cells with M. tuberculosis in culture showed the bacteria shift to burning host-derived fatty acids and dial down their own iron uptake \u2014 a survival strategy shaped by the fat- and iron-rich environment of the lesions tuberculosis forms in the body."
   },
   {
     "id": "mondal-2017-gbe",
-    "authors": ["Mondal AK", "Kumar J", "Pandey R", "Gupta S", "Kumar M", "Bansal G", "et al."],
+    "authors": [
+      "Mondal AK",
+      "Kumar J",
+      "Pandey R",
+      "Gupta S",
+      "Kumar M",
+      "Bansal G",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
-    "title": "Comparative Genomics of Host–Symbiont and Free-Living Oceanobacillus Species",
+    "title": "Comparative Genomics of Host\u2013Symbiont and Free-Living Oceanobacillus Species",
     "journal": "Genome Biology and Evolution",
     "year": 2017,
     "type": "journal-article",
     "citations": 34,
-    "keywords": ["Comparative Genomics", "Symbiosis", "Bacterial Genomics"]
+    "keywords": [
+      "Comparative Genomics",
+      "Symbiosis",
+      "Bacterial Genomics"
+    ],
+    "doi": "https://doi.org/10.1093/gbe/evx076",
+    "volume": "9",
+    "issue": "5",
+    "pages": "1175-1182",
+    "summary": "Sequencing a gut-dwelling Oceanobacillus strain and comparing it against free-living relatives identified specific genes \u2014 including transporters and signaling components \u2014 that distinguish bacteria adapted to living inside a host from those living independently in the environment."
   },
   {
     "id": "kumar-2016-proteomics",
-    "authors": ["Kumar D", "Mondal AK", "Kutum R", "Dash D"],
+    "authors": [
+      "Kumar D",
+      "Mondal AK",
+      "Kutum R",
+      "Dash D"
+    ],
     "piHighlight": "Mondal AK",
     "title": "Proteogenomics of rare taxonomic phyla: A prospective treasure trove of protein coding genes",
     "journal": "Proteomics",
     "year": 2016,
     "type": "journal-article",
     "citations": 15,
-    "keywords": ["Proteogenomics", "Comparative Genomics", "Gene Discovery"]
+    "keywords": [
+      "Proteogenomics",
+      "Comparative Genomics",
+      "Gene Discovery"
+    ],
+    "doi": "https://doi.org/10.1002/pmic.201500263",
+    "volume": "16",
+    "issue": "2",
+    "pages": "226-40",
+    "summary": "A survey arguing that most microbial genome annotation effort has focused on a handful of well-studied bacterial groups, and that applying proteomics-guided gene-finding to the many under-sequenced phyla would likely uncover genes missed by standard computational annotation."
   },
   {
     "id": "maji-2015-scientificreports",
-    "authors": ["Maji A", "Misra R", "Mondal AK", "Kumar D", "Bajaj D", "Singhal A", "Arora G", "et al."],
+    "authors": [
+      "Maji A",
+      "Misra R",
+      "Mondal AK",
+      "Kumar D",
+      "Bajaj D",
+      "Singhal A",
+      "Arora G",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Expression profiling of lymph nodes in tuberculosis patients reveal inflammatory milieu at site of infection",
     "journal": "Scientific Reports",
     "year": 2015,
     "type": "journal-article",
     "citations": 67,
-    "keywords": ["Tuberculosis", "Gene Expression Profiling", "Inflammation", "Lymph Node"]
+    "keywords": [
+      "Tuberculosis",
+      "Gene Expression Profiling",
+      "Inflammation",
+      "Lymph Node"
+    ],
+    "doi": "https://doi.org/10.1038/srep15214",
+    "volume": "5",
+    "articleNumber": "15214",
+    "summary": "Profiling infected lymph nodes from tuberculosis patients found a distinct inflammatory and tissue-damage signature \u2014 including a specific immune gene running high \u2014 that differs from the lipid-handling changes seen in lung tuberculosis, offering an early molecular picture of this form of the disease."
   },
   {
     "id": "kumar-2014-proteomics",
-    "authors": ["Kumar D", "Mondal AK", "Yadav AK", "Dash D"],
+    "authors": [
+      "Kumar D",
+      "Mondal AK",
+      "Yadav AK",
+      "Dash D"
+    ],
     "piHighlight": "Mondal AK",
     "title": "Discovery of rare protein-coding genes in model methylotroph Methylobacterium extorquens AM1",
     "journal": "Proteomics",
     "year": 2014,
     "type": "journal-article",
     "citations": 20,
-    "keywords": ["Proteogenomics", "Gene Discovery", "Methylotroph"]
+    "keywords": [
+      "Proteogenomics",
+      "Gene Discovery",
+      "Methylotroph"
+    ],
+    "doi": "https://doi.org/10.1002/pmic.201400153",
+    "volume": "14",
+    "issue": "23-24",
+    "pages": "2790-4",
+    "summary": "Reanalyzing existing proteomics data for a model methanol-metabolizing bacterium turned up 29 previously unannotated genes and corrected dozens more, including one likely acquired from a distantly related organism."
   },
   {
     "id": "narang-2014-gbe",
-    "authors": ["Narang A", "Jha P", "Kumar D", "Kutum R", "Mondal AK", "et al."],
+    "authors": [
+      "Narang A",
+      "Jha P",
+      "Kumar D",
+      "Kutum R",
+      "Mondal AK",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Extensive copy number variations in admixed Indian population of African ancestry: potential involvement in adaptation",
     "journal": "Genome Biology and Evolution",
     "year": 2014,
     "type": "journal-article",
     "citations": 15,
-    "keywords": ["Copy Number Variation", "Population Genomics", "Human Genetics"]
+    "keywords": [
+      "Copy Number Variation",
+      "Population Genomics",
+      "Human Genetics"
+    ],
+    "doi": "https://doi.org/10.1093/gbe/evu250",
+    "volume": "6",
+    "issue": "12",
+    "pages": "3171-81",
+    "summary": "An Indian population descended from African ancestors and living in a high-salinity region carries an unusually large number of structural genome variants, some enriched near genes for ion transport \u2014 consistent with these variants helping the population adapt to a harsh local environment."
   },
   {
     "id": "mishra-2013-plosone",
-    "authors": ["Mishra A", "Vij M", "Kumar D", "Taneja V", "Mondal AK", "Bothra A", "Rao V", "et al."],
+    "authors": [
+      "Mishra A",
+      "Vij M",
+      "Kumar D",
+      "Taneja V",
+      "Mondal AK",
+      "Bothra A",
+      "Rao V",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Integration host factor of Mycobacterium tuberculosis, mIHF, compacts DNA by a bending mechanism",
     "journal": "PLoS ONE",
     "year": 2013,
     "type": "journal-article",
     "citations": 34,
-    "keywords": ["Mycobacterium tuberculosis", "DNA-Binding Proteins", "Structural Biology"]
+    "keywords": [
+      "Mycobacterium tuberculosis",
+      "DNA-Binding Proteins",
+      "Structural Biology"
+    ],
+    "doi": "https://doi.org/10.1371/journal.pone.0069985",
+    "volume": "8",
+    "issue": "7",
+    "articleNumber": "e69985",
+    "summary": "Using atomic force microscopy, this study showed that a tuberculosis-bacterium protein called mIHF packages the bacterial genome by physically bending DNA, playing a role in chromosome organization similar to a well-known E. coli protein despite the two having evolved separately."
   },
   {
     "id": "vashisht-2012-plosone",
-    "authors": ["Vashisht R", "Mondal AK", "Jain A", "Shah A", "Vishnoi P", "Priyadarshini P", "et al."],
+    "authors": [
+      "Vashisht R",
+      "Mondal AK",
+      "Jain A",
+      "Shah A",
+      "Vishnoi P",
+      "Priyadarshini P",
+      "et al."
+    ],
     "piHighlight": "Mondal AK",
     "title": "Crowd Sourcing a New Paradigm for Interactome Driven Drug Target Identification in Mycobacterium tuberculosis",
     "journal": "PLoS ONE",
     "year": 2012,
     "type": "journal-article",
     "citations": 47,
-    "keywords": ["Mycobacterium tuberculosis", "Interactome", "Drug Target Discovery", "Network Biology"]
+    "keywords": [
+      "Mycobacterium tuberculosis",
+      "Interactome",
+      "Drug Target Discovery",
+      "Network Biology"
+    ],
+    "doi": "https://doi.org/10.1371/journal.pone.0039808",
+    "volume": "7",
+    "issue": "7",
+    "articleNumber": "e39808",
+    "summary": "A crowdsourced, community-curated effort mapped over 2,500 protein interactions across the tuberculosis bacterium's genome, using the resulting network to flag candidate drug targets \u2014 five of which were later independently confirmed in the lab."
   }
 ]
