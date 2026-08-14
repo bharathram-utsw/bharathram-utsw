@@ -20,11 +20,33 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
     <NetworkDivider />
 
     <div class="team-page__hiring">
+      <span class="eyebrow">Join the lab</span>
       <h3>We're hiring</h3>
       <p class="prose">
         The lab is actively looking for talented postdocs and graduate students interested in the
-        computational biology of vision and aging.
+        computational biology of vision and aging — genomics, epigenomics, metabolism, and network
+        analysis applied to retinal disease.
       </p>
+      <div class="team-page__hiring-grid">
+        <div>
+          <p class="mono team-page__hiring-label">Postdoctoral fellows</p>
+          <p class="prose">
+            Background in computational biology, bioinformatics, or a related quantitative field.
+            Wet-lab experience is a plus but not required.
+          </p>
+        </div>
+        <div>
+          <p class="mono team-page__hiring-label">Graduate students</p>
+          <p class="prose">
+            Rotations welcome from UT Southwestern's graduate programs. Reach out to discuss
+            current project openings.
+          </p>
+        </div>
+        <div>
+          <p class="mono team-page__hiring-label">To apply</p>
+          <p class="prose">Send a CV and a short note on your research interests.</p>
+        </div>
+      </div>
       <p class="mono team-page__hiring-contact">Contact: — (coming soon, see the <a href={withBase('/contact')}>Contact</a> page)</p>
     </div>
   </div>
@@ -40,11 +62,31 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
   }
 
   .team-page__hiring h3 {
+    margin-top: 0.2em;
     margin-bottom: var(--space-2);
   }
 
+  .team-page__hiring-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .team-page__hiring-label {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+    margin-bottom: 0.4em;
+  }
+
   .team-page__hiring-contact {
-    margin-top: var(--space-2);
+    margin-top: var(--space-4);
     color: var(--color-text-muted);
+  }
+
+  @media (max-width: 720px) {
+    .team-page__hiring-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

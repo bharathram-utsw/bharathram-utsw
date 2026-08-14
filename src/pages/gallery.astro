@@ -1,0 +1,79 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Gallery" description="Photos from the Mondal Lab at UT Southwestern.">
+  <div class="container gallery-page">
+    <SectionHeading eyebrow="Around the lab" level="h1">Gallery</SectionHeading>
+    <p class="prose gallery-page__lede reveal">Photos from the lab, conferences, and events.</p>
+
+    <div class="gallery-page__grid reveal">
+      {
+        photos.map((photo) => (
+          <figure class="gallery-tile" data-placeholder={photo.data.placeholder}>
+            {photo.data.image ? (
+              <img src={photo.data.image} alt={photo.data.alt} loading="lazy" />
+            ) : (
+              <div class="gallery-tile__placeholder" role="img" aria-label={photo.data.alt}>
+                <span class="mono">photo</span>
+              </div>
+            )}
+            <figcaption class="mono gallery-tile__caption">{photo.data.caption}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .gallery-page {
+    padding-block: var(--space-6);
+  }
+
+  .gallery-page__lede {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-5);
+  }
+
+  .gallery-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .gallery-tile {
+    margin: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-bg-raised);
+  }
+
+  .gallery-tile img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .gallery-tile__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 3;
+    background: var(--color-bg-inset);
+    color: var(--color-text-faint);
+  }
+
+  .gallery-tile__caption {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+</style>

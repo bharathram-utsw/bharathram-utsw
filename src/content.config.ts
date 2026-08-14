@@ -42,6 +42,14 @@ const news = defineCollection({
     excerpt: z.string().max(240),
     tags: z.array(z.string()).default([]),
     relatedPublication: z.string().optional(),
+    // "post" = written by the lab; "press" = external coverage of the lab
+    // (a talk write-up, a news feature, etc.) — same list/detail template,
+    // different badge.
+    type: z.enum(['post', 'press']).default('post'),
+    // For type: "press" — the outlet's own URL, since there's no lab-written
+    // body to link to; the detail page redirects there instead of rendering.
+    externalUrl: z.string().url().optional(),
+    sourceName: z.string().optional(),
     // Flags bootstrap/seed content so it's easy to find and replace later.
     placeholder: z.boolean().default(false),
     draft: z.boolean().default(false),
@@ -62,4 +70,30 @@ const team = defineCollection({
   }),
 });
 
-export const collections = { publications, news, team };
+const gallery = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/gallery' }),
+  schema: z.object({
+    caption: z.string(),
+    alt: z.string(),
+    date: z.coerce.date(),
+    image: z.string().optional(),
+    // No real photos exist yet for this project — every entry starts as a
+    // placeholder tile until a real `image` path is supplied.
+    placeholder: z.boolean().default(true),
+    order: z.number().default(0),
+  }),
+});
+
+const funding = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/funding' }),
+  schema: z.object({
+    funder: z.string(),
+    title: z.string(),
+    period: z.string().optional(),
+    grantNumber: z.string().optional(),
+    placeholder: z.boolean().default(false),
+    order: z.number().default(0),
+  }),
+});
+
+export const collections = { publications, news, team, gallery, funding };

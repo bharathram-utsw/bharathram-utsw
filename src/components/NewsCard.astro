@@ -13,6 +13,8 @@ interface Props {
 const { post, headingLevel = 'h3' } = Astro.props;
 const { data, id } = post;
 const Heading = headingLevel;
+const isPress = data.type === 'press';
+const href = isPress && data.externalUrl ? data.externalUrl : withBase(`/news/${id}/`);
 
 const formattedDate = data.date.toLocaleDateString('en-US', {
   year: 'numeric',
@@ -22,10 +24,11 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
 ---
 
 <article class="news-card">
-  <a class="news-card__link" href={withBase(`/news/${id}/`)}>
+  <a class="news-card__link" href={href} target={isPress ? '_blank' : undefined} rel={isPress ? 'noopener noreferrer' : undefined}>
     <p class="mono news-card__date">
       <span class="node-dot" aria-hidden="true"></span>
       <time datetime={data.date.toISOString()}>{formattedDate}</time>
+      {isPress && <span class="news-card__badge news-card__badge--press">{data.sourceName ?? 'press'}</span>}
       {data.placeholder && <span class="news-card__badge">seed content</span>}
     </p>
     <Heading class="news-card__title">{data.title}</Heading>
@@ -69,6 +72,12 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
     border: 1px solid var(--color-border-strong);
     padding: 0.1em 0.5em;
     border-radius: var(--radius);
+  }
+
+  .news-card__badge--press {
+    color: var(--color-accent-2-strong);
+    background: var(--color-accent-2-soft);
+    border-color: transparent;
   }
 
   .news-card__title {
