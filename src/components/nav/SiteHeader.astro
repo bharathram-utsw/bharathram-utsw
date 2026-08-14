@@ -64,8 +64,7 @@ function isActive(href: string) {
 
 <style>
   .site-header {
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-bg);
+    background: var(--color-ink);
     position: relative;
     z-index: 20;
   }
@@ -81,12 +80,12 @@ function isActive(href: string) {
     font-family: var(--font-sans);
     font-weight: 600;
     font-size: var(--text-lg);
-    color: var(--color-text);
+    color: var(--color-on-ink);
     text-decoration: none;
   }
 
   .site-header__wordmark-mark {
-    color: var(--color-accent);
+    color: var(--color-accent-on-ink);
   }
 
   .site-header__nav ul {
@@ -97,19 +96,19 @@ function isActive(href: string) {
   .site-header__nav a {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    color: var(--color-text-muted);
+    color: var(--color-on-ink-muted);
     text-decoration: none;
     padding-bottom: 0.25em;
     border-bottom: 1px solid transparent;
   }
 
   .site-header__nav a:hover {
-    color: var(--color-text);
+    color: var(--color-on-ink);
   }
 
   .site-header__nav a[aria-current='page'] {
-    color: var(--color-text);
-    border-bottom-color: var(--color-accent);
+    color: var(--color-on-ink);
+    border-bottom-color: var(--color-accent-on-ink);
   }
 
   .site-header__mobile {
@@ -131,7 +130,7 @@ function isActive(href: string) {
       cursor: pointer;
       font-size: var(--text-sm);
       padding: var(--space-1) 0;
-      color: var(--color-text);
+      color: var(--color-on-ink);
     }
 
     .site-header__mobile summary::-webkit-details-marker {
