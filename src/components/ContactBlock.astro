@@ -9,8 +9,8 @@ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURICo
   <VintageMap class="contact-block__map" />
 
   <div class="contact-block__rows-wrap">
-    <div>
-      <p class="eyebrow">Address</p>
+    <div class="widget">
+      <p class="widget__label">Address</p>
       <p class="contact-block__address">
         UT Southwestern Medical Center<br />
         Department of Ophthalmology<br />
@@ -22,8 +22,8 @@ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURICo
       >
     </div>
 
-    <div>
-      <p class="eyebrow">Reach us</p>
+    <div class="widget">
+      <p class="widget__label">Reach us</p>
       <dl class="contact-block__rows">
         <div>
           <dt class="mono">Email</dt>
@@ -52,7 +52,11 @@ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURICo
   .contact-block__rows-wrap {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-6);
+    gap: var(--space-4);
+  }
+
+  .contact-block__rows-wrap > .widget {
+    flex: 1 1 16rem;
   }
 
   .contact-block__address {

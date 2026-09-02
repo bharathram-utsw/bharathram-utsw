@@ -22,7 +22,7 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
       retina?
     </p>
 
-    <div class="research-page__section reveal">
+    <div class="research-page__section research-page__upset reveal">
       <ResearchUpset />
     </div>
 
@@ -137,14 +137,22 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     margin-bottom: var(--space-2);
   }
 
+  .research-page__upset {
+    border: 1px solid var(--color-border);
+    padding: var(--space-4);
+    overflow-x: auto;
+  }
+
   .theme {
     position: relative;
+    border: 1px solid var(--color-border);
+    padding: var(--space-4);
   }
 
   .theme__numeral {
     position: absolute;
-    top: -1.2rem;
-    right: 0;
+    top: -1.6rem;
+    right: var(--space-3);
     z-index: 0;
   }
 

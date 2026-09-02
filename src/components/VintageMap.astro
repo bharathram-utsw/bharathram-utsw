@@ -78,8 +78,8 @@ const mainAngle = (Math.atan2(mainTan.y, mainTan.x) * 180) / Math.PI;
       <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0" />
     </filter>
     <radialGradient id="vm-vignette" cx="50%" cy="45%" r="75%">
-      <stop offset="60%" stop-color="#5c4626" stop-opacity="0" />
-      <stop offset="100%" stop-color="#5c4626" stop-opacity="0.35" />
+      <stop offset="60%" class="vintage-map__vignette-stop" stop-opacity="0" />
+      <stop offset="100%" class="vintage-map__vignette-stop" stop-opacity="0.35" />
     </radialGradient>
   </defs>
 
@@ -195,18 +195,22 @@ const mainAngle = (Math.atan2(mainTan.y, mainTan.x) * 180) / Math.PI;
   }
 
   .vintage-map__paper {
-    fill: #f1e5c4;
+    fill: var(--color-bg-inset);
+  }
+
+  .vintage-map__vignette-stop {
+    stop-color: var(--color-border-strong);
   }
 
   .vintage-map__frame {
     fill: none;
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 2;
   }
 
   .vintage-map__frame-inner {
     fill: none;
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 1;
     stroke-dasharray: 3 4;
     opacity: 0.55;
@@ -214,13 +218,13 @@ const mainAngle = (Math.atan2(mainTan.y, mainTan.x) * 180) / Math.PI;
 
   .vintage-map__corner-flourish path {
     fill: none;
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 1.5;
   }
 
   .vintage-map__minor-roads {
     fill: none;
-    stroke: #8a6f43;
+    stroke: var(--color-text-muted);
     stroke-width: 1.25;
     stroke-linecap: round;
     opacity: 0.4;
@@ -228,14 +232,14 @@ const mainAngle = (Math.atan2(mainTan.y, mainTan.x) * 180) / Math.PI;
 
   .vintage-map__main-road {
     fill: none;
-    stroke: #6b4a2c;
+    stroke: var(--color-border-strong);
     stroke-width: 4;
     stroke-linecap: round;
     opacity: 0.85;
   }
 
   .vintage-map__road-ticks {
-    stroke: #f1e5c4;
+    stroke: var(--color-bg-inset);
     stroke-width: 1.4;
     opacity: 0.9;
   }
@@ -245,53 +249,52 @@ const mainAngle = (Math.atan2(mainTan.y, mainTan.x) * 180) / Math.PI;
     font-style: italic;
     font-size: 12px;
     letter-spacing: 0.06em;
-    fill: #4a3218;
+    fill: var(--color-text);
   }
 
   .vintage-map__tree line {
-    stroke: #6b4a2c;
+    stroke: var(--color-border-strong);
     stroke-width: 1.5;
   }
 
   .vintage-map__tree circle {
-    fill: #7a8a5a;
+    fill: var(--color-text-muted);
     opacity: 0.55;
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 0.75;
   }
 
   .vintage-map__building rect,
   .vintage-map__building polygon {
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 1.25;
-    fill: #e4d1a0;
+    fill: var(--color-bg-raised);
   }
 
   .vintage-map__building-door {
-    fill: #6b4a2c;
+    fill: var(--color-border-strong);
   }
 
   .vintage-map__building-window {
-    fill: #6b4a2c;
-    opacity: 0.7;
+    fill: var(--color-text-muted);
   }
 
   .vintage-map__banner {
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 1.25;
   }
 
   .vintage-map__banner--small {
-    fill: #e4d1a0;
+    fill: var(--color-bg-raised);
   }
 
   .vintage-map__banner--main {
-    fill: #ecdcae;
+    fill: var(--color-bg-raised);
   }
 
   .vintage-map__banner-text {
     font-family: 'IM Fell English', Georgia, serif;
-    fill: #4a3218;
+    fill: var(--color-text);
   }
 
   .vintage-map__banner-text--small {
@@ -306,58 +309,58 @@ const mainAngle = (Math.atan2(mainTan.y, mainTan.x) * 180) / Math.PI;
 
   .vintage-map__label-sub {
     font-size: 10px;
-    fill: #6b5f47;
+    fill: var(--color-text-muted);
     letter-spacing: 0.03em;
   }
 
   .vintage-map__pin-burst line {
-    stroke: #5c4626;
+    stroke: var(--color-accent);
     stroke-width: 1.25;
-    opacity: 0.55;
+    opacity: 0.4;
   }
 
   .vintage-map__pin-halo {
-    fill: var(--color-accent-2);
-    opacity: 0.2;
+    fill: var(--color-accent);
+    opacity: 0.15;
   }
 
   .vintage-map__pin {
-    fill: var(--color-accent-2);
-    stroke: #f1e5c4;
+    fill: var(--color-accent);
+    stroke: var(--color-bg-inset);
     stroke-width: 1.5;
   }
 
   .vintage-map__pin-dot {
-    fill: #f1e5c4;
+    fill: var(--color-bg-inset);
   }
 
   .vintage-map__compass-ring {
     fill: none;
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 1;
     opacity: 0.6;
   }
 
   .vintage-map__compass-needle {
-    fill: #5c4626;
+    fill: var(--color-border-strong);
   }
 
   .vintage-map__compass-needle--soft {
-    fill: #8a6f43;
+    fill: var(--color-text-muted);
     opacity: 0.6;
   }
 
   .vintage-map__compass-label {
     font-family: 'IM Fell English', Georgia, serif;
     font-size: 12px;
-    fill: #4a3218;
+    fill: var(--color-text);
     text-anchor: middle;
   }
 
   .vintage-map__scale {
-    stroke: #5c4626;
+    stroke: var(--color-border-strong);
     stroke-width: 1;
-    fill: #5c4626;
+    fill: var(--color-border-strong);
   }
 
   .vintage-map__scale text {
