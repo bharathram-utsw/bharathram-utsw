@@ -12,8 +12,14 @@ const posts = (await getCollection('news', ({ data }) => !data.draft)).sort(
 <BaseLayout title="News" description="News and updates from the Mondal Lab.">
   <div class="container news-page">
     <SectionHeading eyebrow="Lab updates" level="h1">News</SectionHeading>
-    <div class="news-page__list">
-      {posts.map((post) => <NewsCard post={post} headingLevel="h2" />)}
+    <div class="news-page__timeline">
+      {
+        posts.map((post) => (
+          <div class="timeline-item">
+            <NewsCard post={post} headingLevel="h2" />
+          </div>
+        ))
+      }
     </div>
   </div>
 </BaseLayout>
@@ -22,5 +28,42 @@ const posts = (await getCollection('news', ({ data }) => !data.draft)).sort(
   .news-page {
     padding-block: var(--space-6);
     max-width: var(--prose-width);
+  }
+
+  /* Changelog-style timeline: a spine down the left edge with a node-dot
+     per entry, replacing a plain collapsed-border list. */
+  .news-page__timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .news-page__timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    width: 1px;
+    background: var(--color-border);
+  }
+
+  .timeline-item {
+    position: relative;
+  }
+
+  .timeline-item + .timeline-item {
+    margin-top: var(--space-3);
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.72rem;
+    top: 1.55rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 2px solid var(--color-bg);
   }
 </style>

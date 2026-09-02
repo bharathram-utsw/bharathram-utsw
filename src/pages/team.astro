@@ -13,6 +13,7 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
   <div class="container team-page">
     <SectionHeading eyebrow="Who we are" level="h1">Team</SectionHeading>
 
+    <p class="widget__label team-page__roster-label">Roster · {team.length} {team.length === 1 ? 'member' : 'members'}</p>
     <div class="team-page__roster">
       {team.map((member) => <TeamMemberCard member={member} />)}
     </div>
@@ -21,7 +22,7 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
 
     <div class="widget team-page__hiring">
       <p class="widget__label">Join the lab</p>
-      <h3>We're hiring</h3>
+      <h2>We're hiring</h2>
       <p class="prose">
         The lab is actively looking for talented postdocs and graduate students interested in the
         computational biology of vision and aging — genomics, epigenomics, metabolism, and network
@@ -57,11 +58,15 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
     padding-block: var(--space-6);
   }
 
-  .team-page__roster > :global(*) + :global(*) {
-    margin-top: var(--space-5);
+  .team-page__roster-label {
+    margin-bottom: var(--space-2);
   }
 
-  .team-page__hiring h3 {
+  .team-page__roster {
+    margin-bottom: var(--space-6);
+  }
+
+  .team-page__hiring h2 {
     margin-top: 0.2em;
     margin-bottom: var(--space-2);
   }

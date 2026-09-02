@@ -13,8 +13,9 @@ const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.
 
     <div class="gallery-page__grid reveal">
       {
-        photos.map((photo) => (
+        photos.map((photo, i) => (
           <figure class="gallery-tile" data-placeholder={photo.data.placeholder}>
+            <span class="mono gallery-tile__index" aria-hidden="true">{String(i + 1).padStart(3, '0')}</span>
             {photo.data.image ? (
               <img src={photo.data.image} alt={photo.data.alt} loading="lazy" />
             ) : (
@@ -46,10 +47,23 @@ const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.
   }
 
   .gallery-tile {
+    position: relative;
     margin: 0;
     border: 1px solid var(--color-border);
     overflow: hidden;
     background: var(--color-bg-raised);
+  }
+
+  .gallery-tile__index {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 1;
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    color: var(--color-bg);
+    background: var(--color-text);
+    padding: 0.15em 0.45em;
   }
 
   .gallery-tile img {
@@ -67,6 +81,12 @@ const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.
   .gallery-tile__caption {
     padding: var(--space-2);
     font-size: var(--text-xs);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
     color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-top: 1px solid var(--color-border);
   }
 </style>

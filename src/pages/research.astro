@@ -6,6 +6,40 @@ import ThemeGlyph from '../components/ThemeGlyph.astro';
 import NetworkDivider from '../components/NetworkDivider.astro';
 import ResearchUpset from '../components/ResearchUpset.astro';
 
+const processes = [
+  {
+    status: 'Process 01 · Active',
+    title: 'Retinal Diseasome Assembly',
+    glyphSeed: 0,
+    facts: [
+      ['Approach', 'Multi-omic integration'],
+      ['Data', 'Genomic · transcriptomic · proteomic'],
+      ['Scope', 'Inherited + complex retinal disease'],
+    ],
+    brief:
+      'Unrelated genetic mutations converge on a finite set of disease-onset programs in the retina.',
+    full: [
+      'Unrelated genetic mutations converge on a finite set of disease-onset programs in the retina. We investigate this convergence across both inherited retinal degenerations and complex diseases such as age-related macular degeneration, using multi-omic approaches that integrate genomic, transcriptomic, and proteomic data.',
+      'Our framework captures genetic factors, pathological processes, and homeostatic recovery mechanisms across a range of retinal conditions — building toward a shared map of how distinct causes lead to overlapping disease states.',
+    ],
+  },
+  {
+    status: 'Process 02 · Active',
+    title: 'Environmental–Molecular Interactions in Retinal Aging',
+    glyphSeed: 1,
+    facts: [
+      ['Approach', 'Controlled dietary intervention'],
+      ['Model', 'Mouse'],
+      ['Focus', 'Epigenetic + metabolic aging states'],
+    ],
+    brief: "Lifestyle factors, such as nutrition, influence the retina's molecular landscape over time.",
+    full: [
+      "Lifestyle factors, such as nutrition, influence the retinal molecular landscape over time. Through controlled experiments in mice, we study how diet and other environmental variables shape epigenetic and metabolic states in the aging retina.",
+      'This work emphasizes the relationship between epigenetic change, metabolism, and the environment — and how these factors interact with age-dependent vision decline that fixed genetic factors alone cannot explain.',
+    ],
+  },
+];
+
 const funding = (await getCollection('funding')).sort((a, b) => a.data.order - b.data.order);
 const resources = (await getCollection('resources')).sort((a, b) => a.data.order - b.data.order);
 ---
@@ -26,50 +60,36 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
       <ResearchUpset />
     </div>
 
-    <section class="theme reveal">
-      <span class="big-numeral theme__numeral" aria-hidden="true">01</span>
-      <div class="theme__body">
-        <ThemeGlyph class="theme__glyph" seed={0} />
-        <span class="eyebrow">Theme 01</span>
-        <h2>Retinal Diseasome Assembly</h2>
-        <div class="prose">
-          <p>
-            Unrelated genetic mutations converge on a finite set of disease-onset programs in the
-            retina. We investigate this convergence across both inherited retinal degenerations
-            and complex diseases such as age-related macular degeneration, using multi-omic
-            approaches that integrate genomic, transcriptomic, and proteomic data.
-          </p>
-          <p>
-            Our framework captures genetic factors, pathological processes, and homeostatic
-            recovery mechanisms across a range of retinal conditions — building toward a shared
-            map of how distinct causes lead to overlapping disease states.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <NetworkDivider />
-
-    <section class="theme reveal">
-      <span class="big-numeral theme__numeral" aria-hidden="true">02</span>
-      <div class="theme__body">
-        <ThemeGlyph class="theme__glyph" seed={1} />
-        <span class="eyebrow">Theme 02</span>
-        <h2>Environmental–Molecular Interactions in Retinal Aging</h2>
-        <div class="prose">
-          <p>
-            Lifestyle factors, such as nutrition, influence the retinal molecular landscape over
-            time. Through controlled experiments in mice, we study how diet and other
-            environmental variables shape epigenetic and metabolic states in the aging retina.
-          </p>
-          <p>
-            This work emphasizes the relationship between epigenetic change, metabolism, and the
-            environment — and how these factors interact with age-dependent vision decline that
-            fixed genetic factors alone cannot explain.
-          </p>
-        </div>
-      </div>
-    </section>
+    <div class="process-grid reveal">
+      {
+        processes.map((p) => (
+          <div class="widget process">
+            <p class="widget__label">{p.status}</p>
+            <div class="process__head">
+              <ThemeGlyph class="process__glyph" seed={p.glyphSeed} />
+              <h2 class="process__title">{p.title}</h2>
+            </div>
+            <dl class="mono process__facts">
+              {p.facts.map(([k, v]) => (
+                <div>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <p class="process__brief">{p.brief}</p>
+            <details class="process__full">
+              <summary class="mono">Full brief ▸</summary>
+              <div class="prose">
+                {p.full.map((para) => (
+                  <p>{para}</p>
+                ))}
+              </div>
+            </details>
+          </div>
+        ))
+      }
+    </div>
 
     <NetworkDivider />
 
@@ -143,34 +163,85 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     overflow-x: auto;
   }
 
-  .theme {
-    position: relative;
-    border: 1px solid var(--color-border);
-    padding: var(--space-4);
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
   }
 
-  .theme__numeral {
-    position: absolute;
-    top: -1.6rem;
-    right: var(--space-3);
-    z-index: 0;
+  .process__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
   }
 
-  .theme__body {
-    position: relative;
-    z-index: 1;
-    max-width: 70ch;
+  .process__glyph {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
   }
 
-  .theme__glyph {
-    width: 3.5rem;
-    height: 3.5rem;
+  .process__title {
+    font-size: var(--text-lg);
+  }
+
+  .process__facts {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-3);
+  }
+
+  .process__facts div {
+    display: flex;
+    gap: var(--space-2);
+    padding-block: 0.35em;
+    border-bottom: 1px solid var(--color-bg-inset);
+    font-size: var(--text-sm);
+  }
+
+  .process__facts dt {
+    width: 6rem;
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+  }
+
+  .process__facts dd {
+    color: var(--color-text);
+  }
+
+  .process__brief {
+    color: var(--color-text-muted);
     margin-bottom: var(--space-2);
   }
 
-  @media (max-width: 720px) {
-    .theme__numeral {
-      display: none;
+  .process__full summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-accent);
+  }
+
+  .process__full summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .process__full[open] summary {
+    margin-bottom: var(--space-3);
+  }
+
+  .process__full .prose p + p {
+    margin-top: var(--space-2);
+  }
+
+  @media (max-width: 860px) {
+    .process-grid {
+      grid-template-columns: 1fr;
     }
   }
 

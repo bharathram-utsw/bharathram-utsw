@@ -1,6 +1,7 @@
 ---
 import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import Avatar from './Avatar.astro';
 
 interface Props {
   member: CollectionEntry<'team'>;
@@ -11,77 +12,127 @@ const { data } = member;
 const { Content } = await render(member);
 ---
 
-<article class="team-card">
-  <div class="team-card__photo" aria-hidden="true"></div>
-  <div class="team-card__body">
-    <h2>{data.name}</h2>
-    <p class="mono team-card__role">{data.role}</p>
-    <div class="prose team-card__bio">
+<details class="roster-row">
+  <summary class="roster-row__summary">
+    <Avatar name={data.name} size={32} class="roster-row__avatar" />
+    <span class="mono roster-row__name">{data.name}</span>
+    <span class="mono roster-row__role">{data.role}</span>
+    {
+      data.interests.length > 0 && (
+        <span class="mono roster-row__focus">{data.interests.slice(0, 3).join(' · ')}</span>
+      )
+    }
+    <span class="mono roster-row__toggle" aria-hidden="true">▸</span>
+  </summary>
+  <div class="roster-row__detail">
+    <div class="prose roster-row__bio">
       <Content />
     </div>
     {
       data.interests.length > 0 && (
-        <p class="mono team-card__interests">{data.interests.join(' · ')}</p>
+        <p class="mono roster-row__interests">{data.interests.join(' · ')}</p>
       )
     }
     {data.email && (
-      <a class="team-card__email" href={`mailto:${data.email}`}>{data.email}</a>
+      <a class="mono roster-row__email" href={`mailto:${data.email}`}>{data.email}</a>
     )}
   </div>
-</article>
+</details>
 
 <style>
-  .team-card {
-    display: grid;
-    grid-template-columns: 12rem 1fr;
-    gap: var(--space-4);
-    padding: var(--space-4);
+  .roster-row {
     border: 1px solid var(--color-border);
   }
 
-  .team-card + .team-card {
+  .roster-row + .roster-row {
     border-top: none;
   }
 
-  .team-card__photo {
-    aspect-ratio: 1;
-    background: var(--color-text);
+  .roster-row__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    list-style: none;
   }
 
-  .team-card__body h2 {
-    font-size: var(--text-xl);
+  .roster-row__summary::-webkit-details-marker {
+    display: none;
   }
 
-  .team-card__role {
-    color: var(--color-accent);
+  .roster-row__summary:hover {
+    background: var(--color-bg-inset);
+  }
+
+  .roster-row__avatar {
+    flex-shrink: 0;
+  }
+
+  .roster-row__name {
     font-size: var(--text-sm);
-    margin-block: 0.25em var(--space-2);
+    font-weight: 600;
   }
 
-  .team-card__bio :global(p) + :global(p) {
-    margin-top: var(--space-2);
+  .roster-row__role {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
   }
 
-  .team-card__interests {
+  .roster-row__focus {
+    margin-left: auto;
     font-size: var(--text-xs);
     color: var(--color-text-muted);
+    text-align: right;
+  }
+
+  .roster-row__toggle {
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    transition: transform 0.15s var(--ease-out);
+  }
+
+  .roster-row[open] .roster-row__toggle {
+    transform: rotate(90deg);
+  }
+
+  .roster-row__detail {
+    padding: 0 var(--space-3) var(--space-3) calc(32px + var(--space-3) + var(--space-3));
+    border-top: 1px solid var(--color-bg-inset);
+    padding-top: var(--space-3);
+  }
+
+  .roster-row__bio :global(p) + :global(p) {
     margin-top: var(--space-2);
   }
 
-  .team-card__email {
+  .roster-row__interests {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .roster-row__email {
     display: inline-block;
     margin-top: var(--space-2);
-    font-family: var(--font-mono);
     font-size: var(--text-sm);
   }
 
   @media (max-width: 640px) {
-    .team-card {
-      grid-template-columns: 1fr;
+    .roster-row__summary {
+      flex-wrap: wrap;
     }
 
-    .team-card__photo {
-      max-width: 10rem;
+    .roster-row__focus {
+      margin-left: 0;
+      width: 100%;
+      text-align: left;
+      order: 4;
+    }
+
+    .roster-row__detail {
+      padding-left: var(--space-3);
     }
   }
 </style>
