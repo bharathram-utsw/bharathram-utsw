@@ -155,9 +155,9 @@ cite {
 }
 
 /* Corner-bracket frame — an alternative to a full .widget border for
-   graph/data panels (NetworkHero, PublicationNetwork, ResearchUpset), so not
-   every panel on a page is the same rectangle. Two opposing corner marks,
-   like a viewfinder crop mark, pure CSS (no extra markup). */
+   graph/data panels (e.g. PublicationNetwork's canvas), so not every panel
+   on a page is the same rectangle. Two opposing corner marks, like a
+   viewfinder crop mark, pure CSS (no extra markup). */
 .corner-frame {
   position: relative;
 }

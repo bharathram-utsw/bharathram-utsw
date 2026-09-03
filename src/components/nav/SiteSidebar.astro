@@ -19,11 +19,10 @@ const navItems = [
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === withBase('/');
 
-// On Home itself, sections for Research/Team/Publications/News already
-// exist on-page (see src/pages/index.astro) — link to those in place
-// instead of navigating away. Gallery/Contact have no Home presence, so
-// they always navigate normally.
-const anchorable = new Set(['research', 'team', 'publications', 'news']);
+// On Home itself, the keyword-network graph already sits on-page at
+// #publications (see src/pages/index.astro) — link there in place instead
+// of navigating away. Every other section lives on its own page only.
+const anchorable = new Set(['publications']);
 
 function isActive(href: string) {
   const based = withBase(href);

@@ -1,12 +1,23 @@
 ---
-import VintageMap from './VintageMap.astro';
-
 const ADDRESS = '5323 Harry Hines Blvd, Dallas, TX 75390';
 const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ADDRESS);
+const mapEmbedUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(ADDRESS) + '&output=embed';
 ---
 
 <div class="contact-block">
-  <VintageMap class="contact-block__map" />
+  <div class="widget contact-block__map">
+    <p class="widget__label">Location</p>
+    <iframe
+      class="contact-block__map-embed"
+      src={mapEmbedUrl}
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      title="Map showing the Mondal Lab's location at UT Southwestern Medical Center"
+    ></iframe>
+    <a class="mono contact-block__map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer"
+      >Open in Google Maps →</a
+    >
+  </div>
 
   <div class="contact-block__rows-wrap">
     <div class="widget">
@@ -17,9 +28,6 @@ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURICo
         5323 Harry Hines Blvd<br />
         Dallas, TX 75390, USA
       </p>
-      <a class="mono contact-block__map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer"
-        >Open in Google Maps →</a
-      >
     </div>
 
     <div class="widget">
@@ -44,9 +52,21 @@ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURICo
 
 <style>
   .contact-block__map {
-    max-width: 30rem;
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .contact-block__map-embed {
+    display: block;
+    width: 100%;
+    height: 22rem;
     border: 1px solid var(--color-border);
+  }
+
+  .contact-block__map-link {
+    display: inline-block;
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    text-decoration: none;
   }
 
   .contact-block__rows-wrap {
@@ -61,12 +81,6 @@ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURICo
 
   .contact-block__address {
     color: var(--color-text-muted);
-    margin-bottom: var(--space-2);
-  }
-
-  .contact-block__map-link {
-    font-size: var(--text-sm);
-    text-decoration: none;
   }
 
   .contact-block__rows > div {

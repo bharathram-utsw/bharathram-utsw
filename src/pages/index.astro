@@ -2,19 +2,9 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NetworkHero from '../components/NetworkHero.astro';
-import ThemeGlyph from '../components/ThemeGlyph.astro';
-import { withBase } from '../lib/url';
 import { isVisionEra } from '../lib/publications';
 
-const latestNews = (await getCollection('news', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
-
 const publications = await getCollection('publications');
-const team = await getCollection('team');
-const pi = team.find((m) => m.data.isPI) ?? team[0];
-
-const totalCitations = publications.reduce((sum, p) => sum + (p.data.citations ?? 0), 0);
 
 const visionPubs = publications.filter((p) => isVisionEra(p.data.keywords));
 const keywordCounts = new Map<string, number>();
@@ -27,16 +17,6 @@ const topTopics = [...keywordCounts.entries()]
   .sort((a, b) => b[1] - a[1])
   .slice(0, 12)
   .map(([label]) => label);
-
-const today = new Date();
-const dateLabel = today
-  .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-  .toUpperCase();
-const hours24 = today.getHours();
-const minutes = today.getMinutes();
-const hourAngle = ((hours24 % 12) + minutes / 60) * 30;
-const minuteAngle = minutes * 6;
-
 ---
 
 <BaseLayout title="Mondal Lab">
@@ -59,116 +39,11 @@ const minuteAngle = minutes * 6;
       </div>
     </div>
 
-    <div class="home__widgets reveal">
-      <div class="widget widget--today">
-        <p class="widget__label">Today</p>
-        <div class="widget__today-body">
-          <svg class="widget__clock" viewBox="0 0 60 60" aria-hidden="true">
-            <circle cx="30" cy="30" r="27" class="widget__clock-face" />
-            {[...Array(12)].map((_, i) => (
-              <line
-                x1="30"
-                y1="4.5"
-                x2="30"
-                y2={i % 3 === 0 ? 7.5 : 6.5}
-                class="widget__clock-tick"
-                transform={`rotate(${i * 30}, 30, 30)`}
-              />
-            ))}
-            <line x1="30" y1="30" x2="30" y2="16" class="widget__clock-hand widget__clock-hand--hour" transform={`rotate(${hourAngle}, 30, 30)`} />
-            <line x1="30" y1="30" x2="30" y2="10" class="widget__clock-hand widget__clock-hand--minute" transform={`rotate(${minuteAngle}, 30, 30)`} />
-            <circle cx="30" cy="30" r="1.6" class="widget__clock-pin" />
-          </svg>
-          <div>
-            <p class="mono widget__date">{dateLabel}</p>
-            <p class="mono widget__loc">Dallas, TX · UTC−05:00</p>
-          </div>
-        </div>
+    <div class="widget home__topics reveal">
+      <p class="widget__label">Topics</p>
+      <div class="widget__tags">
+        {topTopics.map((kw) => <span class="mono widget__tag">{kw}</span>)}
       </div>
-
-      <div class="widget widget--stats">
-        <p class="widget__label">Lab</p>
-        <dl class="widget__stat-rows mono">
-          <div><dt>Publications</dt><dd>{String(publications.length).padStart(3, '0')}</dd></div>
-          <div><dt>Citations</dt><dd>{String(totalCitations).padStart(3, '0')}</dd></div>
-          <div><dt>Team</dt><dd>{String(team.length).padStart(3, '0')}</dd></div>
-          <div><dt>Programs</dt><dd>002</dd></div>
-        </dl>
-      </div>
-
-      <div class="widget widget--topics">
-        <p class="widget__label">Topics</p>
-        <div class="widget__tags">
-          {topTopics.map((kw) => <span class="mono widget__tag">{kw}</span>)}
-        </div>
-      </div>
-    </div>
-
-    <div class="home__feed reveal">
-      <div id="research" class="home__feed-group">
-        <p class="feed-section-label">Research</p>
-        <div class="home__rows">
-          <a class="feed-row" href={withBase('/research')}>
-            <ThemeGlyph class="feed-row__glyph" seed={0} />
-            <div class="feed-row__body">
-              <span class="mono feed-row__meta">Theme 01</span>
-              <h2 class="feed-row__title">Retinal Diseasome Assembly</h2>
-              <p class="feed-row__excerpt">
-                How unrelated genetic mutations converge on a finite set of disease-onset programs in
-                the retina, from inherited degenerations to age-related macular degeneration.
-              </p>
-            </div>
-          </a>
-
-          <a class="feed-row" href={withBase('/research')}>
-            <ThemeGlyph class="feed-row__glyph" seed={1} />
-            <div class="feed-row__body">
-              <span class="mono feed-row__meta">Theme 02</span>
-              <h2 class="feed-row__title">Environmental–Molecular Interactions in Retinal Aging</h2>
-              <p class="feed-row__excerpt">
-                How lifestyle factors like nutrition shape the retina's molecular landscape, and what
-                that means for age-related vision decline.
-              </p>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      {pi && (
-        <div id="team" class="home__feed-group">
-          <p class="feed-section-label">Team</p>
-          <div class="home__rows">
-            <a class="feed-row" href={withBase('/team')}>
-              <div class="feed-row__photo" aria-hidden="true"></div>
-              <div class="feed-row__body">
-                <span class="mono feed-row__meta">Led by</span>
-                <h2 class="feed-row__title">{pi.data.name}</h2>
-                <p class="feed-row__excerpt">{pi.data.bioShort}</p>
-              </div>
-            </a>
-          </div>
-        </div>
-      )}
-
-      {latestNews.length > 0 && (
-        <div id="news" class="home__feed-group">
-          <p class="feed-section-label">News</p>
-          <div class="home__rows">
-            {latestNews.map((post) => (
-              <a class="feed-row" href={withBase(`/news/${post.id}/`)}>
-                <div class="feed-row__photo feed-row__photo--news" aria-hidden="true"></div>
-                <div class="feed-row__body">
-                  <span class="mono feed-row__meta">
-                    {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
-                  </span>
-                  <h2 class="feed-row__title">{post.data.title}</h2>
-                  <p class="feed-row__excerpt">{post.data.excerpt}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   </div>
 </BaseLayout>
@@ -207,88 +82,6 @@ const minuteAngle = minutes * 6;
     color: var(--color-text-muted);
   }
 
-  .home__widgets {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-
-  .widget--today .widget__today-body {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .widget__clock {
-    width: 3.25rem;
-    height: 3.25rem;
-    flex-shrink: 0;
-  }
-
-  .widget__clock-face {
-    fill: none;
-    stroke: var(--color-text);
-    stroke-width: 1.5;
-  }
-
-  .widget__clock-tick {
-    stroke: var(--color-text-muted);
-    stroke-width: 1;
-  }
-
-  .widget__clock-hand {
-    stroke: var(--color-text);
-    stroke-linecap: round;
-  }
-
-  .widget__clock-hand--hour {
-    stroke-width: 2.5;
-  }
-
-  .widget__clock-hand--minute {
-    stroke-width: 1.5;
-    stroke: var(--color-accent);
-  }
-
-  .widget__clock-pin {
-    fill: var(--color-accent);
-  }
-
-  .widget__date {
-    font-size: var(--text-xs);
-    letter-spacing: 0.02em;
-  }
-
-  .widget__loc {
-    margin-top: 0.3em;
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-  }
-
-  .widget__stat-rows div {
-    display: flex;
-    justify-content: space-between;
-    padding-block: 0.35em;
-    border-bottom: 1px solid var(--color-bg-inset);
-    font-size: var(--text-sm);
-  }
-
-  .widget__stat-rows div:last-child {
-    border-bottom: none;
-  }
-
-  .widget__stat-rows dt {
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .widget__stat-rows dd {
-    color: var(--color-text);
-    font-weight: 600;
-  }
-
   .widget__tags {
     display: flex;
     flex-wrap: wrap;
@@ -302,94 +95,8 @@ const minuteAngle = minutes * 6;
     color: var(--color-text-muted);
   }
 
-  /* ---- Main feed: grouped list rows, full pane width ---- */
-  .home__feed-group + .home__feed-group {
-    margin-top: var(--space-5);
-  }
-
-  .feed-section-label {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-text-muted);
-    margin-bottom: var(--space-2);
-  }
-
-  .feed-section-label::before {
-    content: '[ ';
-  }
-
-  .feed-section-label::after {
-    content: ' ]';
-  }
-
-  .home__rows {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .feed-row {
-    display: flex;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .feed-row + .feed-row {
-    border-top: none;
-  }
-
-  .feed-row:hover {
-    background: var(--color-bg-inset);
-  }
-
-  .feed-row:hover .feed-row__title {
-    color: var(--color-accent);
-  }
-
-  .feed-row__glyph {
-    width: 2.5rem;
-    height: 2.5rem;
-    flex-shrink: 0;
-  }
-
-  .feed-row__photo {
-    width: 2.5rem;
-    height: 2.5rem;
-    flex-shrink: 0;
-    background: var(--color-text);
-  }
-
-  .feed-row__body {
-    min-width: 0;
-  }
-
-  .feed-row__meta {
-    font-size: var(--text-xs);
-    letter-spacing: 0.03em;
-    color: var(--color-accent);
-  }
-
-  .feed-row__title {
-    font-size: var(--text-lg);
-    margin-top: 0.2em;
-    margin-bottom: 0.3em;
-  }
-
-  .feed-row__excerpt {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
-
   @media (max-width: 860px) {
     .home__hero {
-      grid-template-columns: 1fr;
-    }
-
-    .home__widgets {
       grid-template-columns: 1fr;
     }
   }
