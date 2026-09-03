@@ -217,26 +217,12 @@ cite {
   content: ' ]';
 }
 
-/* Full-bleed, not centered — the content pane inside the app shell already
-   bounds the usable width (viewport minus the sidebar), so a canvas/graph
-   placed in a .container should reach that pane's real edges rather than
-   floating in a narrower centered column. */
+/* Full-bleed, not centered — a canvas/graph placed in a .container should
+   reach the viewport's real edges rather than floating in a narrower
+   centered column. */
 .container {
   width: 100%;
   padding-inline: var(--space-4);
-}
-
-/* App shell: a persistent index rail (SiteSidebar) beside a full-width
-   content pane — the reference's own layout, rather than a header-only
-   site with a centered container floating in whitespace. */
-.app-shell {
-  display: flex;
-  align-items: stretch;
-}
-
-.app-shell__main {
-  flex: 1;
-  min-width: 0;
 }
 
 .prose {

@@ -1,52 +1,13 @@
 ---
 // A persistent taskbar, not an in-flow footer — fixed to the viewport
-// bottom on every page, the way a Windows-style taskbar never scrolls away.
-// The Start button (the lab's own icon) opens the same primary nav as
-// SiteSidebar, so it doubles as the one nav trigger on mobile, where the
-// sidebar is hidden — SiteHeader's old mobile dropdown was removed in favor
-// of this single, consistent affordance.
-import { withBase } from '../lib/url';
-
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/research', label: 'Research' },
-  { href: '/team', label: 'Team' },
-  { href: '/publications', label: 'Publications' },
-  { href: '/news', label: 'News' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/contact', label: 'Contact' },
-];
-
-const currentPath = Astro.url.pathname;
-
-function isActive(href: string) {
-  const based = withBase(href);
-  if (href === '/') return currentPath === based;
-  return currentPath === based || currentPath.startsWith(`${based}/`);
-}
+// bottom on every page, the way a Windows-style taskbar never scrolls
+// away, so page length never determines when it shows up. Nav now lives
+// in the header's icon menu (see SiteHeader.astro), so this is just the
+// system-tray clock — the one piece of taskbar chrome that's genuinely its
+// own thing, not a duplicate of nav that already lives elsewhere.
 ---
 
 <footer class="taskbar">
-  <details class="taskbar__start">
-    <summary class="taskbar__start-button" aria-haspopup="true">
-      <img src={withBase('/icon.png')} alt="" class="taskbar__start-icon" />
-      <span class="mono">Start</span>
-    </summary>
-    <nav class="taskbar__menu" aria-label="Primary">
-      <ul>
-        {
-          navItems.map((item) => (
-            <li>
-              <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-  </details>
-
   <div class="taskbar__tray">
     <span class="mono taskbar__clock" id="taskbar-clock" aria-hidden="true"></span>
   </div>
@@ -61,88 +22,13 @@ function isActive(href: string) {
     z-index: 30;
     display: flex;
     align-items: stretch;
+    justify-content: flex-end;
     height: var(--taskbar-height);
-    background: var(--color-bg);
+    background: var(--color-bg-raised);
     border-top: 1px solid var(--color-border);
   }
 
-  .taskbar__start {
-    position: relative;
-  }
-
-  .taskbar__start-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    height: 100%;
-    padding-inline: var(--space-3);
-    border-right: 1px solid var(--color-border);
-    cursor: pointer;
-    list-style: none;
-    color: var(--color-text);
-    font-size: var(--text-sm);
-    transition: background 0.15s var(--ease-out);
-  }
-
-  .taskbar__start-button::-webkit-details-marker {
-    display: none;
-  }
-
-  .taskbar__start-button:hover {
-    background: var(--color-bg-inset);
-  }
-
-  .taskbar__start[open] .taskbar__start-button {
-    background: var(--color-text);
-    color: var(--color-bg);
-  }
-
-  .taskbar__start-icon {
-    width: 1.6em;
-    height: 1.6em;
-  }
-
-  .taskbar__menu {
-    position: absolute;
-    left: 0;
-    bottom: 100%;
-    min-width: 12rem;
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-border-strong);
-    box-shadow: var(--shadow-card-hover);
-  }
-
-  .taskbar__menu ul {
-    list-style: none;
-    margin: 0;
-    padding: var(--space-1);
-  }
-
-  .taskbar__menu a {
-    display: block;
-    padding: 0.6em var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--color-text-muted);
-    text-decoration: none;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-
-  .taskbar__menu a:hover {
-    background: var(--color-bg-inset);
-    color: var(--color-text);
-  }
-
-  .taskbar__menu a[aria-current='page'] {
-    color: var(--color-accent);
-  }
-
   .taskbar__tray {
-    margin-left: auto;
     display: flex;
     align-items: center;
     padding-inline: var(--space-3);
@@ -162,16 +48,4 @@ function isActive(href: string) {
 
   updateClock();
   setInterval(updateClock, 15000);
-
-  // <details> already toggles open/closed on summary click — this just adds
-  // the two extra dismiss paths a real menu needs.
-  const startMenu = document.querySelector('.taskbar__start') as HTMLDetailsElement | null;
-
-  document.addEventListener('click', (e) => {
-    if (startMenu?.open && !startMenu.contains(e.target as Node)) startMenu.open = false;
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && startMenu?.open) startMenu.open = false;
-  });
 </script>

@@ -8,131 +8,140 @@ interface Props {
 }
 
 const { member } = Astro.props;
-const { data } = member;
+const { data, body } = member;
+const hasBio = Boolean(body?.trim());
 const { Content } = await render(member);
+
+// A small icon per interest — falls back to a plain bullet for anything
+// not in this list, so a new member's interests never break the layout.
+const HOBBY_ICONS: Record<string, string> = {
+  climbing: '🧗',
+  running: '🏃',
+  mountains: '⛰️',
+  hiking: '🥾',
+  history: '📜',
+  travel: '✈️',
+  cooking: '🍳',
+  reading: '📚',
+  music: '🎵',
+  photography: '📷',
+  cycling: '🚴',
+  swimming: '🏊',
+};
 ---
 
-<details class="roster-row">
-  <summary class="roster-row__summary">
-    <Avatar name={data.name} size={32} class="roster-row__avatar" />
-    <span class="mono roster-row__name">{data.name}</span>
-    <span class="mono roster-row__role">{data.role}</span>
+<article class="team-card">
+  <div class="team-card__photo-frame">
+    <Avatar name={data.name} size={224} class="team-card__photo" />
+  </div>
+  <div class="team-card__body">
+    <h2>{data.name}</h2>
+    <p class="mono team-card__role">{data.role}</p>
     {
-      data.interests.length > 0 && (
-        <span class="mono roster-row__focus">{data.interests.slice(0, 3).join(' · ')}</span>
+      hasBio ? (
+        <div class="prose team-card__bio">
+          <Content />
+        </div>
+      ) : (
+        <p class="team-card__coming-soon">Bio coming soon.</p>
       )
     }
-    <span class="mono roster-row__toggle" aria-hidden="true">▸</span>
-  </summary>
-  <div class="roster-row__detail">
-    <div class="prose roster-row__bio">
-      <Content />
-    </div>
     {
       data.interests.length > 0 && (
-        <p class="mono roster-row__interests">{data.interests.join(' · ')}</p>
+        <ul class="mono team-card__interests">
+          {data.interests.map((interest) => (
+            <li>
+              <span aria-hidden="true">{HOBBY_ICONS[interest.toLowerCase()] ?? '•'}</span> {interest}
+            </li>
+          ))}
+        </ul>
       )
     }
     {data.email && (
-      <a class="mono roster-row__email" href={`mailto:${data.email}`}>{data.email}</a>
+      <a class="mono team-card__email" href={`mailto:${data.email}`}>{data.email}</a>
     )}
   </div>
-</details>
+</article>
 
 <style>
-  .roster-row {
+  .team-card {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    gap: var(--space-4);
+    padding: var(--space-4);
     border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
   }
 
-  .roster-row + .roster-row {
+  .team-card + .team-card {
     border-top: none;
   }
 
-  .roster-row__summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    cursor: pointer;
-    list-style: none;
+  .team-card__photo-frame {
+    overflow: hidden;
   }
 
-  .roster-row__summary::-webkit-details-marker {
-    display: none;
+  /* Avatar is a child component — Astro doesn't stamp this component's
+     scope attribute onto elements a child renders, even for a class
+     passed in as a prop, so this needs :global() or it silently never
+     matches. */
+  :global(.team-card__photo) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    filter: grayscale(1);
+    transition: filter 0.3s var(--ease-out);
   }
 
-  .roster-row__summary:hover {
-    background: var(--color-bg-inset);
+  .team-card:hover :global(.team-card__photo),
+  .team-card:focus-within :global(.team-card__photo) {
+    filter: grayscale(0);
   }
 
-  .roster-row__avatar {
-    flex-shrink: 0;
+  .team-card__body h2 {
+    font-size: var(--text-xl);
   }
 
-  .roster-row__name {
-    font-size: var(--text-sm);
-    font-weight: 600;
-  }
-
-  .roster-row__role {
-    font-size: var(--text-xs);
+  .team-card__role {
     color: var(--color-accent);
+    font-size: var(--text-sm);
+    margin-block: 0.25em var(--space-2);
   }
 
-  .roster-row__focus {
-    margin-left: auto;
-    font-size: var(--text-xs);
+  .team-card__coming-soon {
     color: var(--color-text-muted);
-    text-align: right;
+    font-style: italic;
   }
 
-  .roster-row__toggle {
-    flex-shrink: 0;
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    transition: transform 0.15s var(--ease-out);
-  }
-
-  .roster-row[open] .roster-row__toggle {
-    transform: rotate(90deg);
-  }
-
-  .roster-row__detail {
-    padding: 0 var(--space-3) var(--space-3) calc(32px + var(--space-3) + var(--space-3));
-    border-top: 1px solid var(--color-bg-inset);
-    padding-top: var(--space-3);
-  }
-
-  .roster-row__bio :global(p) + :global(p) {
+  .team-card__bio :global(p) + :global(p) {
     margin-top: var(--space-2);
   }
 
-  .roster-row__interests {
-    margin-top: var(--space-2);
+  .team-card__interests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em 1.2em;
+    margin-top: var(--space-3);
+  }
+
+  .team-card__interests li {
     font-size: var(--text-xs);
     color: var(--color-text-muted);
   }
 
-  .roster-row__email {
+  .team-card__email {
     display: inline-block;
     margin-top: var(--space-2);
     font-size: var(--text-sm);
   }
 
   @media (max-width: 640px) {
-    .roster-row__summary {
-      flex-wrap: wrap;
+    .team-card {
+      grid-template-columns: 1fr;
     }
 
-    .roster-row__focus {
-      margin-left: 0;
-      width: 100%;
-      text-align: left;
-      order: 4;
-    }
-
-    .roster-row__detail {
-      padding-left: var(--space-3);
+    .team-card__photo-frame {
+      max-width: 10rem;
     }
   }
 </style>

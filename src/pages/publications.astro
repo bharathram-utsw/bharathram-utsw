@@ -4,8 +4,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import PublicationNetwork from '../components/PublicationNetwork.astro';
 import PublicationCard from '../components/PublicationCard.astro';
+import { withBase } from '../lib/url';
 
 const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+const figured = publications.filter((p) => p.data.image);
 ---
 
 <BaseLayout
@@ -19,6 +21,32 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
       and — earlier in the same throughline — microbial and comparative genomics. Click a topic
       below to filter.
     </p>
+
+    {
+      figured.length > 0 && (
+        <div class="publications-page__figures reveal">
+          <span class="eyebrow">Selected figures</span>
+          <div class="figures-grid">
+            {figured.map((pub) => (
+              <a
+                class="figure-tile"
+                href={pub.data.doi ?? pub.data.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src={withBase(pub.data.image!)} alt={pub.data.imageAlt ?? ''} loading="lazy" />
+                <span class="figure-tile__overlay">
+                  <span class="figure-tile__title">{pub.data.title}</span>
+                  <span class="mono figure-tile__meta">
+                    {pub.data.journal} · {pub.data.year}
+                  </span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )
+    }
 
     <div class="publications-page__section reveal">
       <PublicationNetwork />
@@ -52,6 +80,69 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
 
   .publications-page__section {
     margin-bottom: var(--space-6);
+  }
+
+  .publications-page__figures {
+    margin-bottom: var(--space-6);
+  }
+
+  .figures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  .figure-tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+  }
+
+  .figure-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: grayscale(1);
+    transition: filter 0.3s var(--ease-out);
+  }
+
+  .figure-tile:hover img,
+  .figure-tile:focus-visible img {
+    filter: grayscale(0);
+  }
+
+  .figure-tile__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.3em;
+    padding: var(--space-3);
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0) 60%);
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+
+  .figure-tile:hover .figure-tile__overlay,
+  .figure-tile:focus-visible .figure-tile__overlay {
+    opacity: 1;
+  }
+
+  .figure-tile__title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: var(--leading-snug);
+  }
+
+  .figure-tile__meta {
+    font-size: var(--text-xs);
+    color: #d4d4d6;
   }
 
   .publications-page__section h2 {
@@ -94,7 +185,7 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
   .publications-page__grid {
     display: flex;
     flex-direction: column;
-    max-width: var(--prose-width);
+    max-width: 56rem;
   }
 
   @media (max-width: 640px) {

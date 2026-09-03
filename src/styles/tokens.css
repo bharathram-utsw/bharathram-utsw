@@ -6,19 +6,29 @@
   system. Hard offset shadows (no blur) stand in for elevation.
 */
 :root {
-  /* ---- Color: surfaces ---- */
-  --color-bg: #ffffff;
+  /* ---- Color: surfaces — a soft off-white base so raised panels
+     (--color-bg-raised, pure white) visibly pop instead of the whole page
+     reading as one flat white void ---- */
+  --color-bg: #f2f2f3;
   --color-bg-raised: #ffffff;
-  --color-bg-inset: #f4f4f4;
+  --color-bg-inset: #e8e8ea;
+  /* A real, visible hairline for internal dividers (table/list rows inside
+     a panel) — --color-bg-inset is too close to --color-bg to read as a
+     line; this is deliberately darker than both. */
+  --color-line: #cfcfd2;
 
   /* ---- Color: text ---- */
   --color-text: #0a0a0a;
   --color-text-muted: #55555a;
   --color-text-faint: #8a8a90; /* large text only — not safe for small text */
 
-  /* ---- Color: accent — single signal red, reused everywhere a color is needed ---- */
-  --color-accent: #e0202c;
-  --color-accent-strong: #a8121c;
+  /* ---- Color: accent — single signal red, reused everywhere a color is needed.
+     Darkened slightly from the original #e0202c: on the new off-white
+     --color-bg it computed to 4.26:1, just under AA (4.5:1) for normal
+     text — verified by contrast math, not guessed. #d01824 clears 4.5:1
+     against both --color-bg and --color-bg-raised. ---- */
+  --color-accent: #d01824;
+  --color-accent-strong: #8f0f18;
   --color-accent-soft: #fbe4e5;
 
   /* ---- Color: secondary accent — kept neutral (near-black) so the red stays singular ---- */
@@ -35,10 +45,10 @@
   --color-accent-on-ink: #ff4d55; /* brightened red, AA-safe on --color-ink */
 
   /* ---- Color: secondary / chrome ---- */
-  --color-link: #e0202c;
+  --color-link: var(--color-accent);
   --color-border: #111111;
   --color-border-strong: #000000;
-  --color-focus-ring: #e0202c;
+  --color-focus-ring: var(--color-accent);
 
   /* ---- Network motif ---- */
   --color-graph-node: #0a0a0a;

@@ -64,36 +64,40 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
       retina?
     </p>
 
-    <div class="process-grid reveal">
+    <div class="process-stack reveal">
       {
         processes.map((p) => (
           <div class="widget process">
             <p class="widget__label">{p.status}</p>
-            <div class="process__head">
-              <ThemeGlyph class="process__glyph" seed={p.glyphSeed} />
-              <h2 class="process__title">{p.title}</h2>
-            </div>
-            <dl class="mono process__facts">
-              {p.facts.map(([k, v]) => (
-                <div>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
+            <div class="process__row">
+              <div class="process__body">
+                <div class="process__head">
+                  <ThemeGlyph class="process__glyph" seed={p.glyphSeed} />
+                  <h2 class="process__title">{p.title}</h2>
                 </div>
-              ))}
-            </dl>
-            <p class="process__brief">{p.brief}</p>
-            <figure class="process__figure">
-              <img src={withBase(p.image)} alt={p.imageAlt} loading="lazy" />
-              <figcaption class="mono">{p.imageCaption}</figcaption>
-            </figure>
-            <details class="process__full">
-              <summary class="mono">Full brief ▸</summary>
-              <div class="prose">
-                {p.full.map((para) => (
-                  <p>{para}</p>
-                ))}
+                <dl class="mono process__facts">
+                  {p.facts.map(([k, v]) => (
+                    <div>
+                      <dt>{k}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p class="process__brief">{p.brief}</p>
+                <details class="process__full">
+                  <summary class="mono">Full brief ▸</summary>
+                  <div class="prose">
+                    {p.full.map((para) => (
+                      <p>{para}</p>
+                    ))}
+                  </div>
+                </details>
               </div>
-            </details>
+              <figure class="process__figure">
+                <img src={withBase(p.image)} alt={p.imageAlt} loading="lazy" />
+                <figcaption class="mono">{p.imageCaption}</figcaption>
+              </figure>
+            </div>
           </div>
         ))
       }
@@ -165,10 +169,21 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     margin-bottom: var(--space-2);
   }
 
-  .process-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  .process-stack {
+    display: flex;
+    flex-direction: column;
     gap: var(--space-4);
+  }
+
+  .process__row {
+    display: flex;
+    gap: var(--space-5);
+    align-items: stretch;
+  }
+
+  .process__body {
+    flex: 1;
+    min-width: 0;
   }
 
   .process__head {
@@ -185,7 +200,7 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
   }
 
   .process__title {
-    font-size: var(--text-lg);
+    font-size: var(--text-xl);
   }
 
   .process__facts {
@@ -198,7 +213,7 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     display: flex;
     gap: var(--space-2);
     padding-block: 0.35em;
-    border-bottom: 1px solid var(--color-bg-inset);
+    border-bottom: 1px solid var(--color-line);
     font-size: var(--text-sm);
   }
 
@@ -221,19 +236,23 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
   }
 
   .process__figure {
-    margin: 0 0 var(--space-3);
+    flex: 0 0 22rem;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
   }
 
   .process__figure img {
+    flex: 1;
     width: 100%;
-    max-height: 16rem;
+    min-height: 0;
     object-fit: contain;
     background: var(--color-bg-raised);
     border: 1px solid var(--color-border);
   }
 
   .process__figure figcaption {
-    margin-top: var(--space-1);
+    margin-top: var(--space-2);
     font-size: var(--text-xs);
     color: var(--color-text-muted);
   }
@@ -260,8 +279,17 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
   }
 
   @media (max-width: 860px) {
-    .process-grid {
-      grid-template-columns: 1fr;
+    .process__row {
+      flex-direction: column;
+    }
+
+    .process__figure {
+      flex: 0 0 auto;
+      order: -1;
+    }
+
+    .process__figure img {
+      max-height: 16rem;
     }
   }
 

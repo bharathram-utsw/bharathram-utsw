@@ -1,6 +1,5 @@
 ---
 import SiteHeader from '../components/nav/SiteHeader.astro';
-import SiteSidebar from '../components/nav/SiteSidebar.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { withBase } from '../lib/url';
 import '../styles/global.css';
@@ -45,12 +44,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <SiteHeader />
-    <div class="app-shell">
-      <SiteSidebar />
-      <main id="main" class="app-shell__main">
-        <slot />
-      </main>
-    </div>
+    <main id="main">
+      <slot />
+    </main>
     <SiteFooter />
 
     <script>
