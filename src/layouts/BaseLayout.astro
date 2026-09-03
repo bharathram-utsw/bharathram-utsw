@@ -50,6 +50,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <SiteFooter />
 
     <script>
+      // Anything already inside the first viewport on load shows up
+      // immediately, no fade, no wait — gating above-the-fold content
+      // behind an async observer + a transition was the actual "click
+      // before it's loaded" lag: content the user can see and act on the
+      // instant the page arrives has no business waiting on JS to look
+      // finished. Only genuinely below-the-fold content gets the
+      // scroll-triggered reveal.
       const io = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
@@ -62,10 +69,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
       );
 
-      document.querySelectorAll('.reveal').forEach((el, i) => {
-        // stagger siblings slightly so a group doesn't pop in as one flat block
-        (el as HTMLElement).style.transitionDelay = `${Math.min(i % 4, 3) * 60}ms`;
-        io.observe(el);
+      const vh = window.innerHeight;
+      document.querySelectorAll<HTMLElement>('.reveal').forEach((el) => {
+        if (el.getBoundingClientRect().top < vh) {
+          el.classList.add('reveal--instant', 'is-visible');
+        } else {
+          io.observe(el);
+        }
       });
     </script>
   </body>

@@ -318,10 +318,18 @@ section + section {
    then do .reveal elements start hidden, so a JS failure just means content
    is visible immediately instead of stuck invisible. A shared
    IntersectionObserver (BaseLayout, bottom of <body>) adds .is-visible as
-   each element scrolls into view. */
+   each element scrolls into view — EXCEPT anything already inside the
+   first viewport on load, which the same script reveals immediately with
+   no animation at all (see the `.reveal--instant` it adds there). Gating
+   above-the-fold content behind an async observer + a slow transition was
+   the actual "click before it's loaded, feels laggy" bug: whatever's
+   visible on arrival should never wait on JS to become interactive-
+   looking. Below-the-fold content keeps a quick reveal on scroll — a
+   third of the previous duration and half the travel distance, so it
+   still reads as a fast native transition, not a marketing-site fade. */
 html.js-reveal .reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(14px);
   transition:
     opacity var(--duration-reveal) var(--ease-out),
     transform var(--duration-reveal) var(--ease-out);
@@ -330,6 +338,10 @@ html.js-reveal .reveal {
 html.js-reveal .reveal.is-visible {
   opacity: 1;
   transform: none;
+}
+
+html.js-reveal .reveal.reveal--instant {
+  transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
