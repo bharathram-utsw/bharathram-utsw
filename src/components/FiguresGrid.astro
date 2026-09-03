@@ -83,10 +83,12 @@ const figured = [...researchFigures, ...pubFigures];
 
 <style>
   .figures-grid {
-    /* column-width (not a fixed count) so tiles stay small and the number
-       of columns adapts to available space, rather than 1-2 wide columns
-       blowing images up to fill the page. */
-    column-width: 11rem;
+    /* A fixed column-count (not column-width) so the columns stretch to
+       fill the full row edge-to-edge — a real masonry block, not a few
+       small tiles stranded on the left with empty space to their right.
+       Each column is still narrower than the old 2-up split, and every
+       image keeps its own natural aspect ratio, so column heights vary. */
+    column-count: 3;
     column-gap: var(--space-3);
     margin-top: var(--space-2);
   }
@@ -144,9 +146,15 @@ const figured = [...researchFigures, ...pubFigures];
     color: #d4d4d6;
   }
 
+  @media (max-width: 900px) {
+    .figures-grid {
+      column-count: 2;
+    }
+  }
+
   @media (max-width: 640px) {
     .figures-grid {
-      columns: 1;
+      column-count: 1;
     }
   }
 </style>
