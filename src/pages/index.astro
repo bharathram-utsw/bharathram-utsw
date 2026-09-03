@@ -316,6 +316,14 @@ const minuteAngle = minutes * 6;
     margin-bottom: var(--space-2);
   }
 
+  .feed-section-label::before {
+    content: '[ ';
+  }
+
+  .feed-section-label::after {
+    content: ' ]';
+  }
+
   .home__rows {
     display: flex;
     flex-direction: column;

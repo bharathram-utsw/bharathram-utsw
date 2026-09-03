@@ -1,0 +1,293 @@
+---
+// A command-palette search (Ctrl/Cmd+K) over pages, publications, and news —
+// built entirely at build time from the same content collections the rest
+// of the site already reads, serialized once to a JSON script tag. No
+// search service, no client-side fetch — just substring filtering over a
+// small index, native <dialog> for the overlay (free focus trap + Escape).
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/url';
+
+const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+const news = (await getCollection('news', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+type Entry = { title: string; meta?: string; href: string; kind: string };
+
+const pages: Entry[] = [
+  { title: 'Home', href: '/', kind: 'page' },
+  { title: 'Research', href: '/research', kind: 'page' },
+  { title: 'Team', href: '/team', kind: 'page' },
+  { title: 'Publications', href: '/publications', kind: 'page' },
+  { title: 'News', href: '/news', kind: 'page' },
+  { title: 'Gallery', href: '/gallery', kind: 'page' },
+  { title: 'Contact', href: '/contact', kind: 'page' },
+];
+
+const pubEntries: Entry[] = publications.map((p) => ({
+  title: p.data.title,
+  meta: `${p.data.journal} · ${p.data.year}`,
+  href: '/publications',
+  kind: 'paper',
+}));
+
+const newsEntries: Entry[] = news.map((n) => ({
+  title: n.data.title,
+  meta: n.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+  href: `/news/${n.id}/`,
+  kind: 'news',
+}));
+
+const index = [...pages, ...pubEntries, ...newsEntries].map((e) => ({ ...e, href: withBase(e.href) }));
+---
+
+<button type="button" class="mono search-trigger" id="search-trigger" aria-haspopup="dialog">
+  <span>[ Search ]</span>
+  <kbd class="mono search-trigger__kbd" aria-hidden="true">⌘K</kbd>
+</button>
+
+<dialog id="search-palette" class="search-palette" aria-label="Site search">
+  <div class="search-palette__input-row">
+    <span class="mono search-palette__prompt" aria-hidden="true">&gt;</span>
+    <label for="search-input" class="visually-hidden">Search pages, publications, and news</label>
+    <input
+      type="text"
+      id="search-input"
+      class="mono search-palette__input"
+      placeholder="Search pages, publications, news…"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button type="button" class="mono search-palette__close" id="search-close" aria-label="Close search">Esc</button>
+  </div>
+  <ul class="search-palette__results" id="search-results"></ul>
+  <p class="mono search-palette__empty" id="search-empty" hidden>No results.</p>
+</dialog>
+
+<script type="application/json" id="search-index" set:html={JSON.stringify(index)} />
+
+<style>
+  .search-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: 0.45em 0.7em;
+    border: 1px solid var(--color-border);
+    background: none;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    text-align: left;
+    transition:
+      color 0.15s var(--ease-out),
+      border-color 0.15s var(--ease-out);
+  }
+
+  .search-trigger:hover {
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+  }
+
+  .search-trigger__kbd {
+    margin-left: auto;
+    font-size: var(--text-xs);
+    border: 1px solid var(--color-border-strong);
+    padding: 0.1em 0.4em;
+    color: var(--color-text-muted);
+  }
+
+  .search-palette {
+    border: 1px solid var(--color-border-strong);
+    padding: 0;
+    width: min(34rem, calc(100vw - var(--space-4)));
+    max-height: min(28rem, calc(100vh - var(--space-6)));
+    background: var(--color-bg-raised);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .search-palette::backdrop {
+    background: rgba(10, 10, 10, 0.5);
+  }
+
+  .search-palette__input-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-palette__prompt {
+    color: var(--color-accent);
+    font-size: var(--text-lg);
+  }
+
+  .search-palette__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    color: var(--color-text);
+  }
+
+  .search-palette__close {
+    flex-shrink: 0;
+    border: 1px solid var(--color-border-strong);
+    background: none;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    padding: 0.2em 0.5em;
+    cursor: pointer;
+  }
+
+  .search-palette__results {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-2);
+    overflow-y: auto;
+    max-height: 20rem;
+  }
+
+  /* Results (li/a/spans) are built by the script below via
+     document.createElement — Astro only stamps its scope attribute onto
+     elements written literally in this template, so these rules must be
+     :global() or they silently never match the dynamic nodes. */
+  :global(.search-palette__result) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.5em 0.6em;
+    text-decoration: none;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+  }
+
+  :global(.search-palette__result.is-active),
+  :global(.search-palette__result:hover) {
+    background: var(--color-bg-inset);
+  }
+
+  :global(.search-palette__result-kind) {
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+  }
+
+  :global(.search-palette__result-title) {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :global(.search-palette__result-meta) {
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .search-palette__empty {
+    padding: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>
+
+<script>
+  interface Entry {
+    title: string;
+    meta?: string;
+    href: string;
+    kind: string;
+  }
+
+  const dialog = document.getElementById('search-palette') as HTMLDialogElement | null;
+  const trigger = document.getElementById('search-trigger');
+  const closeBtn = document.getElementById('search-close');
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const resultsEl = document.getElementById('search-results');
+  const emptyEl = document.getElementById('search-empty');
+  const dataEl = document.getElementById('search-index');
+  if (!dialog || !trigger || !input || !resultsEl || !emptyEl || !dataEl) {
+    throw new Error('SearchPalette: missing required element');
+  }
+
+  const index = JSON.parse(dataEl.textContent || '[]') as Entry[];
+
+  function escapeHtml(s: string) {
+    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+  }
+
+  function filter(query: string): Entry[] {
+    const q = query.trim().toLowerCase();
+    if (!q) return index.slice(0, 8);
+    return index.filter((e) => e.title.toLowerCase().includes(q) || (e.meta ?? '').toLowerCase().includes(q)).slice(0, 8);
+  }
+
+  function render(items: Entry[]) {
+    resultsEl!.innerHTML = '';
+    emptyEl!.hidden = items.length > 0;
+    items.forEach((item, i) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = item.href;
+      a.className = 'mono search-palette__result' + (i === 0 ? ' is-active' : '');
+      a.innerHTML = `<span class="search-palette__result-kind">[${escapeHtml(item.kind)}]</span><span class="search-palette__result-title">${escapeHtml(item.title)}</span>${item.meta ? `<span class="search-palette__result-meta">${escapeHtml(item.meta)}</span>` : ''}`;
+      li.appendChild(a);
+      resultsEl!.appendChild(li);
+    });
+  }
+
+  function open() {
+    dialog!.showModal();
+    input!.value = '';
+    render(filter(''));
+    requestAnimationFrame(() => input!.focus());
+  }
+
+  function close() {
+    dialog!.close();
+  }
+
+  function moveActive(delta: number) {
+    const items = [...resultsEl!.querySelectorAll<HTMLAnchorElement>('a')];
+    if (!items.length) return;
+    const activeIdx = items.findIndex((a) => a.classList.contains('is-active'));
+    items.forEach((a) => a.classList.remove('is-active'));
+    const next = ((activeIdx >= 0 ? activeIdx : 0) + delta + items.length) % items.length;
+    items[next].classList.add('is-active');
+    items[next].scrollIntoView({ block: 'nearest' });
+  }
+
+  trigger.addEventListener('click', open);
+  closeBtn?.addEventListener('click', close);
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) close();
+  });
+  input.addEventListener('input', () => render(filter(input.value)));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveActive(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveActive(-1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      resultsEl!.querySelector<HTMLAnchorElement>('a.is-active')?.click();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (dialog!.open) close();
+      else open();
+    }
+  });
+</script>

@@ -84,6 +84,14 @@ function linkFor(item: (typeof navItems)[number]) {
     margin-bottom: var(--space-2);
   }
 
+  .site-sidebar__label::before {
+    content: '[ ';
+  }
+
+  .site-sidebar__label::after {
+    content: ' ]';
+  }
+
   .site-sidebar ul {
     list-style: none;
     margin: 0;

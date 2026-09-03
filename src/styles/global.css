@@ -133,6 +133,9 @@ cite {
   font-family: var(--font-mono);
 }
 
+/* Bracket-wrapped label — the `[ ]` device, used as structure (every eyebrow
+   site-wide) rather than a one-off decoration. Brackets are generated
+   content so the underlying text stays copy/paste-clean. */
 .eyebrow {
   display: block;
   font-family: var(--font-mono);
@@ -141,6 +144,46 @@ cite {
   text-transform: uppercase;
   color: var(--color-accent);
   margin-bottom: var(--space-1);
+}
+
+.eyebrow::before {
+  content: '[ ';
+}
+
+.eyebrow::after {
+  content: ' ]';
+}
+
+/* Corner-bracket frame — an alternative to a full .widget border for
+   graph/data panels (NetworkHero, PublicationNetwork, ResearchUpset), so not
+   every panel on a page is the same rectangle. Two opposing corner marks,
+   like a viewfinder crop mark, pure CSS (no extra markup). */
+.corner-frame {
+  position: relative;
+}
+
+.corner-frame::before,
+.corner-frame::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.corner-frame::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid var(--color-border-strong);
+  border-left: 2px solid var(--color-border-strong);
+}
+
+.corner-frame::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid var(--color-border-strong);
+  border-right: 2px solid var(--color-border-strong);
 }
 
 /* "OS widget" cell — the base hairline-bordered panel every block of
@@ -161,6 +204,14 @@ cite {
   border-bottom: 1px solid var(--color-border);
   padding-bottom: var(--space-2);
   margin-bottom: var(--space-2);
+}
+
+.widget__label::before {
+  content: '[ ';
+}
+
+.widget__label::after {
+  content: ' ]';
 }
 
 /* Full-bleed, not centered — the content pane inside the app shell already
