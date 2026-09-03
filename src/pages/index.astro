@@ -251,6 +251,11 @@ const recentPubs = publications
     background: var(--color-bg-raised);
     text-decoration: none;
     color: inherit;
+    /* An explicit zero-shadow rest state (not the implicit `none`) gives
+       the hover transition a matching shape to interpolate from —
+       animating box-shadow from `none` snaps instead of easing in some
+       browsers, which is what read as a "shake" on click. */
+    box-shadow: 0 0 0 0 transparent;
     transition: box-shadow 0.15s var(--ease-out);
   }
 
@@ -330,6 +335,9 @@ const recentPubs = publications
     background: var(--color-bg-raised);
     text-decoration: none;
     color: inherit;
+    /* See .pub-slide's comment — a real zero-shadow rest state so the
+       hover shadow eases in instead of popping in. */
+    box-shadow: 0 0 0 0 transparent;
     transition:
       background 0.15s var(--ease-out),
       box-shadow 0.15s var(--ease-out);
