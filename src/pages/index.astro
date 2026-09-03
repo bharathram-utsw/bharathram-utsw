@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NetworkHero from '../components/NetworkHero.astro';
+import FiguresGrid from '../components/FiguresGrid.astro';
 import { isVisionEra } from '../lib/publications';
 
 const publications = await getCollection('publications');
@@ -45,6 +46,8 @@ const topTopics = [...keywordCounts.entries()]
         {topTopics.map((kw) => <span class="mono widget__tag">{kw}</span>)}
       </div>
     </div>
+
+    <FiguresGrid class="home__figures reveal" />
   </div>
 </BaseLayout>
 
@@ -80,6 +83,13 @@ const topTopics = [...keywordCounts.entries()]
     font-size: var(--text-xs);
     letter-spacing: 0.03em;
     color: var(--color-text-muted);
+  }
+
+  /* FiguresGrid is a child component — its outer wrapper only ever
+     carries FiguresGrid's own scope attribute, not this page's, even for
+     a class passed in as a prop, so this needs :global(). */
+  :global(.home__figures) {
+    margin-top: var(--space-3);
   }
 
   .widget__tags {

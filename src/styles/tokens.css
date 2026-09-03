@@ -22,16 +22,15 @@
   --color-text-muted: #55555a;
   --color-text-faint: #8a8a90; /* large text only — not safe for small text */
 
-  /* ---- Color: accent — single signal red, reused everywhere a color is needed.
-     Darkened slightly from the original #e0202c: on the new off-white
-     --color-bg it computed to 4.26:1, just under AA (4.5:1) for normal
-     text — verified by contrast math, not guessed. #d01824 clears 4.5:1
-     against both --color-bg and --color-bg-raised. ---- */
-  --color-accent: #d01824;
-  --color-accent-strong: #8f0f18;
-  --color-accent-soft: #fbe4e5;
+  /* ---- Color: accent — UT Southwestern blue (PMS 2945 C ≈ #004c97),
+     reused everywhere a color is needed. Verified by contrast math:
+     ~8.5:1 on --color-bg-raised, ~7.6:1 on --color-bg — clears AA (4.5:1)
+     for normal text with room to spare on both. ---- */
+  --color-accent: #004c97;
+  --color-accent-strong: #003a75;
+  --color-accent-soft: #dce6f0;
 
-  /* ---- Color: secondary accent — kept neutral (near-black) so the red stays singular ---- */
+  /* ---- Color: secondary accent — kept neutral (near-black) so the blue stays singular ---- */
   --color-accent-2: #0a0a0a;
   --color-accent-2-strong: #000000;
   --color-accent-2-soft: #ececec;
@@ -42,7 +41,7 @@
   --color-on-ink: #ffffff;
   --color-on-ink-muted: #a3a3a3;
   --color-on-ink-border: #2e2e2e;
-  --color-accent-on-ink: #ff4d55; /* brightened red, AA-safe on --color-ink */
+  --color-accent-on-ink: #3b82f6; /* brightened blue, AA-safe (~5.4:1) on --color-ink */
 
   /* ---- Color: secondary / chrome ---- */
   --color-link: var(--color-accent);

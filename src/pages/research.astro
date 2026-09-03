@@ -64,7 +64,7 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
       retina?
     </p>
 
-    <div class="process-stack reveal">
+    <div class="process-grid reveal">
       {
         processes.map((p) => (
           <div class="widget process">
@@ -169,21 +169,29 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     margin-bottom: var(--space-2);
   }
 
-  .process-stack {
-    display: flex;
-    flex-direction: column;
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4);
   }
 
   .process__row {
     display: flex;
-    gap: var(--space-5);
-    align-items: stretch;
+    flex-direction: column;
   }
 
   .process__body {
     flex: 1;
     min-width: 0;
+  }
+
+  .process__figure {
+    order: -1;
+    margin-bottom: var(--space-3);
+  }
+
+  .process__figure img {
+    max-height: 14rem;
   }
 
   .process__head {
@@ -235,17 +243,8 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     margin-bottom: var(--space-2);
   }
 
-  .process__figure {
-    flex: 0 0 22rem;
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-  }
-
   .process__figure img {
-    flex: 1;
     width: 100%;
-    min-height: 0;
     object-fit: contain;
     background: var(--color-bg-raised);
     border: 1px solid var(--color-border);
@@ -279,17 +278,12 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
   }
 
   @media (max-width: 860px) {
-    .process__row {
-      flex-direction: column;
-    }
-
-    .process__figure {
-      flex: 0 0 auto;
-      order: -1;
+    .process-grid {
+      grid-template-columns: 1fr;
     }
 
     .process__figure img {
-      max-height: 16rem;
+      max-height: 18rem;
     }
   }
 

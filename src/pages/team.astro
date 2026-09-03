@@ -63,7 +63,16 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
   }
 
   .team-page__roster {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
     margin-bottom: var(--space-6);
+  }
+
+  @media (max-width: 900px) {
+    .team-page__roster {
+      grid-template-columns: 1fr;
+    }
   }
 
   .team-page__hiring h2 {

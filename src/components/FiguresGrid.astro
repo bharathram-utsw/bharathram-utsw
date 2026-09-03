@@ -1,0 +1,158 @@
+---
+// A grayscale-by-default, color-on-hover grid of real figures — the two
+// research-program diagrams (also used full-size on the Research page)
+// plus any publication with an `image` set. Home-only: gives the page
+// real, non-decorative content instead of a single sparse tile. Laid out
+// as an asymmetric grid (one feature tile + smaller ones) rather than a
+// uniform tiling, closer to the varied-size reference the lab pointed to.
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/url';
+
+interface Props {
+  eyebrow?: string;
+  class?: string;
+}
+
+const { eyebrow = 'Selected figures', class: className } = Astro.props;
+
+const publications = await getCollection('publications');
+const pubFigures = publications
+  .filter((p) => p.data.image)
+  .sort((a, b) => b.data.year - a.data.year)
+  .map((pub) => ({
+    title: pub.data.title,
+    meta: `${pub.data.journal} · ${pub.data.year}`,
+    image: pub.data.image!,
+    imageAlt: pub.data.imageAlt ?? '',
+    href: pub.data.doi ?? pub.data.url,
+    external: true,
+  }));
+
+// Same two diagrams shown full-size on /research — duplicated here in
+// miniature (matching the existing nav-items duplication pattern between
+// SiteHeader and SearchPalette) rather than pulling in that page's whole
+// text-heavy `processes` array.
+const researchFigures = [
+  {
+    title: 'Retinal Diseasome Assembly',
+    meta: 'Research · multi-omic QTL framework',
+    image: '/images/epigenetic-qtl-diagram.jpg',
+    imageAlt:
+      'Diagram of quantitative trait loci linking genotype to DNA methylation, histone modification, and gene expression',
+    href: '/research',
+    external: false,
+  },
+  {
+    title: 'Environmental–Molecular Interactions in Retinal Aging',
+    meta: 'Research · aging mouse model',
+    image: '/images/retinal-aging-diagram.jpg',
+    imageAlt: 'Diagram of visual function decline with age across genetic, structural, and functional factors',
+    href: '/research',
+    external: false,
+  },
+];
+
+const figured = [...researchFigures, ...pubFigures];
+---
+
+{
+  figured.length > 0 && (
+    <div class:list={['figures-grid-wrap', className]}>
+      <span class="eyebrow">{eyebrow}</span>
+      <div class="figures-grid">
+        {figured.map((fig, i) => (
+          <a
+            class:list={['figure-tile', { 'figure-tile--feature': i === 0 }]}
+            href={fig.external ? fig.href : withBase(fig.href)}
+            target={fig.external ? '_blank' : undefined}
+            rel={fig.external ? 'noopener noreferrer' : undefined}
+          >
+            <img src={withBase(fig.image)} alt={fig.imageAlt} loading="lazy" />
+            <span class="figure-tile__overlay">
+              <span class="figure-tile__title">{fig.title}</span>
+              <span class="mono figure-tile__meta">{fig.meta}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .figures-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    grid-auto-rows: 12rem;
+    grid-auto-flow: dense;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  .figure-tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+  }
+
+  /* First tile reads as the feature image — tall, spanning both rows of
+     its pair, echoing the reference grid's mix of tall/short crops. */
+  .figure-tile--feature {
+    grid-row: span 2;
+  }
+
+  .figure-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: grayscale(1);
+    transition: filter 0.3s var(--ease-out);
+  }
+
+  .figure-tile:hover img,
+  .figure-tile:focus-visible img {
+    filter: grayscale(0);
+  }
+
+  .figure-tile__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.3em;
+    padding: var(--space-3);
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0) 60%);
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+
+  .figure-tile:hover .figure-tile__overlay,
+  .figure-tile:focus-visible .figure-tile__overlay {
+    opacity: 1;
+  }
+
+  .figure-tile__title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: var(--leading-snug);
+  }
+
+  .figure-tile__meta {
+    font-size: var(--text-xs);
+    color: #d4d4d6;
+  }
+
+  @media (max-width: 640px) {
+    .figures-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .figure-tile--feature {
+      grid-row: auto;
+    }
+  }
+</style>
