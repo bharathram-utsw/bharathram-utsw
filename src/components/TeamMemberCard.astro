@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import Avatar from './Avatar.astro';
+import TopicIcon from './TopicIcon.astro';
 
 interface Props {
   member: CollectionEntry<'team'>;
@@ -17,21 +18,23 @@ const hasBio = Boolean(body?.trim());
 const { Content } = await render(member);
 const avatarSize = featured ? 320 : 224;
 
-// A small icon per interest — falls back to a plain bullet for anything
-// not in this list, so a new member's interests never break the layout.
+// A Material Symbols icon per interest (same source as Home's
+// TopicIcon — real glyph names from fonts.google.com/icons) — falls back
+// to a generic star for anything not in this list, so a new member's
+// interests never break the layout.
 const HOBBY_ICONS: Record<string, string> = {
-  climbing: '🧗',
-  running: '🏃',
-  mountains: '⛰️',
-  hiking: '🥾',
-  history: '📜',
-  travel: '✈️',
-  cooking: '🍳',
-  reading: '📚',
-  music: '🎵',
-  photography: '📷',
-  cycling: '🚴',
-  swimming: '🏊',
+  climbing: 'hiking',
+  running: 'directions_run',
+  mountains: 'landscape',
+  hiking: 'hiking',
+  history: 'history_edu',
+  travel: 'flight',
+  cooking: 'restaurant',
+  reading: 'menu_book',
+  music: 'music_note',
+  photography: 'photo_camera',
+  cycling: 'directions_bike',
+  swimming: 'pool',
 };
 ---
 
@@ -53,13 +56,17 @@ const HOBBY_ICONS: Record<string, string> = {
     }
     {
       data.interests.length > 0 && (
-        <ul class="mono team-card__interests">
-          {data.interests.map((interest) => (
-            <li>
-              <span aria-hidden="true">{HOBBY_ICONS[interest.toLowerCase()] ?? '•'}</span> {interest}
-            </li>
-          ))}
-        </ul>
+        <div class="team-card__interests">
+          <span class="mono team-card__interests-label">Hobbies:</span>
+          <ul class="team-card__interests-list">
+            {data.interests.map((interest) => (
+              <li title={interest}>
+                <TopicIcon name={HOBBY_ICONS[interest.toLowerCase()] ?? 'star'} class="team-card__interest-icon" />
+                <span class="visually-hidden">{interest}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )
     }
     {data.email && (
@@ -133,14 +140,40 @@ const HOBBY_ICONS: Record<string, string> = {
 
   .team-card__interests {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 0.6em 1.2em;
+    gap: 0.7em;
     margin-top: var(--space-3);
   }
 
-  .team-card__interests li {
+  .team-card__interests-label {
     font-size: var(--text-xs);
     color: var(--color-text-muted);
+  }
+
+  .team-card__interests-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+
+  .team-card__interests-list li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  /* TopicIcon renders a raw <svg> via set:html — Astro only scopes
+     elements it writes literally in this file's own template, so the
+     class passed as a prop needs :global() to actually match it. */
+  :global(.team-card__interest-icon) {
+    width: 1.35rem;
+    height: 1.35rem;
   }
 
   .team-card__email {
