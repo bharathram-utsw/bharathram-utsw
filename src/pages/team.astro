@@ -7,16 +7,35 @@ import NetworkDivider from '../components/NetworkDivider.astro';
 import { withBase } from '../lib/url';
 
 const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
+const pi = team.find((m) => m.data.isPI);
+const others = team.filter((m) => !m.data.isPI);
 ---
 
 <BaseLayout title="Team" description="Meet the Mondal Lab team at UT Southwestern Medical Center.">
   <div class="container team-page">
     <SectionHeading eyebrow="Who we are" level="h1">Team</SectionHeading>
 
-    <p class="widget__label team-page__roster-label">Roster · {team.length} {team.length === 1 ? 'member' : 'members'}</p>
-    <div class="team-page__roster">
-      {team.map((member) => <TeamMemberCard member={member} />)}
-    </div>
+    {
+      pi && (
+        <div class="team-page__pi">
+          <p class="widget__label">Principal investigator</p>
+          <TeamMemberCard member={pi} featured />
+        </div>
+      )
+    }
+
+    {
+      others.length > 0 && (
+        <>
+          <p class="widget__label team-page__roster-label">
+            Roster · {others.length} {others.length === 1 ? 'member' : 'members'}
+          </p>
+          <div class="team-page__roster">
+            {others.map((member) => <TeamMemberCard member={member} />)}
+          </div>
+        </>
+      )
+    }
 
     <NetworkDivider />
 
@@ -56,6 +75,14 @@ const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.
 <style>
   .team-page {
     padding-block: var(--space-6);
+  }
+
+  .team-page__pi {
+    margin-bottom: var(--space-6);
+  }
+
+  .team-page__pi .widget__label {
+    margin-bottom: var(--space-2);
   }
 
   .team-page__roster-label {

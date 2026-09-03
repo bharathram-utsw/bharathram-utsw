@@ -96,10 +96,10 @@ h1 {
   letter-spacing: 0.005em;
 }
 h2 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-3xl);
 }
 h3 {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
 }
 h4 {
   font-size: var(--text-lg);
@@ -217,15 +217,21 @@ cite {
   content: ' ]';
 }
 
-/* Full-bleed, not centered — a canvas/graph placed in a .container should
-   reach the viewport's real edges rather than floating in a narrower
-   centered column. Side padding scales with the viewport instead of a
-   fixed 2rem, which read as too tight on wide screens. At a common
-   1440px laptop width this now lands around 7.5rem/side (was 5.4rem);
-   the 10rem cap isn't reached until roughly 2000px wide. */
+/* Centered, not full-bleed — content settles into --content-width and
+   gets equal space on both sides on wide screens ("padding from the
+   middle") instead of stretching edge to edge with padding on the left
+   only balanced by more empty room on the right. Padding scales off a %
+   of the container's own (now-capped) width rather than vw — vw is
+   relative to the viewport, so past --content-width it would keep
+   growing on top of the auto-margins already doing that job, squeezing
+   the inner content narrower than intended. The one exception is the
+   Home hero (Mondal Lab + the Circos graph) — see .home__hero's own
+   full-bleed override — which stays edge-to-edge on purpose. */
 .container {
   width: 100%;
-  padding-inline: clamp(var(--space-5), 8vw, 10rem);
+  max-width: var(--content-width);
+  margin-inline: auto;
+  padding-inline: clamp(var(--space-4), 5%, var(--space-6));
 }
 
 .prose {

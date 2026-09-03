@@ -1,7 +1,7 @@
 ---
 name: "Ema Bidiwala"
 role: "Postdoctoral Fellow"
-order: 2
+order: 1
 interests: []
 isPI: false
 ---

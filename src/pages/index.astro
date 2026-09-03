@@ -188,12 +188,22 @@ const recentPubs = publications
     padding-block: var(--space-5) var(--space-7);
   }
 
+  /* The one section that stays full-bleed instead of settling into the
+     new centered .container — breaks out to the true viewport width
+     (the standard calc(50% - 50vw) trick) and reapplies .container's old
+     viewport-scaling padding formula so it keeps its previous edge-to-
+     edge look regardless of how narrow --content-width makes everything
+     below it. */
   .home__hero {
     display: grid;
     grid-template-columns: minmax(320px, 1fr) minmax(280px, 1fr);
     gap: var(--space-4);
     align-items: center;
     margin-bottom: var(--space-6);
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding-inline: clamp(var(--space-5), 8vw, 10rem);
   }
 
   .home__hero-graph {
@@ -293,6 +303,12 @@ const recentPubs = publications
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transition: color 0.15s var(--ease-out);
+  }
+
+  .pub-slide:hover .pub-slide__title,
+  .pub-slide:focus-visible .pub-slide__title {
+    color: var(--color-accent);
   }
 
   .pub-slide__meta {
@@ -321,7 +337,7 @@ const recentPubs = publications
 
   .topic-slide:hover,
   .topic-slide:focus-visible {
-    background: var(--color-bg-inset);
+    background: var(--color-accent-soft);
     box-shadow: var(--shadow-card-hover);
   }
 
@@ -332,8 +348,8 @@ const recentPubs = publications
     width: 4.5rem;
     height: 4.5rem;
     border-radius: 50%;
-    background: var(--color-bg-inset);
-    color: var(--color-text);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
   }
 
   /* TopicIcon renders a raw <svg> via set:html — Astro only scopes
@@ -357,6 +373,7 @@ const recentPubs = publications
   /* ---- Mission ---- */
   .home__mission {
     max-width: 62ch;
+    margin-inline: auto;
     margin-bottom: var(--space-7);
   }
 
@@ -374,13 +391,13 @@ const recentPubs = publications
 
   .home__mission-list li {
     padding-left: var(--space-3);
-    border-left: 2px solid var(--color-border);
+    border-left: 2px solid var(--color-accent);
     font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 
   .home__mission-list strong {
-    color: var(--color-text);
+    color: var(--color-accent);
   }
 
   /* ---- Lab Head ---- */

@@ -5,12 +5,17 @@ import Avatar from './Avatar.astro';
 
 interface Props {
   member: CollectionEntry<'team'>;
+  // The PI's card reads as the lead of the roster, not just another
+  // entry in the grid — bigger photo, bigger name, sits alone above the
+  // rest rather than sharing a row with them.
+  featured?: boolean;
 }
 
-const { member } = Astro.props;
+const { member, featured = false } = Astro.props;
 const { data, body } = member;
 const hasBio = Boolean(body?.trim());
 const { Content } = await render(member);
+const avatarSize = featured ? 320 : 224;
 
 // A small icon per interest — falls back to a plain bullet for anything
 // not in this list, so a new member's interests never break the layout.
@@ -30,9 +35,9 @@ const HOBBY_ICONS: Record<string, string> = {
 };
 ---
 
-<article class="team-card">
+<article class:list={['team-card', { 'team-card--featured': featured }]}>
   <div class="team-card__photo-frame">
-    <Avatar name={data.name} size={224} class="team-card__photo" />
+    <Avatar name={data.name} size={avatarSize} class="team-card__photo" />
   </div>
   <div class="team-card__body">
     <h2>{data.name}</h2>
@@ -71,6 +76,19 @@ const HOBBY_ICONS: Record<string, string> = {
     padding: var(--space-4);
     border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
+  }
+
+  /* Featured (PI) card: bigger photo column, a top accent bar, and a
+     bigger name — the visual hierarchy the roster was missing between
+     the lead and the rest of the team. */
+  .team-card--featured {
+    grid-template-columns: 18rem 1fr;
+    border-top: 3px solid var(--color-accent);
+    padding-top: calc(var(--space-4) - 2px);
+  }
+
+  .team-card--featured .team-card__body h2 {
+    font-size: var(--text-3xl);
   }
 
   .team-card__photo-frame {

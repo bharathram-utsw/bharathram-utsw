@@ -76,7 +76,14 @@ function isActive(href: string) {
     border-bottom: 1px solid var(--color-border);
   }
 
+  /* The header is persistent chrome, not page content — it stays
+     full-bleed like the Home hero rather than settling into
+     .container's new centered --content-width, which was making it
+     narrow enough to wrap onto two lines. */
   .site-header__nav-inner {
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: clamp(var(--space-5), 8vw, 10rem);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
