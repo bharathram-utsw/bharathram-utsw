@@ -1,86 +1,177 @@
 ---
-import NetworkDivider from './NetworkDivider.astro';
+// A persistent taskbar, not an in-flow footer — fixed to the viewport
+// bottom on every page, the way a Windows-style taskbar never scrolls away.
+// The Start button (the lab's own icon) opens the same primary nav as
+// SiteSidebar, so it doubles as the one nav trigger on mobile, where the
+// sidebar is hidden — SiteHeader's old mobile dropdown was removed in favor
+// of this single, consistent affordance.
 import { withBase } from '../lib/url';
 
-const year = new Date().getFullYear();
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/research', label: 'Research' },
+  { href: '/team', label: 'Team' },
+  { href: '/publications', label: 'Publications' },
+  { href: '/news', label: 'News' },
+  { href: '/gallery', label: 'Gallery' },
+  { href: '/contact', label: 'Contact' },
+];
+
+const currentPath = Astro.url.pathname;
+
+function isActive(href: string) {
+  const based = withBase(href);
+  if (href === '/') return currentPath === based;
+  return currentPath === based || currentPath.startsWith(`${based}/`);
+}
 ---
 
-<footer class="site-footer">
-  <div class="container">
-    <NetworkDivider class="site-footer__divider" />
-    <div class="site-footer__grid">
-      <div>
-        <p class="mono site-footer__lab">Mondal Lab</p>
-        <p class="site-footer__address">UT Southwestern Medical Center · Dallas, TX</p>
-      </div>
-      <nav aria-label="Footer">
-        <ul class="site-footer__links">
-          <li><a href={withBase('/research')}>Research</a></li>
-          <li><a href={withBase('/team')}>Team</a></li>
-          <li><a href={withBase('/publications')}>Publications</a></li>
-          <li><a href={withBase('/news')}>News</a></li>
-          <li><a href={withBase('/gallery')}>Gallery</a></li>
-          <li><a href={withBase('/contact')}>Contact</a></li>
-        </ul>
-      </nav>
-    </div>
-    <p class="mono site-footer__copyright">© {year} Mondal Lab. All rights reserved.</p>
+<footer class="taskbar">
+  <details class="taskbar__start">
+    <summary class="taskbar__start-button" aria-haspopup="true">
+      <img src={withBase('/icon.png')} alt="" class="taskbar__start-icon" />
+      <span class="mono">Start</span>
+    </summary>
+    <nav class="taskbar__menu" aria-label="Primary">
+      <ul>
+        {
+          navItems.map((item) => (
+            <li>
+              <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </details>
+
+  <div class="taskbar__tray">
+    <span class="mono taskbar__clock" id="taskbar-clock" aria-hidden="true"></span>
   </div>
 </footer>
 
 <style>
-  .site-footer {
-    padding-block: var(--space-6) var(--space-4);
-    border-top: none;
-  }
-
-  .site-footer__divider {
-    margin-top: 0;
-    margin-bottom: var(--space-5);
-  }
-
-  .site-footer__grid {
+  .taskbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding-bottom: var(--space-5);
+    align-items: stretch;
+    height: var(--taskbar-height);
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
   }
 
-  .site-footer__lab {
-    font-size: var(--text-sm);
+  .taskbar__start {
+    position: relative;
+  }
+
+  .taskbar__start-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    height: 100%;
+    padding-inline: var(--space-3);
+    border-right: 1px solid var(--color-border);
+    cursor: pointer;
+    list-style: none;
     color: var(--color-text);
-    margin-bottom: var(--space-1);
-  }
-
-  .site-footer__address {
     font-size: var(--text-sm);
-    color: var(--color-text-muted);
+    transition: background 0.15s var(--ease-out);
   }
 
-  .site-footer__links {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
+  .taskbar__start-button::-webkit-details-marker {
+    display: none;
   }
 
-  .site-footer__links a {
+  .taskbar__start-button:hover {
+    background: var(--color-bg-inset);
+  }
+
+  .taskbar__start[open] .taskbar__start-button {
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  .taskbar__start-icon {
+    width: 1.6em;
+    height: 1.6em;
+  }
+
+  .taskbar__menu {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    min-width: 12rem;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .taskbar__menu ul {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-1);
+  }
+
+  .taskbar__menu a {
+    display: block;
+    padding: 0.6em var(--space-2);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    letter-spacing: 0.03em;
     text-transform: uppercase;
+    letter-spacing: 0.03em;
     color: var(--color-text-muted);
     text-decoration: none;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
-  .site-footer__links a:hover {
+  .taskbar__menu a:hover {
+    background: var(--color-bg-inset);
+    color: var(--color-text);
+  }
+
+  .taskbar__menu a[aria-current='page'] {
     color: var(--color-accent);
   }
 
-  .site-footer__copyright {
+  .taskbar__tray {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--space-3);
+    border-left: 1px solid var(--color-border);
     font-size: var(--text-xs);
     color: var(--color-text-muted);
-    border-top: 1px solid var(--color-border);
-    padding-top: var(--space-3);
   }
 </style>
+
+<script>
+  const clockEl = document.getElementById('taskbar-clock');
+
+  function updateClock() {
+    if (!clockEl) return;
+    clockEl.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  updateClock();
+  setInterval(updateClock, 15000);
+
+  // <details> already toggles open/closed on summary click — this just adds
+  // the two extra dismiss paths a real menu needs.
+  const startMenu = document.querySelector('.taskbar__start') as HTMLDetailsElement | null;
+
+  document.addEventListener('click', (e) => {
+    if (startMenu?.open && !startMenu.contains(e.target as Node)) startMenu.open = false;
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && startMenu?.open) startMenu.open = false;
+  });
+</script>

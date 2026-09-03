@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../lib/url';
 
 interface Props {
   id: string;
@@ -27,6 +28,15 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
   itemscope
   itemtype="https://schema.org/ScholarlyArticle"
 >
+  {pub.image && (
+    <img
+      class="pub-card__figure"
+      src={withBase(pub.image)}
+      alt={pub.imageAlt ?? ''}
+      loading="lazy"
+    />
+  )}
+
   <div class="pub-card__top">
     <span class="mono pub-card__year">{pub.year}</span>
     {pub.featured && <span class="pub-card__badge">Featured</span>}
@@ -107,6 +117,15 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
 
   .pub-card[data-dimmed='true'] {
     opacity: 0.35;
+  }
+
+  .pub-card__figure {
+    width: 100%;
+    max-height: 22rem;
+    object-fit: contain;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--space-3);
   }
 
   .pub-card__top {

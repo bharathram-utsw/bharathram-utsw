@@ -5,24 +5,6 @@ import SearchPalette from '../SearchPalette.astro';
 const today = new Date()
   .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
   .toUpperCase();
-
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/research', label: 'Research' },
-  { href: '/team', label: 'Team' },
-  { href: '/publications', label: 'Publications' },
-  { href: '/news', label: 'News' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/contact', label: 'Contact' },
-];
-
-const currentPath = Astro.url.pathname;
-
-function isActive(href: string) {
-  const based = withBase(href);
-  if (href === '/') return currentPath === based;
-  return currentPath === based || currentPath.startsWith(`${based}/`);
-}
 ---
 
 <header class="site-header">
@@ -32,7 +14,7 @@ function isActive(href: string) {
     </div>
 
     <a class="site-header__wordmark" href={withBase('/')}>
-      <span class="mono site-header__mark">ML</span>
+      <img src={withBase('/icon.png')} alt="" class="site-header__mark" />
       <span class="site-header__name">Mondal Lab</span>
     </a>
 
@@ -43,28 +25,6 @@ function isActive(href: string) {
     <div class="site-header__search">
       <SearchPalette />
     </div>
-
-    <!-- Mobile nav: the persistent index sidebar (SiteSidebar) hides below
-         860px, so this is the only way to reach it on narrow viewports.
-         Pure HTML/CSS, no JS. -->
-    <details class="site-header__mobile">
-      <summary aria-label="Open menu">
-        <span class="mono">Menu</span>
-      </summary>
-      <nav aria-label="Primary">
-        <ul>
-          {
-            navItems.map((item) => (
-              <li>
-                <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
-                  {item.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-    </details>
   </div>
 </header>
 
@@ -110,15 +70,8 @@ function isActive(href: string) {
   }
 
   .site-header__mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.6em;
-    height: 1.6em;
-    border: 1px solid var(--color-text);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    width: 1.8em;
+    height: 1.8em;
   }
 
   .site-header__name {
@@ -184,77 +137,4 @@ function isActive(href: string) {
     }
   }
 
-  .site-header__mobile {
-    display: block;
-  }
-
-  @media (min-width: 860px) {
-    .site-header__mobile {
-      display: none;
-    }
-  }
-
-  @media (max-width: 859px) {
-    .site-header__mobile {
-      position: relative;
-    }
-
-    .site-header__mobile summary {
-      list-style: none;
-      cursor: pointer;
-      font-size: var(--text-sm);
-      padding: var(--space-1) 0;
-      color: var(--color-text);
-    }
-
-    .site-header__mobile summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .site-header__mobile summary::before {
-      content: '≡ ';
-    }
-
-    .site-header__mobile[open] summary::before {
-      content: '✕ ';
-    }
-
-    .site-header__mobile nav {
-      position: absolute;
-      right: 0;
-      top: calc(100% + var(--space-1));
-      background: var(--color-bg-raised);
-      border: 1px solid var(--color-border);
-      min-width: 12rem;
-      padding: var(--space-2);
-      box-shadow: var(--shadow-card);
-    }
-
-    .site-header__mobile nav ul {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    .site-header__mobile nav a {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: var(--text-sm);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      text-decoration: none;
-      padding: var(--space-2) var(--space-1);
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-    }
-
-    .site-header__mobile nav a[aria-current='page'] {
-      color: var(--color-accent);
-    }
-  }
 </style>

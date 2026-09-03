@@ -74,6 +74,9 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
+  /* SiteFooter is a fixed taskbar, not in normal flow — reserve its height
+     so it never covers the last bit of real content. */
+  padding-bottom: var(--taskbar-height);
 }
 
 h1,

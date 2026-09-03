@@ -31,6 +31,10 @@ const publications = defineCollection({
     // From Google Scholar (scholar.google.com/citations?user=hEeFsEYAAAAJ) —
     // powers sort/filter on the Publications page.
     citations: z.number().int().optional(),
+    // A real figure from the paper itself (not a generic thumbnail) —
+    // most entries won't have one yet.
+    image: z.string().optional(),
+    imageAlt: z.string().optional(),
   }),
 });
 

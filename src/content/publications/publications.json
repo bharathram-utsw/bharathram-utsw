@@ -201,7 +201,9 @@
       "Photoreceptor Degeneration",
       "Retinal Degeneration"
     ],
-    "summary": "Combined transcriptomics, proteomics, and direct measurements of mitochondrial function in a classic mouse model of inherited blindness to show that metabolic and mitochondrial stress precede \u2014 and likely drive \u2014 photoreceptor cell death, rather than simply following it."
+    "summary": "Combined transcriptomics, proteomics, and direct measurements of mitochondrial function in a classic mouse model of inherited blindness to show that metabolic and mitochondrial stress precede \u2014 and likely drive \u2014 photoreceptor cell death, rather than simply following it.",
+    "image": "/images/photoreceptor-degeneration-mouse-model.jpg",
+    "imageAlt": "Multi-panel figure showing heatmaps, volcano plots, and pathway enrichment across P6/P10/P14 in WT vs. Pde6b-rd1/rd1 mouse photoreceptors, with a schematic of the disease progression from altered cell cycle to photoreceptor degeneration"
   },
   {
     "id": "singh-2021-msystems",
