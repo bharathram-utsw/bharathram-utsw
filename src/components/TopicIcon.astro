@@ -1,0 +1,37 @@
+---
+// Real Material Symbols glyphs (Google Fonts Icons), self-hosted from the
+// @material-symbols/svg-400 package and inlined at build time — same
+// "no external CDN request" convention the site already uses for its
+// @fontsource text fonts. Inlining (rather than an <img> or icon font)
+// lets the icon inherit `color` via `fill="currentColor"`, so it follows
+// the same hover/theme rules as any other text on the card.
+//
+// import.meta.glob (not fs.readFileSync) because a plain relative fs path
+// resolves against the SOURCE file location in dev, but the production
+// build bundles this component into a chunk under dist/.prerender/ with
+// no node_modules alongside it — glob + ?raw makes Vite inline each SVG's
+// contents into the built JS at compile time, so there's nothing to read
+// from disk at render time either way.
+const icons = import.meta.glob('../../node_modules/@material-symbols/svg-400/outlined/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
+
+interface Props {
+  name: string;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+
+const key = `../../node_modules/@material-symbols/svg-400/outlined/${name}.svg`;
+const raw = icons[key];
+if (!raw) throw new Error(`TopicIcon: no Material Symbol named "${name}"`);
+
+const svg = raw
+  .replace(/\s(width|height)="48"/g, '')
+  .replace('<svg ', `<svg fill="currentColor" class="${className ?? ''}" `);
+---
+
+<Fragment set:html={svg} />
