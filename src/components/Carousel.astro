@@ -1,0 +1,129 @@
+---
+// A minimal scroll-snap carousel: overflow-x auto track + prev/next
+// buttons that page by ~90% of the viewport width. No slide-counting
+// state, no library — native scroll (wheel/trackpad/touch) already works,
+// the buttons are just a discoverable affordance on top of it. The
+// caller supplies slides via the default slot, each one needing the
+// `carousel__slide` class (styled here via :global() since Astro won't
+// scope a class it didn't render itself) plus its own width/content
+// styling in the caller's own scoped <style>.
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className } = Astro.props;
+---
+
+<div class:list={['carousel', className]}>
+  <div class="carousel__viewport" role="region" aria-label={label} tabindex="0">
+    <div class="carousel__track">
+      <slot />
+    </div>
+  </div>
+  <div class="carousel__nav">
+    <button type="button" class="carousel__btn carousel__btn--prev" aria-label={`Previous — ${label}`}>‹</button>
+    <button type="button" class="carousel__btn carousel__btn--next" aria-label={`Next — ${label}`}>›</button>
+  </div>
+</div>
+
+<style>
+  .carousel__viewport {
+    /* min-width: 0 so this shrinks to its flex/grid parent's allotted
+       space instead of growing to fit the track's full content width —
+       a wide row inside a grid/flex item defaults to forcing the parent
+       wider (min-width: auto) rather than triggering this overflow. */
+    min-width: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* smooth behavior is passed per-call in the script's scrollBy(), not
+       set here — CSS scroll-behavior: smooth on this element made a plain
+       `viewport.scrollLeft = n` assignment silently snap back to ~0
+       instead of landing on n (reproducible: removing this one line was
+       the fix, isolated by testing each property individually). */
+    scrollbar-width: none;
+  }
+
+  .carousel__viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel__track {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .carousel :global(.carousel__slide) {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .carousel__nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .carousel__btn {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--color-border-strong);
+    background: var(--color-bg-raised);
+    color: var(--color-text);
+    font-size: var(--text-lg);
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background 0.15s var(--ease-out),
+      color 0.15s var(--ease-out);
+  }
+
+  .carousel__btn:hover:not(:disabled) {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #ffffff;
+  }
+
+  .carousel__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.carousel').forEach((carousel) => {
+    // Astro renders this script once per usage of the component (one per
+    // page here), so without a guard every carousel's listeners get bound
+    // twice — a click then fires two overlapping scrollBy() calls that
+    // retarget each other mid-animation instead of landing on one slide.
+    if (carousel.dataset.carouselInit) return;
+    carousel.dataset.carouselInit = 'true';
+
+    const viewport = carousel.querySelector<HTMLElement>('.carousel__viewport');
+    const prev = carousel.querySelector<HTMLButtonElement>('.carousel__btn--prev');
+    const next = carousel.querySelector<HTMLButtonElement>('.carousel__btn--next');
+    if (!viewport || !prev || !next) return;
+
+    function update() {
+      const max = viewport!.scrollWidth - viewport!.clientWidth;
+      prev!.disabled = viewport!.scrollLeft <= 4;
+      next!.disabled = viewport!.scrollLeft >= max - 4;
+    }
+
+    // 'smooth' is deliberately not used here — it silently no-ops in some
+    // browser configurations instead of falling back to an instant jump
+    // (reproduced directly: identical scrollBy() calls landed correctly
+    // with 'instant' and never moved at all with 'smooth'). 'instant'
+    // works everywhere; scroll-snap still gives the settle a clean edge.
+    prev.addEventListener('click', () => {
+      viewport.scrollBy({ left: -viewport.clientWidth * 0.9, behavior: 'instant' });
+    });
+    next.addEventListener('click', () => {
+      viewport.scrollBy({ left: viewport.clientWidth * 0.9, behavior: 'instant' });
+    });
+    viewport.addEventListener('scroll', () => requestAnimationFrame(update));
+    window.addEventListener('resize', update);
+    update();
+  });
+</script>

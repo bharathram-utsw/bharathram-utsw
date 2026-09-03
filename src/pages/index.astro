@@ -1,11 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
 import NetworkHero from '../components/NetworkHero.astro';
-import FiguresGrid from '../components/FiguresGrid.astro';
+import Carousel from '../components/Carousel.astro';
+import Avatar from '../components/Avatar.astro';
 import { isVisionEra } from '../lib/publications';
+import { withBase } from '../lib/url';
 
 const publications = await getCollection('publications');
+const team = await getCollection('team');
+const pi = team.find((m) => m.data.isPI);
 
 const visionPubs = publications.filter((p) => isVisionEra(p.data.keywords));
 const keywordCounts = new Map<string, number>();
@@ -14,10 +19,49 @@ for (const pub of visionPubs) {
     keywordCounts.set(kw, (keywordCounts.get(kw) ?? 0) + 1);
   }
 }
-const topTopics = [...keywordCounts.entries()]
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 12)
-  .map(([label]) => label);
+const topTopics = [...keywordCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+
+// A small icon per topic — matches the same "cute icon per label" device
+// already used for team interests (see TeamMemberCard's HOBBY_ICONS) —
+// falls back to a plain diamond for any keyword not in this list, so a
+// new publication's keywords never break the layout.
+const TOPIC_ICONS: Record<string, string> = {
+  metabolism: '🔥',
+  retina: '👁️',
+  aging: '⏳',
+  photoreceptor: '🔬',
+  transcriptomics: '📊',
+  reserpine: '💊',
+  epigenome: '🧬',
+  'retinal degeneration': '⚠️',
+  'photoreceptor degeneration': '⚠️',
+  diet: '🍎',
+  'retinal organoids': '🧫',
+  'stem cells': '🌱',
+};
+
+const topicSlides = topTopics.map(([label, count]) => ({
+  label,
+  count,
+  icon: TOPIC_ICONS[label.toLowerCase()] ?? '🔹',
+}));
+
+const recentPubs = publications
+  .slice()
+  .sort((a, b) => b.data.year - a.data.year)
+  .slice(0, 8)
+  .map((p) => {
+    const href = p.data.doi ?? p.data.url;
+    return {
+      title: p.data.title,
+      journal: p.data.journal,
+      year: p.data.year,
+      image: p.data.image,
+      imageAlt: p.data.imageAlt,
+      href: href ?? withBase('/publications'),
+      external: Boolean(href),
+    };
+  });
 ---
 
 <BaseLayout title="Mondal Lab">
@@ -25,11 +69,6 @@ const topTopics = [...keywordCounts.entries()]
     <div class="home__hero reveal">
       <div class="home__intro">
         <h1>Mondal Lab</h1>
-        <p class="prose home__mission">
-          We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
-          to discover mechanisms that maintain healthy vision and identify the earliest molecular
-          patterns linked with blindness.
-        </p>
         <p class="mono home__affiliation">
           UT Southwestern Medical Center · Department of Ophthalmology · Dallas, TX
         </p>
@@ -40,14 +79,106 @@ const topTopics = [...keywordCounts.entries()]
       </div>
     </div>
 
-    <div class="widget home__topics reveal">
-      <p class="widget__label">Topics</p>
-      <div class="widget__tags">
-        {topTopics.map((kw) => <span class="mono widget__tag">{kw}</span>)}
-      </div>
+    <div class="home__explore reveal">
+      <section class="home__explore-col">
+        <span class="eyebrow">Recent publications</span>
+        <Carousel label="Recent publications">
+          {
+            recentPubs.map((pub) => (
+              <a
+                class="pub-slide carousel__slide"
+                href={pub.href}
+                target={pub.external ? '_blank' : undefined}
+                rel={pub.external ? 'noopener noreferrer' : undefined}
+              >
+                {pub.image ? (
+                  <span class="pub-slide__figure">
+                    <img src={withBase(pub.image)} alt={pub.imageAlt ?? ''} loading="lazy" />
+                  </span>
+                ) : (
+                  <span class="mono pub-slide__year">{pub.year}</span>
+                )}
+                <span class="pub-slide__body">
+                  <span class="pub-slide__title">{pub.title}</span>
+                  <span class="mono pub-slide__meta">
+                    {pub.journal} · {pub.year}
+                  </span>
+                </span>
+              </a>
+            ))
+          }
+        </Carousel>
+      </section>
+
+      <section class="home__explore-col">
+        <span class="eyebrow">Research topics</span>
+        <Carousel label="Research topics">
+          {
+            topicSlides.map((topic) => (
+              <a class="topic-slide carousel__slide" href={withBase('/publications')}>
+                <span class="topic-slide__icon" aria-hidden="true">
+                  {topic.icon}
+                </span>
+                <span class="topic-slide__label">{topic.label}</span>
+                <span class="mono topic-slide__count">
+                  {topic.count} {topic.count === 1 ? 'paper' : 'papers'}
+                </span>
+              </a>
+            ))
+          }
+        </Carousel>
+      </section>
     </div>
 
-    <FiguresGrid class="home__figures reveal" />
+    <section class="home__mission reveal">
+      <SectionHeading eyebrow="Why we do this" level="h2">
+        Mission
+      </SectionHeading>
+      <p class="prose home__mission-statement">
+        We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
+        to discover mechanisms that maintain healthy vision and identify the earliest molecular
+        patterns linked with blindness.
+      </p>
+      <ul class="home__mission-list">
+        <li>
+          <strong>Multi-omic integration</strong> — genomic, transcriptomic, and proteomic data, unified
+          into a shared map of how distinct genetic and pathological causes converge on the same
+          retinal disease programs.
+        </li>
+        <li>
+          <strong>Controlled environmental interventions</strong> — diet and other lifestyle variables
+          tested directly in mouse models, to study how they shape the retina's epigenetic and
+          metabolic aging.
+        </li>
+        <li>
+          <strong>Network-based analysis</strong> — treating disease mechanism as a graph problem, linking
+          molecular pathways across conditions rather than studying each in isolation.
+        </li>
+      </ul>
+    </section>
+
+    {
+      pi && (
+        <section class="home__labhead reveal">
+          <SectionHeading eyebrow="Principal investigator" level="h2">
+            Lab Head
+          </SectionHeading>
+          <div class="labhead">
+            <div class="labhead__photo-frame">
+              <Avatar name={pi.data.name} size={220} class="labhead__photo" />
+            </div>
+            <div class="labhead__body">
+              <h3>{pi.data.name}</h3>
+              <p class="mono labhead__role">{pi.data.role}</p>
+              {pi.data.bioShort && <p class="prose labhead__bio">{pi.data.bioShort}</p>}
+              <a class="mono labhead__link" href={withBase('/team')}>
+                Full bio →
+              </a>
+            </div>
+          </div>
+        </section>
+      )
+    }
   </div>
 </BaseLayout>
 
@@ -61,7 +192,7 @@ const topTopics = [...keywordCounts.entries()]
     grid-template-columns: minmax(320px, 1fr) minmax(280px, 1fr);
     gap: var(--space-4);
     align-items: center;
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-6);
   }
 
   .home__hero-graph {
@@ -72,37 +203,224 @@ const topTopics = [...keywordCounts.entries()]
     font-size: var(--text-4xl);
   }
 
-  .home__mission {
-    margin-top: var(--space-3);
-    font-size: var(--text-lg);
-    color: var(--color-text-muted);
-  }
-
   .home__affiliation {
-    margin-top: var(--space-2);
+    margin-top: var(--space-3);
     font-size: var(--text-xs);
     letter-spacing: 0.03em;
     color: var(--color-text-muted);
   }
 
-  /* FiguresGrid is a child component — its outer wrapper only ever
-     carries FiguresGrid's own scope attribute, not this page's, even for
-     a class passed in as a prop, so this needs :global(). */
-  :global(.home__figures) {
-    margin-top: var(--space-3);
+  /* ---- Explore: two half-width carousels ---- */
+  .home__explore {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    margin-bottom: var(--space-7);
   }
 
-  .widget__tags {
+  /* Grid items default to min-width: auto, so a wide flex track inside
+     (the carousel) grows the whole column — and the page — to fit its
+     content instead of scrolling internally. min-width: 0 lets the
+     column shrink to its 1fr share so the carousel's own overflow-x
+     handles the rest. */
+  .home__explore-col {
+    min-width: 0;
+  }
+
+  .pub-slide {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.4em;
+    flex-direction: column;
+    width: min(85%, 20rem);
+    height: 17rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s var(--ease-out);
   }
 
-  .widget__tag {
+  .pub-slide:hover,
+  .pub-slide:focus-visible {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .pub-slide__figure {
+    display: block;
+    height: 9rem;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-inset);
+    overflow: hidden;
+  }
+
+  .pub-slide__figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: grayscale(1);
+    transition: filter 0.3s var(--ease-out);
+  }
+
+  .pub-slide:hover .pub-slide__figure img,
+  .pub-slide:focus-visible .pub-slide__figure img {
+    filter: grayscale(0);
+  }
+
+  .pub-slide__year {
+    display: block;
+    padding: var(--space-3) var(--space-3) 0;
+    font-size: var(--text-3xl);
+    color: var(--color-text-faint);
+  }
+
+  .pub-slide__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    padding: var(--space-3);
+    overflow: hidden;
+  }
+
+  .pub-slide__title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: var(--leading-snug);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .pub-slide__meta {
+    margin-top: auto;
     font-size: var(--text-xs);
-    border: 1px solid var(--color-border);
-    padding: 0.2em 0.55em;
     color: var(--color-text-muted);
+  }
+
+  .topic-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5em;
+    width: 10rem;
+    height: 17rem;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      background 0.15s var(--ease-out),
+      box-shadow 0.15s var(--ease-out);
+  }
+
+  .topic-slide:hover,
+  .topic-slide:focus-visible {
+    background: var(--color-bg-inset);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .topic-slide__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--color-bg-inset);
+    font-size: var(--text-xl);
+  }
+
+  .topic-slide__label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .topic-slide__count {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  /* ---- Mission ---- */
+  .home__mission {
+    max-width: 62ch;
+    margin-bottom: var(--space-7);
+  }
+
+  .home__mission-statement {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+  }
+
+  .home__mission-list {
+    margin-top: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .home__mission-list li {
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--color-border);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .home__mission-list strong {
+    color: var(--color-text);
+  }
+
+  /* ---- Lab Head ---- */
+  .labhead {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+  }
+
+  .labhead__photo-frame {
+    flex-shrink: 0;
+    border: 1px solid var(--color-border);
+  }
+
+  /* Avatar is a child component — its root <svg> only ever carries
+     Avatar's own scope attribute, never this page's, even for a class
+     passed in as a prop, so this needs :global(). */
+  :global(.labhead__photo) {
+    display: block;
+  }
+
+  .labhead__body h3 {
+    font-size: var(--text-2xl);
+  }
+
+  .labhead__role {
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    margin-block: 0.3em var(--space-2);
+  }
+
+  .labhead__bio {
+    max-width: 52ch;
+    color: var(--color-text-muted);
+  }
+
+  .labhead__link {
+    display: inline-block;
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .labhead__link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 900px) {
+    .home__explore {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
   }
 
   @media (max-width: 860px) {
@@ -114,6 +432,10 @@ const topTopics = [...keywordCounts.entries()]
   @media (max-width: 640px) {
     .home__intro h1 {
       font-size: var(--text-2xl);
+    }
+
+    .labhead {
+      flex-direction: column;
     }
   }
 </style>
