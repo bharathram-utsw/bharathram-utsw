@@ -220,12 +220,12 @@ cite {
 /* Full-bleed, not centered — a canvas/graph placed in a .container should
    reach the viewport's real edges rather than floating in a narrower
    centered column. Side padding scales with the viewport instead of a
-   fixed 2rem, which read as too tight on wide screens — capped at
-   --space-8 (9rem) rather than --space-7 (6rem) so it keeps growing on
-   large monitors instead of topping out early. */
+   fixed 2rem, which read as too tight on wide screens. At a common
+   1440px laptop width this now lands around 7.5rem/side (was 5.4rem);
+   the 10rem cap isn't reached until roughly 2000px wide. */
 .container {
   width: 100%;
-  padding-inline: clamp(var(--space-4), 6vw, var(--space-8));
+  padding-inline: clamp(var(--space-5), 8vw, 10rem);
 }
 
 .prose {
