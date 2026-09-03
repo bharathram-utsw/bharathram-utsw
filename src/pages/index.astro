@@ -210,26 +210,23 @@ const recentPubs = publications
     color: var(--color-text-muted);
   }
 
-  /* ---- Explore: two half-width carousels ---- */
+  /* ---- Explore: two full-width carousel rows, not side-by-side columns
+     — a 50/50 split never actually matched, since narrow topic-slides
+     and wider pub-slides fit different counts per row at the same
+     column width, so the two carousels never lined up as a pair no
+     matter how the alignment was tuned. Stacked rows sidestep that:
+     each one spans the full container and is judged on its own. ---- */
   .home__explore {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* Without this, a grid item with auto height and no explicit margin
-       still resolves to a mystery auto margin-top under 'normal'
-       alignment whenever the two columns' natural (unstretched) content
-       heights differ — verified directly: forcing margin-top: 0 on the
-       shorter column was the only thing that top-aligned it. Explicit
-       start alignment sidesteps the ambiguity outright. */
-    align-items: start;
-    gap: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
     margin-bottom: var(--space-7);
   }
 
-  /* Grid items default to min-width: auto, so a wide flex track inside
-     (the carousel) grows the whole column — and the page — to fit its
-     content instead of scrolling internally. min-width: 0 lets the
-     column shrink to its 1fr share so the carousel's own overflow-x
-     handles the rest. */
+  /* Flex items default to min-width: auto too, so the wide carousel
+     track inside would still grow this row — and the page — to fit its
+     content instead of scrolling internally, same issue a grid column
+     had before this became a stacked flex layout. */
   .home__explore-col {
     min-width: 0;
   }
@@ -421,13 +418,6 @@ const recentPubs = publications
 
   .labhead__link:hover {
     text-decoration: underline;
-  }
-
-  @media (max-width: 900px) {
-    .home__explore {
-      grid-template-columns: 1fr;
-      gap: var(--space-4);
-    }
   }
 
   @media (max-width: 860px) {
