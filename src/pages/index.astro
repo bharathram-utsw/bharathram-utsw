@@ -114,7 +114,7 @@ const recentPubs = publications
           {
             recentPubs.map((pub) => (
               <a
-                class="pub-slide corner-frame carousel__slide"
+                class="pub-slide carousel__slide"
                 href={pub.href}
                 target={pub.external ? '_blank' : undefined}
                 rel={pub.external ? 'noopener noreferrer' : undefined}
@@ -143,7 +143,7 @@ const recentPubs = publications
         <Carousel label="Research topics">
           {
             topicSlides.map((topic) => (
-              <a class="topic-slide corner-frame carousel__slide" href={withBase('/publications')}>
+              <a class="topic-slide carousel__slide" href={withBase('/publications')}>
                 <span class="topic-slide__icon" aria-hidden="true">
                   <TopicIcon name={topic.icon} class="topic-slide__icon-svg" />
                 </span>
@@ -165,7 +165,7 @@ const recentPubs = publications
             Lab Head
           </SectionHeading>
           <div class="labhead">
-            <div class="labhead__photo-frame corner-frame">
+            <div class="labhead__photo-frame">
               <Avatar name={pi.data.name} size={220} class="labhead__photo" />
             </div>
             <div class="labhead__body">
@@ -247,6 +247,7 @@ const recentPubs = publications
     flex-direction: column;
     width: min(85%, 19rem);
     height: 16rem;
+    border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
     text-decoration: none;
     color: inherit;
@@ -330,6 +331,7 @@ const recentPubs = publications
     width: 11.5rem;
     height: 16rem;
     justify-content: center;
+    border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
     text-decoration: none;
     color: inherit;
@@ -415,6 +417,7 @@ const recentPubs = publications
 
   .labhead__photo-frame {
     flex-shrink: 0;
+    border: 1px solid var(--color-border);
   }
 
   /* Avatar is a child component — its root <svg> only ever carries

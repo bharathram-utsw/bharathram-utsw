@@ -14,7 +14,7 @@ const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.
     <div class="gallery-page__grid reveal">
       {
         photos.map((photo, i) => (
-          <figure class="gallery-tile corner-frame" data-placeholder={photo.data.placeholder}>
+          <figure class="gallery-tile" data-placeholder={photo.data.placeholder}>
             <span class="mono gallery-tile__index" aria-hidden="true">{String(i + 1).padStart(3, '0')}</span>
             {photo.data.image ? (
               <img src={photo.data.image} alt={photo.data.alt} loading="lazy" />
@@ -49,6 +49,7 @@ const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.
   .gallery-tile {
     position: relative;
     margin: 0;
+    border: 1px solid var(--color-border);
     overflow: hidden;
     background: var(--color-bg-raised);
   }

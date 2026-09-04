@@ -23,7 +23,7 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
 });
 ---
 
-<article class="news-card corner-frame">
+<article class="news-card">
   <a class="news-card__link" href={href} target={isPress ? '_blank' : undefined} rel={isPress ? 'noopener noreferrer' : undefined}>
     <p class="mono news-card__date">
       <span class="node-dot" aria-hidden="true"></span>
@@ -49,6 +49,7 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
   .news-card {
     height: 100%;
     display: flex;
+    border: 1px solid var(--color-border);
     transition: background 0.15s var(--ease-out);
   }
 
