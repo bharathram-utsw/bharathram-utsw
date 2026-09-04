@@ -6,11 +6,6 @@
 // cropping it into a circle was hiding the eye shape and leaving only the
 // circuit-pattern iris.
 import { withBase } from '../../lib/url';
-import SearchPalette from '../SearchPalette.astro';
-
-const today = new Date()
-  .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-  .toUpperCase();
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -52,15 +47,6 @@ function isActive(href: string) {
           }
         </ul>
       </nav>
-
-      <div class="site-header__utility">
-        <p class="mono site-header__date" aria-hidden="true">
-          {today} <span class="site-header__cursor" aria-hidden="true">▍</span>
-        </p>
-        <div class="site-header__search">
-          <SearchPalette />
-        </div>
-      </div>
     </div>
   </div>
 </header>
@@ -152,58 +138,5 @@ function isActive(href: string) {
 
   .site-header__nav a[aria-current='page'] {
     color: var(--color-accent);
-  }
-
-  .site-header__utility {
-    flex: 1 0 auto;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-left: auto;
-  }
-
-  .site-header__date {
-    display: none;
-    font-size: var(--text-xs);
-    letter-spacing: 0.03em;
-    color: var(--color-text-muted);
-  }
-
-  .site-header__cursor {
-    color: var(--color-accent);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .site-header__cursor {
-      animation: header-cursor-blink 1.1s steps(1) infinite;
-    }
-  }
-
-  @keyframes header-cursor-blink {
-    0%,
-    49% {
-      opacity: 1;
-    }
-    50%,
-    100% {
-      opacity: 0;
-    }
-  }
-
-  @media (min-width: 960px) {
-    .site-header__date {
-      display: block;
-    }
-  }
-
-  .site-header__search {
-    flex: 1 1 24rem;
-    max-width: 28rem;
-  }
-
-  @media (max-width: 640px) {
-    .site-header__search {
-      max-width: none;
-    }
   }
 </style>
