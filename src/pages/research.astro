@@ -1,55 +1,30 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import ThemeGlyph from '../components/ThemeGlyph.astro';
-import NetworkDivider from '../components/NetworkDivider.astro';
 import { withBase } from '../lib/url';
 
+// Text and framing verbatim from mondal-lab.com/research — this page
+// mirrors the lab's own description of its two research programs rather
+// than a paraphrase of it.
 const processes = [
   {
-    status: 'Process 01 · Active',
-    title: 'Retinal Diseasome Assembly',
+    title: 'Assembling the Retinal Diseasome',
     glyphSeed: 0,
-    facts: [
-      ['Approach', 'Multi-omic integration'],
-      ['Data', 'Genomic · transcriptomic · proteomic'],
-      ['Scope', 'Inherited + complex retinal disease'],
-    ],
-    brief:
-      'Unrelated genetic mutations converge on a finite set of disease-onset programs in the retina.',
-    full: [
-      'Unrelated genetic mutations converge on a finite set of disease-onset programs in the retina. We investigate this convergence across both inherited retinal degenerations and complex diseases such as age-related macular degeneration, using multi-omic approaches that integrate genomic, transcriptomic, and proteomic data.',
-      'Our framework captures genetic factors, pathological processes, and homeostatic recovery mechanisms across a range of retinal conditions — building toward a shared map of how distinct causes lead to overlapping disease states.',
-    ],
-    image: '/images/epigenetic-qtl-diagram.jpg',
+    body: "Retinal degenerative diseases and underlying causes are diverse. Genetic factors play significant roles in inherited retinal degenerations (IRD) as well as complex diseases such as age-related macular degenerations. Despite fixed-at-birth genetic makeup, pathological manifestations in the retina are age dependent. This leads to our hypothesis that in the pre-disease retina, unrelated genetic mutations converge to a finite set of disease onset programs. We aim to capture this framework in a retinal diseasome (a concept inspired by the human diseasome). Through multi-omic studies in disease models, the retinal diseasome will capture genetic factors, disease processes, and counteracting pathways that attempt to restore homeostasis.",
+    image: '/images/retinal-diseasome-diagram.png',
     imageAlt:
-      'Diagram of quantitative trait loci linking genotype to DNA methylation, histone modification, and gene expression (meQTL, hQTL, eQTM, mQTL), plus an epigenetic clock built from CpG sites',
-    imageCaption: 'The multi-omic QTL framework behind the diseasome map.',
+      'Diagram tracing retinal neurodegeneration (RP, LCA, AMD) through disease genes to affected photoreceptor and other retinal cells to retinal cell death and vision loss, integrated into a retinal diseasome network; below, time series, multi-omic, network, and machine learning data layers feeding an IRD gene network',
   },
   {
-    status: 'Process 02 · Active',
-    title: 'Environmental–Molecular Interactions in Retinal Aging',
+    title: 'Uncovering Molecular Links Between Retinal Gene Regulation and the Environment',
     glyphSeed: 1,
-    facts: [
-      ['Approach', 'Controlled dietary intervention'],
-      ['Model', 'Mouse'],
-      ['Focus', 'Epigenetic + metabolic aging states'],
-    ],
-    brief: "Lifestyle factors, such as nutrition, influence the retina's molecular landscape over time.",
-    full: [
-      "Lifestyle factors, such as nutrition, influence the retinal molecular landscape over time. Through controlled experiments in mice, we study how diet and other environmental variables shape epigenetic and metabolic states in the aging retina.",
-      'This work emphasizes the relationship between epigenetic change, metabolism, and the environment — and how these factors interact with age-dependent vision decline that fixed genetic factors alone cannot explain.',
-    ],
-    image: '/images/retinal-aging-diagram.jpg',
+    body: 'Aging is associated with declining visual acuity and is the primary risk factor for age-related neurodegenerative diseases. Spontaneous epigenetic alterations are known drivers of cellular aging and have been demonstrated in the retina. Environmental factors such as diet and nutrition modulate aging-retinal health and are risk factors in age-related diseases. Short- and long-term experiments in murine cohorts can model influence of independent environmental factors (eg. diet and nutrition) on retinal aging. We investigate how lifestyle choices, such as nutrition, influence retinal molecular landscapes and especially the Epigenome-Metabolism nexus.',
+    image: '/images/epigenome-metabolism-diagram.png',
     imageAlt:
-      'Diagram of visual function decline with age: genetic/epigenetic, structural, and functional change gears feeding into lower visual acuity, impaired dark adaptation, reduced contrast sensitivity, and a young-vs-old retinal cross-section comparison',
-    imageCaption: 'How genetic, structural, and functional decline compound with age.',
+      'Diagram showing retinal transcriptome, epigenome, and metabolome data, plus other organs, feeding an integrative analysis that resolves a gene regulatory network at the intersection of aging, diet, and the epigenome-metabolism nexus',
   },
 ];
-
-const funding = (await getCollection('funding')).sort((a, b) => a.data.order - b.data.order);
-const resources = (await getCollection('resources')).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <BaseLayout
@@ -57,95 +32,33 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
   description="The Mondal Lab studies retinal diseasome assembly and environmental-molecular interactions in retinal aging, combining genomics, epigenomics, metabolism, and network analysis."
 >
   <div class="container research-page">
-    <SectionHeading eyebrow="What we study" level="h1">Research</SectionHeading>
+    <SectionHeading level="h1">Research</SectionHeading>
     <p class="prose research-page__lede reveal">
       Two convergent research programs, one question: why do so many different causes — genetic,
       metabolic, environmental — end up producing the same handful of disease outcomes in the
       retina?
     </p>
 
-    <div class="process-grid reveal">
+    <div class="process-list reveal">
       {
         processes.map((p) => (
           <div class="widget process">
-            <p class="widget__label">{p.status}</p>
             <div class="process__row">
               <div class="process__body">
                 <div class="process__head">
                   <ThemeGlyph class="process__glyph" seed={p.glyphSeed} />
                   <h2 class="process__title">{p.title}</h2>
                 </div>
-                <dl class="mono process__facts">
-                  {p.facts.map(([k, v]) => (
-                    <div>
-                      <dt>{k}</dt>
-                      <dd>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p class="process__brief">{p.brief}</p>
-                <details class="process__full">
-                  <summary class="mono">Full brief ▸</summary>
-                  <div class="prose">
-                    {p.full.map((para) => (
-                      <p>{para}</p>
-                    ))}
-                  </div>
-                </details>
+                <p class="prose process__text">{p.body}</p>
               </div>
               <figure class="process__figure">
                 <img src={withBase(p.image)} alt={p.imageAlt} loading="lazy" />
-                <figcaption class="mono">{p.imageCaption}</figcaption>
               </figure>
             </div>
           </div>
         ))
       }
     </div>
-
-    <NetworkDivider />
-
-    <section class="research-page__section reveal funding">
-      <span class="eyebrow">Support</span>
-      <h2>Funding</h2>
-      <ul class="funding__list">
-        {
-          funding.map((f) => (
-            <li class="funding__item">
-              <p class="funding__title">{f.data.title}</p>
-              <p class="mono funding__meta">
-                {f.data.funder}
-                {f.data.period && ` · ${f.data.period}`}
-                {f.data.grantNumber && ` · ${f.data.grantNumber}`}
-              </p>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <NetworkDivider />
-
-    <section class="research-page__section reveal resources">
-      <span class="eyebrow">For other researchers</span>
-      <h2>Resources</h2>
-      <ul class="resources__list">
-        {
-          resources.map((r) => (
-            <li class="resources__item">
-              {r.data.url ? (
-                <a class="resources__title" href={r.data.url} target="_blank" rel="noopener noreferrer">
-                  {r.data.title}
-                </a>
-              ) : (
-                <p class="resources__title">{r.data.title}</p>
-              )}
-              <p class="resources__desc">{r.data.description}</p>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
   </div>
 </BaseLayout>
 
@@ -161,37 +74,25 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     margin-bottom: var(--space-4);
   }
 
-  .research-page__section {
-    margin-bottom: var(--space-7);
-  }
-
-  .research-page__section h2 {
-    margin-bottom: var(--space-2);
-  }
-
-  .process-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  .process-list {
+    display: flex;
+    flex-direction: column;
     gap: var(--space-4);
   }
 
   .process__row {
     display: flex;
-    flex-direction: column;
+    gap: var(--space-5);
+    align-items: flex-start;
   }
 
   .process__body {
-    flex: 1;
+    flex: 1 1 26rem;
     min-width: 0;
   }
 
   .process__figure {
-    order: -1;
-    margin-bottom: var(--space-3);
-  }
-
-  .process__figure img {
-    max-height: 14rem;
+    flex: 0 0 26rem;
   }
 
   .process__head {
@@ -211,155 +112,40 @@ const resources = (await getCollection('resources')).sort((a, b) => a.data.order
     font-size: var(--text-xl);
   }
 
-  .process__facts {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: var(--space-3);
-  }
-
-  .process__facts div {
-    display: flex;
-    gap: var(--space-2);
-    padding-block: 0.35em;
-    border-bottom: 1px solid var(--color-line);
-    font-size: var(--text-sm);
-  }
-
-  .process__facts dt {
-    width: 6rem;
-    flex-shrink: 0;
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+  .process__text {
     color: var(--color-text-muted);
-  }
-
-  .process__facts dd {
-    color: var(--color-text);
-  }
-
-  .process__brief {
-    color: var(--color-text-muted);
-    margin-bottom: var(--space-2);
   }
 
   .process__figure img {
     width: 100%;
+    height: 100%;
+    max-height: 26rem;
     object-fit: contain;
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-border);
   }
 
-  .process__figure figcaption {
-    margin-top: var(--space-2);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-  }
-
-  .process__full summary {
-    cursor: pointer;
-    list-style: none;
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--color-accent);
-  }
-
-  .process__full summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .process__full[open] summary {
-    margin-bottom: var(--space-3);
-  }
-
-  .process__full .prose p + p {
-    margin-top: var(--space-2);
+  /* These are raster diagrams with a white background and black text
+     baked in — they can't follow the theme tokens on their own. Inverting
+     lightness (then rotating hue back) keeps the diagram's own colors
+     roughly recognizable while flipping white-with-black-text to
+     dark-with-light-text, so it actually sits inside a dark page instead
+     of staying a bright rectangle regardless of theme. */
+  :root[data-theme='night'] .process__figure img {
+    filter: invert(1) hue-rotate(180deg);
   }
 
   @media (max-width: 860px) {
-    .process-grid {
-      grid-template-columns: 1fr;
+    .process__row {
+      flex-direction: column;
+    }
+
+    .process__figure {
+      flex: 0 0 auto;
+      width: 100%;
+      order: -1;
     }
 
     .process__figure img {
-      max-height: 18rem;
+      max-height: 20rem;
     }
-  }
-
-  .funding h2 {
-    margin-top: 0.2em;
-    margin-bottom: var(--space-4);
-  }
-
-  .funding__list {
-    display: flex;
-    flex-direction: column;
-    max-width: var(--prose-width);
-  }
-
-  .funding__item {
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    transition: background 0.15s var(--ease-out);
-  }
-
-  .funding__item + .funding__item {
-    border-top: none;
-  }
-
-  .funding__item:hover {
-    background: var(--color-bg-inset);
-  }
-
-  .funding__title {
-    margin-bottom: 0.3em;
-  }
-
-  .funding__meta {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
-
-  .resources h2 {
-    margin-top: 0.2em;
-    margin-bottom: var(--space-4);
-  }
-
-  .resources__list {
-    display: flex;
-    flex-direction: column;
-    max-width: var(--prose-width);
-  }
-
-  .resources__item {
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    transition: background 0.15s var(--ease-out);
-  }
-
-  .resources__item + .resources__item {
-    border-top: none;
-  }
-
-  .resources__item:hover {
-    background: var(--color-bg-inset);
-  }
-
-  .resources__title {
-    display: block;
-    margin-bottom: 0.3em;
-    font-weight: 600;
-    text-decoration: none;
-    color: var(--color-text);
-  }
-
-  a.resources__title:hover {
-    color: var(--color-accent);
-  }
-
-  .resources__desc {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
   }
 </style>
