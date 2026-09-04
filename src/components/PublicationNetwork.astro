@@ -82,7 +82,6 @@ const graphData = JSON.stringify({ nodes: topics, edges });
   .pub-network__canvas-wrap {
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--color-border);
   }
 
   .pub-network__canvas {
@@ -206,9 +205,9 @@ const graphData = JSON.stringify({ nodes: topics, edges });
   }
 
   if (ctx && raw.nodes.length > 0) {
-    const labelColor = readVar('--color-text', '#14181d');
-    const edgeColor = readVar('--color-border-strong', '#b9c5d1');
-    const accentColor = readVar('--color-accent', '#004c97');
+    let labelColor = readVar('--color-text', '#14181d');
+    let edgeColor = readVar('--color-border-strong', '#b9c5d1');
+    let accentColor = readVar('--color-accent', '#004c97');
     const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -517,6 +516,18 @@ const graphData = JSON.stringify({ nodes: topics, edges });
 
     resize();
     settleAndDraw();
+
+    // The Night Vision toggle (SiteFooter.astro) swaps every color token —
+    // this canvas reads them once at load, so without this it'd keep
+    // rendering the old theme's colors (including the light halo stroke
+    // behind each label, which is meant to match the page background)
+    // until the next drag/resize forced a redraw.
+    window.addEventListener('themechange', () => {
+      labelColor = readVar('--color-text', '#14181d');
+      edgeColor = readVar('--color-border-strong', '#b9c5d1');
+      accentColor = readVar('--color-accent', '#004c97');
+      draw();
+    });
     applyFilters();
   }
 </script>

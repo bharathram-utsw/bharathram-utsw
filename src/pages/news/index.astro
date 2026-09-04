@@ -3,17 +3,72 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import NewsCard from '../../components/NewsCard.astro';
+import { withBase } from '../../lib/url';
 
 const posts = (await getCollection('news', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
+const photos = (await getCollection('gallery')).sort((a, b) => a.data.order - b.data.order);
+
+const hrefForPost = (post: (typeof posts)[number]) =>
+  post.data.type === 'press' && post.data.externalUrl ? post.data.externalUrl : withBase(`/news/${post.id}/`);
 ---
 
-<BaseLayout title="News" description="News and updates from the Mondal Lab.">
+<BaseLayout title="News" description="News, updates, and photos from the Mondal Lab.">
   <div class="container news-page">
-    <SectionHeading eyebrow="Lab updates" level="h1">News</SectionHeading>
-    <div class="news-page__grid">
-      {posts.map((post) => <NewsCard post={post} headingLevel="h2" />)}
+    <SectionHeading level="h1">News</SectionHeading>
+
+    <div class="news-page__tabs" role="tablist" aria-label="News and Gallery">
+      <button type="button" class="mono" role="tab" id="tab-news" aria-controls="panel-news" aria-selected="true" data-tab="news" data-active="true">
+        News
+      </button>
+      <button type="button" class="mono" role="tab" id="tab-gallery" aria-controls="panel-gallery" aria-selected="false" data-tab="gallery" data-active="false">
+        Gallery
+      </button>
+    </div>
+
+    <div class="news-page__layout" id="panel-news" role="tabpanel" aria-labelledby="tab-news" data-panel="news">
+      <div class="news-page__grid">
+        {posts.map((post) => <NewsCard post={post} headingLevel="h2" />)}
+      </div>
+
+      <aside class="widget news-page__archive">
+        <p class="widget__label">Archive</p>
+        <ul class="news-page__archive-list">
+          {
+            posts.map((post) => (
+              <li>
+                <a
+                  href={hrefForPost(post)}
+                  target={post.data.type === 'press' ? '_blank' : undefined}
+                  rel={post.data.type === 'press' ? 'noopener noreferrer' : undefined}
+                >
+                  <span class="mono news-page__archive-date">
+                    {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span class="news-page__archive-title">{post.data.title}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </div>
+
+    <div class="gallery-page__grid" id="panel-gallery" role="tabpanel" aria-labelledby="tab-gallery" data-panel="gallery" hidden>
+      {
+        photos.map((photo, i) => (
+          <figure class="gallery-tile" data-placeholder={photo.data.placeholder}>
+            <span class="mono gallery-tile__index" aria-hidden="true">{String(i + 1).padStart(3, '0')}</span>
+            {photo.data.image ? (
+              <img src={photo.data.image} alt={photo.data.alt} loading="lazy" />
+            ) : (
+              <div class="gallery-tile__placeholder" role="img" aria-label={photo.data.alt} />
+            )}
+            <figcaption class="mono gallery-tile__caption">{photo.data.caption}</figcaption>
+          </figure>
+        ))
+      }
     </div>
   </div>
 </BaseLayout>
@@ -23,15 +78,176 @@ const posts = (await getCollection('news', ({ data }) => !data.draft)).sort(
     padding-block: var(--space-6);
   }
 
-  .news-page__grid {
+  .news-page__tabs {
+    display: flex;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+  }
+
+  .news-page__tabs button {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: none;
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-text-muted);
+    padding: 0.4em 1em;
+    cursor: pointer;
+  }
+
+  .news-page__tabs button[data-active='true'] {
+    color: var(--color-bg-raised);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  /* Blog layout: the feed reads top-to-bottom as the main content, with
+     a compact chronological index beside it (not a duplicate of the
+     feed — a quick way to jump straight to an older post without
+     scrolling past everything newer). */
+  .news-page__layout {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 18rem;
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .news-page__grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .news-page__archive {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+    max-height: calc(100vh - var(--header-height) - var(--taskbar-height) - var(--space-6));
+    overflow-y: auto;
+  }
+
+  .news-page__archive-list {
+    display: flex;
+    flex-direction: column;
     gap: var(--space-3);
   }
 
+  .news-page__archive-list a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .news-page__archive-date {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .news-page__archive-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    transition: color 0.15s var(--ease-out);
+  }
+
+  .news-page__archive-list a:hover .news-page__archive-title {
+    color: var(--color-accent);
+  }
+
   @media (max-width: 900px) {
-    .news-page__grid {
+    .news-page__layout {
       grid-template-columns: 1fr;
     }
+
+    .news-page__archive {
+      position: static;
+      max-height: none;
+    }
+  }
+
+  .gallery-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .gallery-tile {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    background: var(--color-bg-raised);
+    box-shadow: var(--shadow-card);
+  }
+
+  .gallery-tile__index {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 1;
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    color: var(--color-bg);
+    background: var(--color-text);
+    padding: 0.15em 0.45em;
+  }
+
+  .gallery-tile img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .gallery-tile__placeholder {
+    aspect-ratio: 4 / 3;
+    background: var(--color-text);
+  }
+
+  .gallery-tile__caption {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* The scoped .news-page__grid/.gallery-page__grid `display` rules above
+     carry the same specificity as the browser's default [hidden] rule
+     once Astro's scope attribute is added to both — an explicit rule here
+     (one selector more specific) is what actually makes toggling the
+     `hidden` attribute win. */
+  [data-panel][hidden] {
+    display: none;
   }
 </style>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.news-page__tabs [data-tab]');
+  const panels = document.querySelectorAll<HTMLElement>('[data-panel]');
+
+  function activate(target: string | undefined) {
+    tabs.forEach((t) => {
+      const active = t.dataset.tab === target;
+      t.dataset.active = String(active);
+      t.setAttribute('aria-selected', String(active));
+    });
+    panels.forEach((panel) => {
+      panel.hidden = panel.dataset.panel !== target;
+    });
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => activate(tab.dataset.tab));
+  });
+
+  // An old /gallery link redirects here with #gallery (see astro.config.mjs)
+  // — land straight on that tab instead of News.
+  if (window.location.hash === '#gallery') {
+    activate('gallery');
+  }
+</script>

@@ -47,9 +47,8 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
 
 <style>
   .news-card {
-    height: 100%;
-    display: flex;
-    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    box-shadow: var(--shadow-card);
     transition: background 0.15s var(--ease-out);
   }
 
@@ -58,8 +57,7 @@ const formattedDate = data.date.toLocaleDateString('en-US', {
   }
 
   .news-card__link {
-    display: flex;
-    flex-direction: column;
+    display: block;
     width: 100%;
     padding: var(--space-3);
     text-decoration: none;

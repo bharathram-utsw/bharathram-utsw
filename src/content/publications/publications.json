@@ -58,7 +58,9 @@
       "Retina",
       "Aging"
     ],
-    "summary": "A review arguing that the retina's heavy metabolic demands and its epigenome are tightly linked, and that this coupling \u2014 disrupted with age \u2014 helps explain conditions like age-related macular degeneration and glaucoma, pointing toward lifestyle-based interventions."
+    "summary": "A review arguing that the retina's heavy metabolic demands and its epigenome are tightly linked, and that this coupling \u2014 disrupted with age \u2014 helps explain conditions like age-related macular degeneration and glaucoma, pointing toward lifestyle-based interventions.",
+    "image": "/images/publications/mondal-2024-trends-genetics.jpg",
+    "imageAlt": "Diagram of the epigenome-metabolism nexus, showing DNA methylation and histone marks linked to glycolysis, the TCA cycle, and fatty acid oxidation metabolites that feed back to influence the epigenome"
   },
   {
     "id": "mondal-2024-iscience",
@@ -92,7 +94,9 @@
       "Liver",
       "Transcriptomics"
     ],
-    "summary": "Feeding mice a high-glycemic diet altered liver gene expression within a month, while the retina only showed comparable metabolic disruption after a full year \u2014 revealing that different tissues adapt to diet-driven blood sugar stress on very different timescales."
+    "summary": "Feeding mice a high-glycemic diet altered liver gene expression within a month, while the retina only showed comparable metabolic disruption after a full year \u2014 revealing that different tissues adapt to diet-driven blood sugar stress on very different timescales.",
+    "image": "/images/publications/mondal-2024-iscience.jpg",
+    "imageAlt": "Diagram of the short- and long-term dietary hyperglycemia study design, comparing high- and low-glycemic-index starch diets across short-term and long-term cohorts"
   },
   {
     "id": "mondal-2023-aemb",
@@ -113,7 +117,9 @@
       "Retinal Disease",
       "Therapy"
     ],
-    "summary": "Makes the case for treating inherited retinal diseases as a connected \u201cdiseasome\u201d \u2014 a network of shared genes, proteins, and pathways \u2014 rather than as isolated conditions, arguing this framework could guide gene-agnostic therapies."
+    "summary": "Makes the case for treating inherited retinal diseases as a connected \u201cdiseasome\u201d \u2014 a network of shared genes, proteins, and pathways \u2014 rather than as isolated conditions, arguing this framework could guide gene-agnostic therapies.",
+    "image": "/images/publications/mondal-2023-aemb.jpg",
+    "imageAlt": "Retinal diseasome network diagram linking inherited retinal degeneration pathologies (RP, LCA, AMD, and others) to shared genes, alongside a schematic of the multi-omic interactome framework used to build it"
   },
   {
     "id": "chen-2023-elife",
@@ -173,7 +179,9 @@
     "volume": "26",
     "issue": "12",
     "articleNumber": "108411",
-    "summary": "A specialized very-long-chain fatty acid concentrated from fish oil improved cardiometabolic markers and measurable retinal function in mice, acting in part through PPAR signaling \u2014 pointing to a possible dietary supplement for eye health."
+    "summary": "A specialized very-long-chain fatty acid concentrated from fish oil improved cardiometabolic markers and measurable retinal function in mice, acting in part through PPAR signaling \u2014 pointing to a possible dietary supplement for eye health.",
+    "image": "/images/publications/yang-2023-iscience.jpg",
+    "imageAlt": "Very-long-chain PUFA time-course and tissue bar charts across plasma, liver, brain, and eye, showing lipid class changes from the dietary fish-oil intervention"
   },
   {
     "id": "jiang-2022-hmg",
@@ -236,7 +244,9 @@
     "doi": "https://doi.org/10.1128/mSystems.00934-20",
     "volume": "6",
     "issue": "1",
-    "summary": "Comparing 141 mycobacterial genomes traced the CRISPR-Cas defense system in the tuberculosis-causing bacterial complex to a horizontal gene transfer event from an environmental relative, with later genome rearrangements explaining strain-to-strain differences."
+    "summary": "Comparing 141 mycobacterial genomes traced the CRISPR-Cas defense system in the tuberculosis-causing bacterial complex to a horizontal gene transfer event from an environmental relative, with later genome rearrangements explaining strain-to-strain differences.",
+    "image": "/images/publications/singh-2021-msystems.jpg",
+    "imageAlt": "Phylogenetic tree of Mycobacteriaceae with CRISPR-Cas system annotations, alongside a phage-host interaction network and CRISPR spacer array comparison across Mycobacterium tuberculosis variants"
   },
   {
     "id": "campello-2021-avs",
@@ -264,7 +274,9 @@
       "Metabolism",
       "Intervention"
     ],
-    "summary": "A review of how metabolism and the epigenome shift together as the retina ages, and what that turbulence means for vision loss \u2014 closing with a look at lifestyle changes that might support healthier aging in the eye."
+    "summary": "A review of how metabolism and the epigenome shift together as the retina ages, and what that turbulence means for vision loss \u2014 closing with a look at lifestyle changes that might support healthier aging in the eye.",
+    "image": "/images/publications/campello-2021-avs.jpg",
+    "imageAlt": "Nine-panel hallmarks-of-aging diagram overlaid on a retina cross-section, covering cell-cell communication, inflammation, proteostasis, genomic integrity, epigenome, post-transcriptional regulation, metabolism, senescence, and stem cell exhaustion"
   },
   {
     "id": "corso-diaz-2020-cellreports",
@@ -295,7 +307,9 @@
     "volume": "31",
     "issue": "3",
     "articleNumber": "107525",
-    "summary": "Genome-wide methylation mapping of aging mouse rod photoreceptors uncovered thousands of age-related changes concentrated in regulatory regions, several of which tie back to declining mitochondrial function \u2014 linking DNA methylation directly to metabolic aging in the retina."
+    "summary": "Genome-wide methylation mapping of aging mouse rod photoreceptors uncovered thousands of age-related changes concentrated in regulatory regions, several of which tie back to declining mitochondrial function \u2014 linking DNA methylation directly to metabolic aging in the retina.",
+    "image": "/images/publications/corso-diaz-2020-cellreports.jpg",
+    "imageAlt": "Diagram of young versus aging rod photoreceptors profiled by whole-genome bisulfite sequencing and RNA-seq, linking methylation and expression changes to glycolysis, OXPHOS, and beta-oxidation network shifts"
   },
   {
     "id": "hargrove-grimes-2020-plosgenetics",
@@ -354,7 +368,9 @@
     "volume": "13",
     "issue": "5",
     "pages": "891-905",
-    "summary": "Comparing gene activity in lab-grown retinal organoids against real developing retinas pinpointed which signaling steps organoids were missing, and supplementing cultures with DHA and a growth factor produced more mature, functional photoreceptors as a result."
+    "summary": "Comparing gene activity in lab-grown retinal organoids against real developing retinas pinpointed which signaling steps organoids were missing, and supplementing cultures with DHA and a growth factor produced more mature, functional photoreceptors as a result.",
+    "image": "/images/publications/brooks-2019-stemcellreports.jpg",
+    "imageAlt": "Comparison of retinal cell-type birth order and timing in vivo versus retinal organoid differentiation stages, with matching immunostaining and PCA plots"
   },
   {
     "id": "chauhan-2018-frontiersmicrobiology",
@@ -411,7 +427,9 @@
     "doi": "https://doi.org/10.1128/IAI.00041-18",
     "volume": "86",
     "issue": "6",
-    "summary": "Infecting fat cells with M. tuberculosis in culture showed the bacteria shift to burning host-derived fatty acids and dial down their own iron uptake \u2014 a survival strategy shaped by the fat- and iron-rich environment of the lesions tuberculosis forms in the body."
+    "summary": "Infecting fat cells with M. tuberculosis in culture showed the bacteria shift to burning host-derived fatty acids and dial down their own iron uptake \u2014 a survival strategy shaped by the fat- and iron-rich environment of the lesions tuberculosis forms in the body.",
+    "image": "/images/publications/nandy-2018-infectionimmunity.jpg",
+    "imageAlt": "Confocal and electron micrographs of Mycobacterium tuberculosis-infected preadipocytes and adipocytes over time, with bacterial burden quantification"
   },
   {
     "id": "mondal-2017-gbe",
@@ -439,7 +457,9 @@
     "volume": "9",
     "issue": "5",
     "pages": "1175-1182",
-    "summary": "Sequencing a gut-dwelling Oceanobacillus strain and comparing it against free-living relatives identified specific genes \u2014 including transporters and signaling components \u2014 that distinguish bacteria adapted to living inside a host from those living independently in the environment."
+    "summary": "Sequencing a gut-dwelling Oceanobacillus strain and comparing it against free-living relatives identified specific genes \u2014 including transporters and signaling components \u2014 that distinguish bacteria adapted to living inside a host from those living independently in the environment.",
+    "image": "/images/publications/mondal-2017-gbe.jpg",
+    "imageAlt": "Phylogenetic tree of Oceanobacillus species, with host-associated strains and free-living strains marked separately, alongside bootstrap support values"
   },
   {
     "id": "kumar-2016-proteomics",
@@ -547,7 +567,9 @@
     "volume": "6",
     "issue": "12",
     "pages": "3171-81",
-    "summary": "An Indian population descended from African ancestors and living in a high-salinity region carries an unusually large number of structural genome variants, some enriched near genes for ion transport \u2014 consistent with these variants helping the population adapt to a harsh local environment."
+    "summary": "An Indian population descended from African ancestors and living in a high-salinity region carries an unusually large number of structural genome variants, some enriched near genes for ion transport \u2014 consistent with these variants helping the population adapt to a harsh local environment.",
+    "image": "/images/publications/narang-2014-gbe.jpg",
+    "imageAlt": "Boxplot comparing copy-number-variant sizes across the admixed Indian population and reference African, Indian, and European populations"
   },
   {
     "id": "mishra-2013-plosone",

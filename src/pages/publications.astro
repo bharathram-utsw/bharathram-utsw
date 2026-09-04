@@ -4,8 +4,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import PublicationNetwork from '../components/PublicationNetwork.astro';
 import PublicationCard from '../components/PublicationCard.astro';
+import NetworkDivider from '../components/NetworkDivider.astro';
 
 const publications = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+const resources = (await getCollection('resources')).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <BaseLayout
@@ -13,12 +15,7 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
   description="Publications by Anupam Mondal, Ph.D. — from retinal disease and epigenetics to microbial and comparative genomics, the full record from Google Scholar."
 >
   <div class="container publications-page">
-    <SectionHeading eyebrow="Selected output" level="h1">Publications</SectionHeading>
-    <p class="prose publications-page__lede reveal">
-      {publications.length} papers, spanning retinal biology, aging and metabolism, epigenetics,
-      and — earlier in the same throughline — microbial and comparative genomics. Click a topic
-      below to filter.
-    </p>
+    <SectionHeading level="h1">Publications</SectionHeading>
 
     <div class="publications-page__section reveal">
       <PublicationNetwork />
@@ -35,19 +32,35 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     <div class="publications-page__grid" id="pub-grid">
       {publications.map((pub) => <PublicationCard id={pub.id} publication={pub.data} />)}
     </div>
+
+    <NetworkDivider />
+
+    <section class="publications-page__section reveal resources">
+      <span class="eyebrow">For other researchers</span>
+      <h2>Resources</h2>
+      <ul class="resources__list">
+        {
+          resources.map((r) => (
+            <li class="resources__item">
+              {r.data.url ? (
+                <a class="resources__title" href={r.data.url} target="_blank" rel="noopener noreferrer">
+                  {r.data.title}
+                </a>
+              ) : (
+                <p class="resources__title">{r.data.title}</p>
+              )}
+              <p class="resources__desc">{r.data.description}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
   </div>
 </BaseLayout>
 
 <style>
   .publications-page {
     padding-block: var(--space-6);
-  }
-
-  .publications-page__lede {
-    font-size: var(--text-lg);
-    color: var(--color-text-muted);
-    max-width: 60ch;
-    margin-bottom: var(--space-4);
   }
 
   .publications-page__section {
@@ -98,7 +111,7 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
      row-gap concept) and break-inside: avoid so it never splits across
      a column. */
   .publications-page__grid {
-    columns: 3;
+    columns: 5;
     column-gap: var(--space-3);
   }
 
@@ -106,7 +119,19 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     margin-bottom: var(--space-3);
   }
 
+  @media (max-width: 1400px) {
+    .publications-page__grid {
+      columns: 4;
+    }
+  }
+
   @media (max-width: 1100px) {
+    .publications-page__grid {
+      columns: 3;
+    }
+  }
+
+  @media (max-width: 860px) {
     .publications-page__grid {
       columns: 2;
     }
@@ -124,6 +149,46 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
       align-items: flex-start;
       gap: var(--space-2);
     }
+  }
+
+  .resources h2 {
+    margin-top: 0.2em;
+    margin-bottom: var(--space-4);
+  }
+
+  .resources__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-width: var(--prose-width);
+  }
+
+  .resources__item {
+    padding: var(--space-3);
+    background: var(--color-bg-raised);
+    box-shadow: var(--shadow-card);
+    transition: background 0.15s var(--ease-out);
+  }
+
+  .resources__item:hover {
+    background: var(--color-bg-inset);
+  }
+
+  .resources__title {
+    display: block;
+    margin-bottom: 0.3em;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  a.resources__title:hover {
+    color: var(--color-accent);
+  }
+
+  .resources__desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 </style>
 

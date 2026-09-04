@@ -10,4 +10,12 @@ export default defineConfig({
   site: 'https://bharathram-utsw.github.io',
   base: '/bharathram-utsw',
   integrations: [sitemap()],
+  // Gallery lives as a tab on the News page now, not its own route — this
+  // keeps any old/external link to /gallery landing somewhere real instead
+  // of a 404, with the Gallery tab pre-selected (see news/index.astro).
+  redirects: {
+    // Astro doesn't prepend `base` to a redirect target automatically —
+    // written out in full so it still lands correctly under /bharathram-utsw.
+    '/gallery': '/bharathram-utsw/news#gallery',
+  },
 });
