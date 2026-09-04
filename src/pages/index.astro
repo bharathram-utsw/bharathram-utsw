@@ -1,51 +1,17 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionHeading from '../components/SectionHeading.astro';
 import NetworkHero from '../components/NetworkHero.astro';
 import Carousel from '../components/Carousel.astro';
-import Avatar from '../components/Avatar.astro';
-import TopicIcon from '../components/TopicIcon.astro';
-import { isVisionEra } from '../lib/publications';
 import { withBase } from '../lib/url';
 
 const publications = await getCollection('publications');
 const team = await getCollection('team');
 const pi = team.find((m) => m.data.isPI);
 
-const visionPubs = publications.filter((p) => isVisionEra(p.data.keywords));
-const keywordCounts = new Map<string, number>();
-for (const pub of visionPubs) {
-  for (const kw of pub.data.keywords) {
-    keywordCounts.set(kw, (keywordCounts.get(kw) ?? 0) + 1);
-  }
-}
-const topTopics = [...keywordCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
-
-// A Material Symbols icon per topic (see TopicIcon.astro) — falls back to
-// a generic "science" flask for any keyword not in this list, so a new
-// publication's keywords never break the layout. Names are real Material
-// Symbols glyph names from fonts.google.com/icons (outlined style).
-const TOPIC_ICONS: Record<string, string> = {
-  metabolism: 'local_fire_department',
-  retina: 'visibility',
-  aging: 'hourglass',
-  photoreceptor: 'biotech',
-  transcriptomics: 'bar_chart',
-  reserpine: 'medication',
-  epigenome: 'genetics',
-  'retinal degeneration': 'warning',
-  'photoreceptor degeneration': 'warning',
-  diet: 'nutrition',
-  'retinal organoids': 'experiment',
-  'stem cells': 'eco',
-};
-
-const topicSlides = topTopics.map(([label, count]) => ({
-  label,
-  count,
-  icon: TOPIC_ICONS[label.toLowerCase()] ?? 'science',
-}));
+const recentNews = (await getCollection('news', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
 
 const recentPubs = publications
   .slice()
@@ -80,31 +46,57 @@ const recentPubs = publications
       </div>
     </div>
 
-    <section class="home__mission reveal">
-      <SectionHeading eyebrow="Why we do this" level="h2">
-        Mission
-      </SectionHeading>
-      <p class="prose home__mission-statement">
-        We combine computational biology — genomics, epigenomics, metabolism, and network analysis —
-        to discover mechanisms that maintain healthy vision and identify the earliest molecular
-        patterns linked with blindness.
-      </p>
-      <ul class="home__mission-list">
-        <li>
-          <strong>Multi-omic integration</strong> — genomic, transcriptomic, and proteomic data, unified
-          into a shared map of how distinct genetic and pathological causes converge on the same
-          retinal disease programs.
-        </li>
-        <li>
-          <strong>Controlled environmental interventions</strong> — diet and other lifestyle variables
-          tested directly in mouse models, to study how they shape the retina's epigenetic and
-          metabolic aging.
-        </li>
-        <li>
-          <strong>Network-based analysis</strong> — treating disease mechanism as a graph problem, linking
-          molecular pathways across conditions rather than studying each in isolation.
-        </li>
-      </ul>
+    <section class="home__updates reveal">
+      <div class="widget home__updates-box">
+        <p class="widget__label">Updates</p>
+        <ul class="home__updates-list">
+          {
+            recentNews.map((post) => {
+              const href =
+                post.data.type === 'press' && post.data.externalUrl
+                  ? post.data.externalUrl
+                  : withBase(`/news/${post.id}/`);
+              return (
+                <li>
+                  <a href={href} target={post.data.type === 'press' ? '_blank' : undefined} rel={post.data.type === 'press' ? 'noopener noreferrer' : undefined}>
+                    <span class="mono home__updates-date">
+                      {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    <span class="home__updates-title">{post.data.title}</span>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+        <a class="mono home__updates-link" href={withBase('/news')}>
+          All news →
+        </a>
+      </div>
+
+      <div class="widget home__mission-box">
+        <p class="widget__label">Mission</p>
+        <p class="prose home__mission-quote">
+          “Vision is critical to quality of life. Our mission is to use computational network
+          biology to discover mechanisms that maintain healthy vision and identify the earliest
+          molecular patterns linked with blindness.”
+        </p>
+      </div>
+
+      {
+        pi && (
+          <div class="widget home__pi-box">
+            <p class="widget__label">Principal Investigator</p>
+            <div class="home__pi">
+              <p class="home__pi-name">{pi.data.name}</p>
+              <p class="mono home__pi-role">{pi.data.role}</p>
+            </div>
+            <a class="mono home__pi-link" href={withBase('/team')}>
+              Full bio →
+            </a>
+          </div>
+        )
+      }
     </section>
 
     <div class="home__explore reveal">
@@ -137,49 +129,7 @@ const recentPubs = publications
           }
         </Carousel>
       </section>
-
-      <section class="home__explore-col">
-        <span class="eyebrow">Research topics</span>
-        <Carousel label="Research topics">
-          {
-            topicSlides.map((topic) => (
-              <a class="topic-slide carousel__slide" href={withBase('/publications')}>
-                <span class="topic-slide__icon" aria-hidden="true">
-                  <TopicIcon name={topic.icon} class="topic-slide__icon-svg" />
-                </span>
-                <span class="topic-slide__label">{topic.label}</span>
-                <span class="mono topic-slide__count">
-                  {topic.count} {topic.count === 1 ? 'paper' : 'papers'}
-                </span>
-              </a>
-            ))
-          }
-        </Carousel>
-      </section>
     </div>
-
-    {
-      pi && (
-        <section class="home__labhead reveal">
-          <SectionHeading eyebrow="Who leads the lab" level="h2">
-            Principal Investigator
-          </SectionHeading>
-          <div class="labhead">
-            <div class="labhead__photo-frame">
-              <Avatar name={pi.data.name} size={220} class="labhead__photo" />
-            </div>
-            <div class="labhead__body">
-              <h3>{pi.data.name}</h3>
-              <p class="mono labhead__role">{pi.data.role}</p>
-              {pi.data.bioShort && <p class="prose labhead__bio">{pi.data.bioShort}</p>}
-              <a class="mono labhead__link" href={withBase('/team')}>
-                Full bio →
-              </a>
-            </div>
-          </div>
-        </section>
-      )
-    }
   </div>
 </BaseLayout>
 
@@ -221,12 +171,6 @@ const recentPubs = publications
     color: var(--color-text-muted);
   }
 
-  /* ---- Explore: two full-width carousel rows, not side-by-side columns
-     — a 50/50 split never actually matched, since narrow topic-slides
-     and wider pub-slides fit different counts per row at the same
-     column width, so the two carousels never lined up as a pair no
-     matter how the alignment was tuned. Stacked rows sidestep that:
-     each one spans the full container and is judged on its own. ---- */
   .home__explore {
     display: flex;
     flex-direction: column;
@@ -247,15 +191,10 @@ const recentPubs = publications
     flex-direction: column;
     width: min(85%, 19rem);
     height: 16rem;
-    border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
     text-decoration: none;
     color: inherit;
-    /* An explicit zero-shadow rest state (not the implicit `none`) gives
-       the hover transition a matching shape to interpolate from —
-       animating box-shadow from `none` snaps instead of easing in some
-       browsers, which is what read as a "shake" on click. */
-    box-shadow: 0 0 0 0 transparent;
+    box-shadow: var(--shadow-card);
     transition: box-shadow 0.15s var(--ease-out);
   }
 
@@ -322,135 +261,84 @@ const recentPubs = publications
     color: var(--color-text-muted);
   }
 
-  .topic-slide {
+  /* ---- Updates + Mission + Principal Investigator ---- */
+  .home__updates {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.6em;
-    width: 11.5rem;
-    height: 16rem;
-    justify-content: center;
-    border: 1px solid var(--color-border);
-    background: var(--color-bg-raised);
-    text-decoration: none;
-    color: inherit;
-    /* See .pub-slide's comment — a real zero-shadow rest state so the
-       hover shadow eases in instead of popping in. */
-    box-shadow: 0 0 0 0 transparent;
-    transition:
-      background 0.15s var(--ease-out),
-      box-shadow 0.15s var(--ease-out);
-  }
-
-  .topic-slide:hover,
-  .topic-slide:focus-visible {
-    background: var(--color-accent-soft);
-    box-shadow: var(--shadow-card-hover);
-  }
-
-  .topic-slide__icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 4.5rem;
-    height: 4.5rem;
-    border-radius: 50%;
-    background: var(--color-accent-soft);
-    color: var(--color-accent);
-  }
-
-  /* TopicIcon renders a raw <svg> via set:html — Astro only scopes
-     elements it writes literally in this file's own template, so the
-     class passed as a prop needs :global() to actually match it. */
-  :global(.topic-slide__icon-svg) {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
-
-  .topic-slide__label {
-    font-size: var(--text-sm);
-    font-weight: 600;
-  }
-
-  .topic-slide__count {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-  }
-
-  /* ---- Mission ---- */
-  .home__mission {
-    max-width: 62ch;
-    margin-inline: auto;
+    align-items: stretch;
+    gap: var(--space-4);
     margin-bottom: var(--space-7);
   }
 
-  .home__mission-statement {
-    font-size: var(--text-lg);
-    color: var(--color-text-muted);
+  /* Sizing only — background, box-shadow, and padding all come from the
+     shared .widget rule (global.css) now, same as every other card. */
+  .home__updates-box,
+  .home__mission-box,
+  .home__pi-box {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
-  .home__mission-list {
-    margin-top: var(--space-3);
+  .home__updates-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
-  .home__mission-list li {
-    padding-left: var(--space-3);
-    border-left: 2px solid var(--color-accent);
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
-
-  .home__mission-list strong {
-    color: var(--color-accent);
-  }
-
-  /* ---- Lab Head ---- */
-  .labhead {
-    display: flex;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
-
-  .labhead__photo-frame {
-    flex-shrink: 0;
-    border: 1px solid var(--color-border);
-  }
-
-  /* Avatar is a child component — its root <svg> only ever carries
-     Avatar's own scope attribute, never this page's, even for a class
-     passed in as a prop, so this needs :global(). */
-  :global(.labhead__photo) {
+  .home__updates-list a {
     display: block;
+    text-decoration: none;
+    color: inherit;
   }
 
-  .labhead__body h3 {
-    font-size: var(--text-2xl);
-  }
-
-  .labhead__role {
-    color: var(--color-accent);
-    font-size: var(--text-sm);
-    margin-block: 0.3em var(--space-2);
-  }
-
-  .labhead__bio {
-    max-width: 52ch;
+  .home__updates-date {
+    display: block;
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
   }
 
-  .labhead__link {
+  .home__updates-title {
+    font-weight: 600;
+    transition: color 0.15s var(--ease-out);
+  }
+
+  .home__updates-list a:hover .home__updates-title {
+    color: var(--color-accent);
+  }
+
+  .home__updates-link {
     display: inline-block;
-    margin-top: var(--space-2);
+    margin-top: var(--space-3);
     font-size: var(--text-sm);
     color: var(--color-accent);
     text-decoration: none;
   }
 
-  .labhead__link:hover {
+  .home__updates-link:hover {
+    text-decoration: underline;
+  }
+
+  .home__mission-quote {
+    font-style: italic;
+  }
+
+  .home__pi-name {
+    font-weight: 700;
+  }
+
+  .home__pi-role {
+    color: var(--color-accent);
+    font-size: var(--text-xs);
+  }
+
+  .home__pi-link {
+    display: inline-block;
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .home__pi-link:hover {
     text-decoration: underline;
   }
 
@@ -458,15 +346,15 @@ const recentPubs = publications
     .home__hero {
       grid-template-columns: 1fr;
     }
+
+    .home__updates {
+      flex-direction: column;
+    }
   }
 
   @media (max-width: 640px) {
     .home__intro h1 {
       font-size: var(--text-2xl);
-    }
-
-    .labhead {
-      flex-direction: column;
     }
   }
 </style>
