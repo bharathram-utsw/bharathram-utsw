@@ -349,8 +349,13 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
           const rect = canvas.getBoundingClientRect();
           const hit = arcAt(e.clientX - rect.left, e.clientY - rect.top);
           if (hit) {
+            // Carries the clicked topic over as a filter instead of just
+            // dropping the visitor on the unfiltered list — PublicationNetwork
+            // (the graph on /publications itself) reads this same `topic`
+            // param on load and pre-applies it through its own existing
+            // click-to-filter logic.
             const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-            window.location.href = `${base}/publications`;
+            window.location.href = `${base}/publications?topic=${encodeURIComponent(hit.label)}`;
           }
         });
 
