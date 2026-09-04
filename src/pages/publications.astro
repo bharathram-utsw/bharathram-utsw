@@ -91,15 +91,30 @@ const publications = (await getCollection('publications')).sort((a, b) => b.data
     border-color: var(--color-accent);
   }
 
+  /* A masonry column flow, not a uniform grid — cards vary a lot in
+     height (an image, or not; a long abstract, or a two-line one), so
+     forcing them into equal-height grid rows left tall gaps under the
+     short ones. Each card gets its own margin-bottom (columns has no
+     row-gap concept) and break-inside: avoid so it never splits across
+     a column. */
   .publications-page__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
+    columns: 3;
+    column-gap: var(--space-3);
   }
 
-  @media (max-width: 900px) {
+  .publications-page__grid > :global(*) {
+    margin-bottom: var(--space-3);
+  }
+
+  @media (max-width: 1100px) {
     .publications-page__grid {
-      grid-template-columns: 1fr;
+      columns: 2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .publications-page__grid {
+      columns: 1;
     }
   }
 

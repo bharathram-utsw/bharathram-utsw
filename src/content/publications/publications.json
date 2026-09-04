@@ -28,7 +28,9 @@
       "Reserpine",
       "Sex Differences"
     ],
-    "summary": "Extends earlier work on the drug reserpine into a rat model of autosomal dominant retinitis pigmentosa, finding that female rats respond more strongly \u2014 with better rod and cone preservation and distinct gene-expression changes \u2014 underscoring sex as a variable in retinal therapy research."
+    "summary": "Extends earlier work on the drug reserpine into a rat model of autosomal dominant retinitis pigmentosa, finding that female rats respond more strongly \u2014 with better rod and cone preservation and distinct gene-expression changes \u2014 underscoring sex as a variable in retinal therapy research.",
+    "image": "/images/publications/song-2025-elife.jpg",
+    "imageAlt": "Bar charts of scotopic and photopic ERG amplitudes and visual-function measures comparing wild-type, vehicle-treated, and reserpine-treated P23H rats"
   },
   {
     "id": "mondal-2024-trends-genetics",
@@ -140,7 +142,9 @@
       "Photoreceptor",
       "Drug Repurposing"
     ],
-    "summary": "A high-throughput drug screen in patient-derived retinal organoids identified reserpine as a molecule that preserves photoreceptors in a ciliopathy model by correcting an imbalance between autophagy and the cell's protein-disposal machinery."
+    "summary": "A high-throughput drug screen in patient-derived retinal organoids identified reserpine as a molecule that preserves photoreceptors in a ciliopathy model by correcting an imbalance between autophagy and the cell's protein-disposal machinery.",
+    "image": "/images/publications/chen-2023-elife.jpg",
+    "imageAlt": "Timeline of retinal organoid differentiation in wild-type and Rd16 organoids, viability and rod-photoreceptor yield over time, and a chemical-library drug-screening pipeline"
   },
   {
     "id": "yang-2023-iscience",
@@ -318,7 +322,9 @@
     "volume": "16",
     "issue": "12",
     "articleNumber": "e1009259",
-    "summary": "Deleting the trafficking gene Rabgef1 in mice disrupted photoreceptor structure and vision almost immediately, with the affected cells showing signs of stalled autophagy \u2014 implicating this endocytic pathway as a new candidate for syndromic retinal disease."
+    "summary": "Deleting the trafficking gene Rabgef1 in mice disrupted photoreceptor structure and vision almost immediately, with the affected cells showing signs of stalled autophagy \u2014 implicating this endocytic pathway as a new candidate for syndromic retinal disease.",
+    "image": "/images/publications/hargrove-grimes-2020-plosgenetics.jpg",
+    "imageAlt": "Diagram of the endocytic and autophagy pathway from early endosome to lysosome, with a RabGEF1/RAB5 activation-cycle inset"
   },
   {
     "id": "brooks-2019-stemcellreports",
@@ -375,7 +381,9 @@
     "doi": "https://doi.org/10.3389/fmicb.2018.00118",
     "volume": "9",
     "articleNumber": "118",
-    "summary": "Sequencing gut bacteria across a genetically similar rural Indian population found that traditional Ayurvedic constitution types (\u201cPrakriti\u201d) correspond to real, measurable differences in which microbes are enriched \u2014 suggesting a biological basis for this personalized-medicine framework."
+    "summary": "Sequencing gut bacteria across a genetically similar rural Indian population found that traditional Ayurvedic constitution types (\u201cPrakriti\u201d) correspond to real, measurable differences in which microbes are enriched \u2014 suggesting a biological basis for this personalized-medicine framework.",
+    "image": "/images/publications/chauhan-2018-frontiersmicrobiology.jpg",
+    "imageAlt": "Stacked bar charts of gut bacterial phylum abundance (Bacteroidetes, Firmicutes, Others) across Vata, Pitta, and Kapha Prakriti groups"
   },
   {
     "id": "nandy-2018-infectionimmunity",
@@ -485,7 +493,9 @@
     "doi": "https://doi.org/10.1038/srep15214",
     "volume": "5",
     "articleNumber": "15214",
-    "summary": "Profiling infected lymph nodes from tuberculosis patients found a distinct inflammatory and tissue-damage signature \u2014 including a specific immune gene running high \u2014 that differs from the lipid-handling changes seen in lung tuberculosis, offering an early molecular picture of this form of the disease."
+    "summary": "Profiling infected lymph nodes from tuberculosis patients found a distinct inflammatory and tissue-damage signature \u2014 including a specific immune gene running high \u2014 that differs from the lipid-handling changes seen in lung tuberculosis, offering an early molecular picture of this form of the disease.",
+    "image": "/images/publications/maji-2015-scientificreports.jpg",
+    "imageAlt": "Four histology panels of tuberculosis-infected lymph node tissue sections, annotated with arrows marking granuloma features"
   },
   {
     "id": "kumar-2014-proteomics",
@@ -566,7 +576,9 @@
     "volume": "8",
     "issue": "7",
     "articleNumber": "e69985",
-    "summary": "Using atomic force microscopy, this study showed that a tuberculosis-bacterium protein called mIHF packages the bacterial genome by physically bending DNA, playing a role in chromosome organization similar to a well-known E. coli protein despite the two having evolved separately."
+    "summary": "Using atomic force microscopy, this study showed that a tuberculosis-bacterium protein called mIHF packages the bacterial genome by physically bending DNA, playing a role in chromosome organization similar to a well-known E. coli protein despite the two having evolved separately.",
+    "image": "/images/publications/mishra-2013-plosone.jpg",
+    "imageAlt": "Genome annotation tracks, mass-spectrometry peptide coverage, and sequencing-read coverage plots around the Rv1388 gene, with a western blot below"
   },
   {
     "id": "vashisht-2012-plosone",
@@ -595,6 +607,8 @@
     "volume": "7",
     "issue": "7",
     "articleNumber": "e39808",
-    "summary": "A crowdsourced, community-curated effort mapped over 2,500 protein interactions across the tuberculosis bacterium's genome, using the resulting network to flag candidate drug targets \u2014 five of which were later independently confirmed in the lab."
+    "summary": "A crowdsourced, community-curated effort mapped over 2,500 protein interactions across the tuberculosis bacterium's genome, using the resulting network to flag candidate drug targets \u2014 five of which were later independently confirmed in the lab.",
+    "image": "/images/publications/vashisht-2012-plosone.jpg",
+    "imageAlt": "Diagram contrasting the crowdsourced social network of curators with the resulting biological interactome-analysis pipeline for Mycobacterium tuberculosis"
   }
 ]
