@@ -85,30 +85,7 @@ const graphData = JSON.stringify({ nodes: topics, edges });
     border: 1px solid var(--color-border);
   }
 
-  /* A real circular frame around the graph — this is a network of
-     publications, not a rectangle of one, and the ring reinforces that
-     read even before any node moves. A percentage inset on a wide
-     rectangular container draws an ellipse, not a circle — width tied
-     to height via aspect-ratio, centered independent of the container's
-     own proportions, is what actually keeps it round. Sits behind the
-     canvas (z-index: 0 vs. the canvas's 1). */
-  .pub-network__canvas-wrap::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: min(72%, 560px);
-    aspect-ratio: 1;
-    transform: translate(-50%, -50%);
-    border: 1px solid var(--color-line);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   .pub-network__canvas {
-    position: relative;
-    z-index: 1;
     display: block;
     width: 100%;
     height: 600px;
