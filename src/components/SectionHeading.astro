@@ -29,13 +29,15 @@ const Tag = level;
   }
 
   /* A small accent marker on every section heading site-wide — one more
-     place the signal blue shows up beyond nav/links/eyebrows. */
+     place the signal blue shows up beyond nav/links/eyebrows. Hollow, not
+     filled: a solid block reads heavier than a heading marker should,
+     especially repeated on every page. */
   .section-heading__title::before {
     content: '';
     flex-shrink: 0;
-    width: 0.5em;
-    height: 0.5em;
-    background: var(--color-accent);
+    width: 0.55em;
+    height: 0.55em;
+    border: 2px solid var(--color-accent);
   }
 
   .section-heading__lede {

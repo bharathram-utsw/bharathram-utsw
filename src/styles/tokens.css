@@ -54,7 +54,7 @@
   --color-graph-edge: #cccccc;
 
   /* ---- Typography ---- */
-  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Archivo', var(--font-sans);
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 
@@ -87,9 +87,16 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-reveal: 0.25s;
 
-  /* ---- Elevation: hard offset shadows, no blur — "index card" feel ---- */
-  --shadow-card: 2px 2px 0 0 var(--color-border);
-  --shadow-card-hover: 4px 4px 0 0 var(--color-accent);
+  /* ---- Elevation: soft, layered drop shadows — a card lifted off the
+     page rather than a flat offset outline. Two layers each (a tight
+     one for contact/definition, a wider one for actual lift) reads
+     better than a single blur at any one radius. */
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 6px 16px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover:
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.14);
 
   /* ---- Layout ---- */
   --content-width: 1520px;
@@ -97,4 +104,62 @@
   --radius: 0px;
   --radius-lg: 0px;
   --taskbar-height: 2.75rem;
+  --header-height: 3.75rem;
+}
+
+/* ---- "Night vision" — a full color inversion, not just a dark-mode
+   restyle: white/black swap, and the signal accent swaps blue for red
+   (a literal night-vision-goggles read on the OS-dashboard identity).
+   Toggled via [data-theme="night"] on <html> — see SiteFooter.astro.
+
+   Deliberately not true black/white: a pure #000 page with pure #fff text
+   is harsher than it needs to be (halation around light text, and no
+   headroom for a surface to visibly "raise" above the page). Following
+   Material Design's dark-theme guidance — dark grey baseline instead of
+   true black, ~91% white instead of 100% for body text, elevated surfaces
+   get lighter rather than shadow-darker — reads calmer at the same
+   information density. ---- */
+:root[data-theme='night'] {
+  --color-bg: #121212;
+  --color-bg-raised: #1e1e1e;
+  --color-bg-inset: #171717;
+  --color-line: #333333;
+
+  --color-text: #e8e8ea;
+  --color-text-muted: #9c9ca2;
+  --color-text-faint: #717176;
+
+  --color-accent: #ff6b6b;
+  --color-accent-strong: #ff9494;
+  --color-accent-soft: #3a1c1c;
+
+  --color-accent-2: #e8e8ea;
+  --color-accent-2-strong: #ffffff;
+  --color-accent-2-soft: #262626;
+
+  --color-ink: #e8e8ea;
+  --color-ink-raised: #d6d6d8;
+  --color-on-ink: #121212;
+  --color-on-ink-muted: #4a4a4a;
+  --color-on-ink-border: #c4c4c6;
+  --color-accent-on-ink: #ab2f2f;
+
+  --color-border: #e8e8ea;
+  --color-border-strong: #ffffff;
+
+  --color-graph-node: #e8e8ea;
+  --color-graph-edge: #444444;
+
+  /* A dark shadow barely reads against a page this dark already — raised
+     surfaces are already lighter than the page (elevation-by-tint, the
+     Material dark-theme convention), so the shadow's job here is just a
+     faint light-side separation, not a dark cast. */
+  --shadow-card:
+    0 1px 2px rgba(255, 255, 255, 0.03),
+    0 6px 16px rgba(255, 255, 255, 0.05);
+  --shadow-card-hover:
+    0 2px 4px rgba(255, 255, 255, 0.05),
+    0 12px 28px rgba(255, 255, 255, 0.09);
+
+  color-scheme: dark;
 }

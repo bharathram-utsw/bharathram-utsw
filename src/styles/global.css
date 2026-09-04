@@ -2,9 +2,9 @@
 @import './network-motif.css';
 
 /* Self-hosted fonts via @fontsource — no external CDN request */
-@import '@fontsource/ibm-plex-sans/400.css';
-@import '@fontsource/ibm-plex-sans/500.css';
-@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 @import '@fontsource/ibm-plex-mono/600.css';
@@ -68,8 +68,9 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
-  /* SiteFooter is a fixed taskbar, not in normal flow — reserve its height
-     so it never covers the last bit of real content. */
+  /* SiteHeader and SiteFooter are both fixed, out of normal flow — reserve
+     their heights so neither one ever covers real content. */
+  padding-top: var(--header-height);
   padding-bottom: var(--taskbar-height);
 }
 
@@ -136,7 +137,7 @@ cite {
 .eyebrow {
   display: block;
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-accent);
@@ -187,14 +188,14 @@ cite {
    content on this branch sits in (dashboard widgets, contact rows,
    research/team panels), not just the homepage bento row. */
 .widget {
-  border: 1px solid var(--color-border);
   background: var(--color-bg-raised);
   padding: var(--space-3);
+  box-shadow: var(--shadow-card);
 }
 
 .widget__label {
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
