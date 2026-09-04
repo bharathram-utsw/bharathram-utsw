@@ -19,7 +19,7 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
 ---
 
 <article
-  class="pub-card"
+  class="pub-card corner-frame"
   data-pub-card
   data-pub-id={id}
   data-keywords={pub.keywords.join('|')}
@@ -92,11 +92,13 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
 </article>
 
 <style>
+  /* corner-frame (global.css) supplies the blue bracket corners and
+     position: relative — no full border, matching the site-wide switch
+     away from solid-line boxes. */
   .pub-card {
     display: block;
     break-inside: avoid;
     background: var(--color-bg-raised);
-    border: 1px solid var(--color-border);
     transition: box-shadow 0.15s var(--ease-out);
   }
 
@@ -105,7 +107,6 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
   }
 
   .pub-card--flash {
-    border-color: var(--color-accent);
     box-shadow: inset 0 0 0 1px var(--color-accent);
   }
 
@@ -119,6 +120,7 @@ if (pub.articleNumber) metaParts.push(`Art. ${pub.articleNumber}`);
 
   .pub-card__figure {
     display: block;
+    padding: var(--space-2);
     border-bottom: 1px solid var(--color-border);
     background: var(--color-bg-inset);
   }

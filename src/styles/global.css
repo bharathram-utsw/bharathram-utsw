@@ -159,35 +159,52 @@ cite {
   position: relative;
 }
 
+/* Literal [ ] brackets, not a rule around every box — the same [ ]
+   device already used for every eyebrow and .widget__label, now as the
+   edge treatment itself instead of a solid border. Each side is a full-
+   height flat bracket (a vertical stroke with a short tick top and
+   bottom). Near-black, not the signal blue: this runs on nearly every
+   card/panel site-wide, and the tokens above reserve blue for live/
+   interactive moments (links, active nav, badges) — repeating it as a
+   structural edge everywhere would turn the one accent into noise and
+   stack on top of the existing grey-page/white-card contrast. .widget
+   shares this automatically (same pseudo-elements, same color) since
+   it's the same device. */
+.corner-frame,
+.widget {
+  position: relative;
+}
+
 .corner-frame::before,
-.corner-frame::after {
+.corner-frame::after,
+.widget::before,
+.widget::after {
   content: '';
   position: absolute;
-  width: 18px;
-  height: 18px;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  border-block: 2px solid var(--color-border-strong);
   pointer-events: none;
   z-index: 2;
 }
 
-.corner-frame::before {
-  top: 0;
+.corner-frame::before,
+.widget::before {
   left: 0;
-  border-top: 2px solid var(--color-border-strong);
   border-left: 2px solid var(--color-border-strong);
 }
 
-.corner-frame::after {
-  bottom: 0;
+.corner-frame::after,
+.widget::after {
   right: 0;
-  border-bottom: 2px solid var(--color-border-strong);
   border-right: 2px solid var(--color-border-strong);
 }
 
-/* "OS widget" cell — the base hairline-bordered panel every block of
-   content on this branch sits in (dashboard widgets, contact rows,
-   research/team panels), not just the homepage bento row. */
+/* "OS widget" cell — the base panel every block of content on this
+   branch sits in (dashboard widgets, contact rows, research/team
+   panels), not just the homepage bento row. */
 .widget {
-  border: 1px solid var(--color-border);
   background: var(--color-bg-raised);
   padding: var(--space-3);
 }
