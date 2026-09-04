@@ -3,7 +3,6 @@ name: "Anupam Mondal, Ph.D."
 role: "Assistant Professor & Principal Investigator"
 order: 0
 bioShort: "Computational biologist uncovering time-specific molecular patterns in vision disorders and aging."
-interests: ["climbing", "running", "mountains", "history", "travel", "cooking"]
 isPI: true
 ---
 

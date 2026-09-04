@@ -68,7 +68,6 @@ const team = defineCollection({
     photo: z.string().optional(),
     order: z.number().default(0),
     bioShort: z.string().optional(),
-    interests: z.array(z.string()).default([]),
     email: z.string().email().optional(),
     isPI: z.boolean().default(false),
   }),

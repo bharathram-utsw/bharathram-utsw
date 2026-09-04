@@ -8,30 +8,39 @@ import { withBase } from '../lib/url';
 
 const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
 const pi = team.find((m) => m.data.isPI);
-const others = team.filter((m) => !m.data.isPI);
+const postdocs = team.filter((m) => !m.data.isPI && m.data.role.includes('Postdoctoral'));
+const staff = team.filter((m) => !m.data.isPI && !m.data.role.includes('Postdoctoral'));
 ---
 
 <BaseLayout title="Team" description="Meet the Mondal Lab team at UT Southwestern Medical Center.">
   <div class="container team-page">
-    <SectionHeading eyebrow="Who we are" level="h1">Team</SectionHeading>
+    <SectionHeading level="h1">Team</SectionHeading>
 
     {
       pi && (
         <div class="team-page__pi">
-          <p class="widget__label">Principal investigator</p>
           <TeamMemberCard member={pi} featured />
         </div>
       )
     }
 
     {
-      others.length > 0 && (
+      postdocs.length > 0 && (
         <>
-          <p class="widget__label team-page__roster-label">
-            Roster · {others.length} {others.length === 1 ? 'member' : 'members'}
-          </p>
+          <p class="widget__label team-page__roster-label">Postdoctoral Research</p>
           <div class="team-page__roster">
-            {others.map((member) => <TeamMemberCard member={member} />)}
+            {postdocs.map((member) => <TeamMemberCard member={member} />)}
+          </div>
+        </>
+      )
+    }
+
+    {
+      staff.length > 0 && (
+        <>
+          <p class="widget__label team-page__roster-label">Lab Administration</p>
+          <div class="team-page__roster">
+            {staff.map((member) => <TeamMemberCard member={member} />)}
           </div>
         </>
       )
@@ -45,23 +54,10 @@ const others = team.filter((m) => !m.data.isPI);
       <p class="prose">
         The lab is actively looking for talented postdocs and graduate students interested in the
         computational biology of vision and aging — genomics, epigenomics, metabolism, and network
-        analysis applied to retinal disease.
+        analysis applied to retinal disease. Applications are welcome from postdoctoral, graduate,
+        and intern candidates alike.
       </p>
       <div class="team-page__hiring-grid">
-        <div>
-          <p class="mono team-page__hiring-label">Postdoctoral fellows</p>
-          <p class="prose">
-            Background in computational biology, bioinformatics, or a related quantitative field.
-            Wet-lab experience is a plus but not required.
-          </p>
-        </div>
-        <div>
-          <p class="mono team-page__hiring-label">Graduate students</p>
-          <p class="prose">
-            Rotations welcome from UT Southwestern's graduate programs. Reach out to discuss
-            current project openings.
-          </p>
-        </div>
         <div>
           <p class="mono team-page__hiring-label">To apply</p>
           <p class="prose">Send a CV and a short note on your research interests.</p>
@@ -81,25 +77,15 @@ const others = team.filter((m) => !m.data.isPI);
     margin-bottom: var(--space-6);
   }
 
-  .team-page__pi .widget__label {
-    margin-bottom: var(--space-2);
-  }
-
   .team-page__roster-label {
     margin-bottom: var(--space-2);
   }
 
   .team-page__roster {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: var(--space-3);
     margin-bottom: var(--space-6);
-  }
-
-  @media (max-width: 900px) {
-    .team-page__roster {
-      grid-template-columns: 1fr;
-    }
   }
 
   .team-page__hiring h2 {
@@ -108,17 +94,10 @@ const others = team.filter((m) => !m.data.isPI);
   }
 
   .team-page__hiring-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-4);
+    max-width: 28rem;
     margin-top: var(--space-4);
     padding-top: var(--space-4);
     border-top: 1px solid var(--color-line);
-  }
-
-  .team-page__hiring-grid > div + div {
-    border-left: 1px solid var(--color-line);
-    padding-left: var(--space-4);
   }
 
   .team-page__hiring-label {
@@ -132,16 +111,4 @@ const others = team.filter((m) => !m.data.isPI);
     color: var(--color-text-muted);
   }
 
-  @media (max-width: 720px) {
-    .team-page__hiring-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .team-page__hiring-grid > div + div {
-      border-left: none;
-      border-top: 1px solid var(--color-line);
-      padding-left: 0;
-      padding-top: var(--space-3);
-    }
-  }
 </style>
