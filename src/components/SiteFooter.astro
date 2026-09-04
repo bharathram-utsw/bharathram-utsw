@@ -8,6 +8,9 @@
 ---
 
 <footer class="taskbar">
+  <button type="button" class="mono taskbar__theme-toggle" id="taskbar-theme-toggle" aria-pressed="false">
+    Night vision
+  </button>
   <div class="taskbar__tray">
     <span class="mono taskbar__clock" id="taskbar-clock" aria-hidden="true"></span>
   </div>
@@ -26,6 +29,32 @@
     height: var(--taskbar-height);
     background: var(--color-bg-raised);
     border-top: 1px solid var(--color-border);
+  }
+
+  .taskbar__theme-toggle {
+    display: flex;
+    align-items: center;
+    padding-inline: var(--space-3);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    border-left: 1px solid var(--color-border);
+    background: none;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+  }
+
+  .taskbar__theme-toggle:hover {
+    background: var(--color-bg-inset);
+    color: var(--color-text);
+  }
+
+  .taskbar__theme-toggle[aria-pressed='true'] {
+    color: var(--color-accent);
   }
 
   .taskbar__tray {
@@ -48,4 +77,38 @@
 
   updateClock();
   setInterval(updateClock, 15000);
+
+  // "Night vision" — a full color inversion (white/black swap, blue
+  // accent to red), not a conventional dark-mode restyle. The [data-theme]
+  // attribute drives the token overrides in tokens.css; BaseLayout's early
+  // inline <head> script applies the stored choice before first paint so
+  // there's no flash of the wrong theme.
+  const themeToggle = document.getElementById('taskbar-theme-toggle');
+
+  function syncToggleLabel() {
+    const active = document.documentElement.dataset.theme === 'night';
+    themeToggle?.setAttribute('aria-pressed', String(active));
+    if (themeToggle) themeToggle.textContent = active ? 'Day vision' : 'Night vision';
+  }
+
+  syncToggleLabel();
+
+  themeToggle?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'night' ? '' : 'night';
+    if (next) {
+      document.documentElement.dataset.theme = next;
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+    try {
+      localStorage.setItem('theme', next);
+    } catch (e) {
+      /* localStorage unavailable — theme still applies for this page view */
+    }
+    syncToggleLabel();
+    // Anything that reads color tokens into JS state once (canvas drawings,
+    // chiefly) needs telling the tokens just changed — CSS custom
+    // properties don't trigger any DOM event on their own.
+    window.dispatchEvent(new CustomEvent('themechange'));
+  });
 </script>

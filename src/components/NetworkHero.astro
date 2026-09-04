@@ -174,9 +174,9 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
         // signal red) is reserved for the hovered arc, not spent on
         // distinguishing every category.
         const PALETTE = ['#0a0a0a', '#2b2b2e', '#4a4a4f', '#6b6b70', '#8f8f94', '#b5b5ba'];
-        const accentColor = readVar('--color-accent', '#004c97');
-        const edgeBaseColor = readVar('--color-border-strong', '#b9c5d1');
-        const labelColor = readVar('--color-text-muted', '#4a5560');
+        let accentColor = readVar('--color-accent', '#004c97');
+        let edgeBaseColor = readVar('--color-border-strong', '#b9c5d1');
+        let labelColor = readVar('--color-text-muted', '#4a5560');
         const monoFont = readVar('--font-mono', 'ui-monospace, monospace');
 
         const GAP_DEG = 2.4;
@@ -374,6 +374,16 @@ const graphData = JSON.stringify({ nodes: graphNodes, edges: graphEdges });
 
         resize();
         draw();
+
+        // See PublicationNetwork.astro for why this is needed: colors are
+        // read once into JS, so the Night Vision toggle needs to explicitly
+        // ask this canvas to re-read them and redraw.
+        window.addEventListener('themechange', () => {
+          accentColor = readVar('--color-accent', '#004c97');
+          edgeBaseColor = readVar('--color-border-strong', '#b9c5d1');
+          labelColor = readVar('--color-text-muted', '#4a5560');
+          draw();
+        });
 
         if (!prefersReducedMotion) {
           let raf = 0;

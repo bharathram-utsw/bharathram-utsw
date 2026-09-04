@@ -39,6 +39,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <script is:inline>
       document.documentElement.classList.add('js-reveal');
+      try {
+        if (localStorage.getItem('theme') === 'night') {
+          document.documentElement.dataset.theme = 'night';
+        }
+      } catch (e) {
+        /* localStorage unavailable (private browsing, etc.) — default theme stands */
+      }
     </script>
   </head>
   <body>
